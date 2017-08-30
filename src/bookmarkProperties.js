@@ -34,6 +34,7 @@
     let deleteImage;
     let blobToSave;
     let blobImgUrl;
+    let modalOpen;
 
     const loadIconFromDisk = async () => {
         blobToSave = await selectImageFromDisk();
@@ -45,6 +46,7 @@
         blobImgUrl = undefined;
         blobToSave = undefined;
         closeModal();
+        modalOpen = false;
     };
     const apply = () => {
         const icon = app.data.icons[context.dataset.id];
@@ -85,10 +87,17 @@
     ui.cancelBtn.addEventListener('click', close);
     ui.applyBtn.addEventListener('click', apply);
     window.addEventListener('keydown', function(e) {
-        if (e.keyCode === 13) { // enter
-            apply();
-        } else if (e.keyCode === 27) { // esc
-            close();
+        if (modalOpen) {
+            if (e.keyCode === 13) { // enter
+                const focusedEl = document.activeElement;
+                if (focusedEl.tagName === 'INPUT') {
+                    focusedEl.blur();
+                } else {
+                    apply();
+                }
+            } else if (e.keyCode === 27) { // esc
+                close();
+            }
         }
     });
 
@@ -123,5 +132,6 @@
         ui.bmUrl.value = icon.url;
 
         openModal(content);
+        modalOpen = true;
     };
 }

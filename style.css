@@ -1,14 +1,49 @@
+* {
+    box-sizing: border-box;
+}
+
 html, body {
     margin: 0;
     padding: 0;
     width: 100%;
     height: 100%;
-    background: #000000;
+    transition: background-color 0.5s;
+}
+
+input[type=checkbox] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    cursor: pointer;
+}
+
+input[type=checkbox]:focus {
+    outline: none;
+    border: 1px solid #4D90FE;
+    box-shadow: 0px 0px 5px #4D90FE;
+}
+
+#loadFadeIn {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: #ffffff;
+    opacity: 1;
+    transition: opacity 0.30s;
+    will-change: opacity;
 }
 
 .desktop {
-    width: 100%;
-    height: 100%;
+    min-width: 100%;
+    min-height: 100%;
+    background-position: center center;
+    background-attachment: fixed;
+    background-size: cover;
+    /* background-size: contain; */
+    background-repeat: no-repeat;
+    /* background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url() */
 }
 
 .bookmark {
@@ -33,6 +68,7 @@ html, body {
     background: rgba(255, 255, 255, 0.5);
     padding: 4px;
     border-radius: 4px;
+    box-sizing: content-box;
 }
 
 .bookmarkLink .name {
@@ -43,8 +79,9 @@ html, body {
     -webkit-line-clamp: 3;
     display: -webkit-box;
     -webkit-box-orient: vertical;*/
-    margin-top: 5px 0;
-    text-shadow: 0px 0px 8px rgba(0, 0, 0, 0.7);
+    margin-top: 5px;
+    word-wrap: break-word;
+    text-shadow: 0px 0px 8px rgba(0, 0, 0, 1);
     color: #ffffff;
     padding: 0 5px 5px 5px;
 }
@@ -148,12 +185,121 @@ html, body {
 
 .backgroundProperties {
     flex: 1 1 30%;
+    padding-right: 12px;
+    border-bottom: 1px solid #000000;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.previewBG {
+    border-width: 10px;
+    border-style: solid;
+    background-size: cover;
+}
+
+.previewBGFake {
+    width: 100%;
+    visibility: hidden;
+}
+
+.topBgOptions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin: 10px 0;
+    min-height: 50px;
+}
+
+.topBgOptions input {
+    width: 60px;
+    height: 30px;
+    cursor: pointer;
+}
+
+.topBgOptions span {
+    display: inline-block;
+    transform: translateY(-4px);
+}
+
+.topBgOptions span input {
+    width: 50px;
+    text-align: right;
+    cursor: auto;
+}
+
+.topBgOptions .inRotation {
+    width: 18px;
+    height: 18px;
+}
+
+.fitModes {
+    /* margin: 40px 0 10px 0; */
+}
+
+.fitModes select {
+    width: 100%;
+}
+
+.bottomButtons {
+    margin-bottom: 10px;
 }
 
 .backgroundSelector {
     flex: 1 1 70%;
     overflow-y: auto;
     border: 1px solid #000000;
+    padding: 5px;
+}
+
+.defaultBackgrounds {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.bgTile {
+    flex: 0 0 25%;
+    font-size: 0;
+    padding: 6px;
+    box-sizing: border-box;
+    position: relative;
+    cursor: pointer;
+}
+
+.bgTile:hover .bgCheckbox {
+    display: block;
+}
+
+.bgTile:hover .bgTileOverlay {
+    display: block;
+}
+
+.bgTileOverlay {
+    background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%,rgba(69,72,77,0) 25%);
+    width: calc(100% - 12px);
+    height: calc(100% - 12px);
+    position: absolute;
+    display: none;
+}
+
+.bgTile img {
+    max-width: 100%;
+}
+
+.bgTile.selected .bgCheckbox {
+    display: block;
+}
+
+.bgTile.selected .bgTileOverlay {
+    display: block;
+}
+
+.bgCheckbox {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: none;
 }
 
 .backgroundActions {
@@ -163,7 +309,6 @@ html, body {
 
 .rotateOptions {
     display: flex;
-    margin-right: 50px;
 }
 
 .shuffleDiv {
@@ -177,7 +322,7 @@ html, body {
 }
 
 .rotateOptions .bgShuffle {
-    width: auto;
+    width: 18px;
     display: inline-block;
 }
 
@@ -185,15 +330,16 @@ html, body {
 
 }
 
-.groupStuff {
+.desktopUiLeft {
     display: flex;
-    flex: 1 1 auto;
+    flex: 1 1 30%;
+    justify-content: center;
 }
 
-.groupStuffRight {
+.desktopUiRight {
     display: flex;
-    justify-content: flex-end;
-    flex: 1 1 auto;
+    justify-content: space-between;
+    flex: 1 1 70%;
 }
 
 .buttons {
@@ -221,6 +367,10 @@ html, body {
     cursor: pointer;
     background: #dddddd;
     border: 1px solid #000000;
+}
+
+.center {
+    text-align: center;
 }
 
 .btn:hover {

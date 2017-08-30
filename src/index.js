@@ -1,18 +1,11 @@
 /* global chrome, app, idbKeyval */
 {
-    const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getFaviconImageUrl, clampText, promisify} = app.util;
+    const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getFaviconImageUrl,
+           clampText, promisify, fixBackgroundSize, updateBackground, getNextBgInCycle} = app.util;
     const desktop = document.querySelector('#desktop');
+    app.desktop = desktop;
 
-    let data;
-    try {
-        data = JSON.parse(localStorage.data);
-    } catch (e) {
-        data = {
-            icons: {},
-            locations: {}
-        };
-    }
-    app.data = data;
+    const data = app.data;
 
     function findNextOpenSpot() {
         for (let x = 0; x < 12; x++) {
@@ -64,6 +57,9 @@
     }
 
     app.saveData = () => {
+        // side task to update background.
+        fixBackgroundSize();
+
         data.icons = {};
         data.locations = {};
         desktop.children.forEach((child) => {
@@ -116,6 +112,24 @@
     }
 
     init();
+
+    // Start checking if we need to switch backgrounds.
+    setInterval(() => {
+        const lastRotation = localStorage.lastRotation;
+        const now = Date.now();
+        if ((now - lastRotation) > data.rotateMinutes * 60 * 1000) {
+            const nextBg = getNextBgInCycle(localStorage.lastBgId, data.backgrounds, data.random);
+            if (nextBg) {
+                updateBackground(nextBg);
+                app.saveData();
+            }
+            localStorage.lastRotation = now;
+        }
+    }, 10000);
+
+    window.addEventListener('resize', () => {
+        fixBackgroundSize();
+    });
     /*
     { // root folder node
         "children": [{ // folder node

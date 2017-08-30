@@ -1,9 +1,6 @@
+/* global app */
 {
-    window.app.util = {};
-    const util = window.app.util;
-
-    NodeList.prototype.forEach = Array.prototype.forEach;
-    HTMLCollection.prototype.forEach = Array.prototype.forEach;
+    const util = app.util;
 
     util.GUTTER = 20;
     util.ICON_SPACING = 20;
@@ -99,5 +96,51 @@
 
     util.getFaviconImageUrl = (url, size = 32) => {
         return `chrome://favicon/size/${size}/${url}`;
+    };
+
+    util.randomInt = (min, max) => {
+        return Math.floor(Math.random() * (max - min + 1) + min);
+    };
+
+    util.pad = (str, length, pad = '0') => {
+        while (str.length < length) {
+            str = pad + str;
+        }
+        return str;
+    };
+
+    util.setBackgroundStylesFromMode = (el, mode) => {
+        if (mode === 'fill') {
+            el.style.backgroundSize = 'cover';
+            el.style.backgroundRepeat = 'no-repeat';
+        } else if (mode === 'fit') {
+            el.style.backgroundSize = 'contain';
+            el.style.backgroundRepeat = 'no-repeat';
+        } else if (mode === 'stretch') {
+            el.style.backgroundSize = '100% 100%';
+            el.style.backgroundRepeat = 'no-repeat';
+        } else if (mode === 'tile') {
+            el.style.backgroundSize = 'initial';
+            el.style.backgroundRepeat = 'repeat';
+        } else if (mode === 'center') {
+            el.style.backgroundSize = 'initial';
+            el.style.backgroundRepeat = 'no-repeat';
+        }
+    };
+
+    util.updateBackground = (bg) => {
+        app.desktop.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image})`;
+        document.body.style.background = bg.color;
+        util.setBackgroundStylesFromMode(app.desktop, bg.mode);
+        app.data.background = bg;
+        localStorage.lastRotation = Date.now();
+        localStorage.lastBgId = bg.id;
+    };
+
+    util.fixBackgroundSize = () => {
+        app.desktop.style.width = 'auto';
+        app.desktop.style.height = 'auto';
+        app.desktop.style.width = document.body.scrollWidth + 'px';
+        app.desktop.style.height = document.body.scrollHeight + 'px';
     };
 }
