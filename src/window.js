@@ -1,5 +1,4 @@
-HTMLElement.prototype.$ = HTMLElement.prototype.querySelector;
-
+/* global app */
 {
     const listen = (el, type, func) => {
         el.addEventListener(type, func, false);
@@ -45,8 +44,8 @@ HTMLElement.prototype.$ = HTMLElement.prototype.querySelector;
         `;
 
         const win = instanceTemplate(template);
-        const titleBar = win.$('.title-bar');
-        titleBar.$('.title').textContent = title;
+        const titleBar = win.querySelector('.title-bar');
+        titleBar.querySelector('.title').textContent = title;
 
         win.style.width = width + 'px';
         win.style.height = height + 'px';
@@ -65,7 +64,7 @@ HTMLElement.prototype.$ = HTMLElement.prototype.querySelector;
             firstPoint.y = e.pageY;
             mouseDown = true;
             target = e.target;
-            const currentActive = $('.window.active');
+            const currentActive = document.querySelector('.window.active');
             if (currentActive) {
                 currentActive.classList.remove('active');
             }
@@ -129,14 +128,14 @@ HTMLElement.prototype.$ = HTMLElement.prototype.querySelector;
                 win.style.height = newHeight + 'px';
             }
         });
-        listen(win.$('.close'), 'click', () => {
+        listen(win.querySelector('.close'), 'click', () => {
             win.parentNode.removeChild(win);
         });
 
         document.body.appendChild(win);
     };
 
-    window.makeWindow = makeWindow;
+    app.makeWindow = makeWindow;
 }
 
 // makeWindow('Some Window');

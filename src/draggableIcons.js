@@ -1,14 +1,18 @@
-/* global getParentElementWithClass, saveData, ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER */
+/* global app */
 {
+    const {saveData} = app;
+    const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getParentElementWithClass} = app.util;
+
     const disableNav = (e) => {
         e.preventDefault();
         return false;
     };
 
+    let target;
     let lastX;
     let lastY;
     const checkForSwap = (x, y) => {
-        const data = window.data;
+        const data = app.data;
         const existing = data.locations[`${x},${y}`] || {};
         const existingEl = existing.element;
         if (lastX !== undefined && existingEl && target !== existingEl) {
@@ -20,7 +24,6 @@
     };
 
     let mouseDown = false;
-    let target;
     let moved = false;
     let timeDown;
     window.addEventListener('mousedown', function(e) {
@@ -65,7 +68,7 @@
         }
     });
 
-    window.addEventListener('mouseup', function(e) {
+    window.addEventListener('mouseup', function() {
         target = undefined;
         mouseDown = false;
         if (moved) {

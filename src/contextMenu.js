@@ -1,5 +1,8 @@
-/* global idbKeyval, show, hide, chrome, showModal, getParentElementWithClass */
+/* global chrome, idbKeyval, app */
 {
+    const {openBookmarkProperties, openDesktopProperties} = app;
+    const {getUiElements, show, hide, getParentElementWithClass} = app.util;
+
     const contextMenu = document.createElement('div');
     contextMenu.className = 'contextMenu';
     contextMenu.innerHTML = `
@@ -11,47 +14,45 @@
         <div class="contextMenuItem" data-id="delete">Delete</div>
         <div class="contextMenuItem" data-id="properties">Properties</div>
     `;
-    const menuUi = {};
-    contextMenu.querySelectorAll('[data-id]').forEach((item) => {
-        menuUi[item.dataset.id] = item;
-    });
+
+    const ui = getUiElements(contextMenu);
     let context;
 
-    menuUi.newTab.addEventListener('click', () => {
+    ui.newTab.addEventListener('click', () => {
         const url = context.dataset.url;
         chrome.tabs.create({url});
         hide(contextMenu);
     });
 
-    menuUi.newWindow.addEventListener('click', () => {
+    ui.newWindow.addEventListener('click', () => {
         const url = context.dataset.url;
         chrome.windows.create({url, state: 'maximized'});
         hide(contextMenu);
     });
 
-    menuUi.incog.addEventListener('click', () => {
+    ui.incog.addEventListener('click', () => {
         const url = context.dataset.url;
         chrome.windows.create({url, state: 'maximized', incognito: true});
         hide(contextMenu);
     });
 
-    menuUi.createFolder.addEventListener('click', () => {
+    ui.createFolder.addEventListener('click', () => {
         console.log('create folder');
         hide(contextMenu);
     });
 
-    menuUi.delete.addEventListener('click', () => {
+    ui.delete.addEventListener('click', () => {
         chrome.bookmarks.remove(context.dataset.id);
         context.parentNode.removeChild(context);
         idbKeyval.delete(context.dataset.id);
         hide(contextMenu);
     });
 
-    menuUi.properties.addEventListener('click', () => {
+    ui.properties.addEventListener('click', () => {
         if (context) {
-            showModal('bookmarkProperties', context);
+            openBookmarkProperties(context);
         } else {
-            showModal('desktopProperties');
+            openDesktopProperties();
         }
         hide(contextMenu);
     });
@@ -60,20 +61,20 @@
         const isIcon = getParentElementWithClass(e.target, 'bookmark');
         if (isIcon) {
             context = isIcon;
-            show(menuUi.newTab);
-            show(menuUi.newWindow);
-            show(menuUi.incog);
-            show(menuUi.sep);
-            show(menuUi.delete);
-            hide(menuUi.createFolder);
+            show(ui.newTab);
+            show(ui.newWindow);
+            show(ui.incog);
+            show(ui.sep);
+            show(ui.delete);
+            hide(ui.createFolder);
         } else {
             context = undefined;
-            hide(menuUi.newTab);
-            hide(menuUi.newWindow);
-            hide(menuUi.incog);
-            hide(menuUi.sep);
-            hide(menuUi.delete);
-            show(menuUi.createFolder);
+            hide(ui.newTab);
+            hide(ui.newWindow);
+            hide(ui.incog);
+            hide(ui.sep);
+            hide(ui.delete);
+            show(ui.createFolder);
         }
     };
 
