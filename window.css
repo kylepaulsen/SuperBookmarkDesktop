@@ -1,0 +1,121 @@
+.window {
+  border: 1px solid #000;
+  border-radius: 5px;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.window.active {
+  z-index: 9;
+}
+
+.window-top {
+  flex: 0 0 8px;
+  display: flex;
+}
+
+.window-middle {
+  flex: 1 1 1px;
+  display: flex;
+}
+
+.window-top-middle {
+  flex: 0 0 25px;
+  display: flex;
+}
+
+.window-bottom {
+  flex: 0 0 8px;
+  display: flex;
+}
+
+.nw-resize.top-resize {
+  border-radius: 5px 0 0 0;
+}
+
+.ne-resize.top-resize {
+  border-radius: 0 5px 0 0;
+}
+
+.w-resize.top-resize {
+  border-bottom: 1px solid #000000;
+}
+
+.e-resize.top-resize {
+  border-bottom: 1px solid #000000;
+}
+
+.nw-resize, .se-resize {
+  flex: 0 0 8px;
+  height: 8px;
+  background: #fff;
+  cursor: nwse-resize;
+}
+
+.n-resize, .s-resize {
+  flex: 1 1 1px;
+  height: 8px;
+  background: #fff;
+  cursor: ns-resize;
+}
+
+.ne-resize, .sw-resize {
+  flex: 0 0 8px;
+  height: 8px;
+  background: #fff;
+  cursor: nesw-resize;
+}
+
+.w-resize, .e-resize {
+  flex: 0 0 8px;
+  background: #fff;
+  cursor: ew-resize;
+}
+
+.sw-resize {
+  border-radius: 0 0 0 5px;
+}
+
+.se-resize {
+  border-radius: 0 0 5px 0;
+}
+
+.top-resize {
+  background: #ddd;
+}
+
+.title-bar {
+  width: 100%;
+  background: #ddd;
+  flex: 1 1 1px;
+  display: flex;
+  border-bottom: 1px solid #000000;
+  cursor: move;
+}
+
+.close {
+  flex: 0 0 12px;
+  background: red;
+  height: 12px;
+  border-radius: 12px;
+  margin-top: 2px;
+  cursor: pointer;
+  order: 0;
+}
+
+.title {
+  flex: 1 1 1px;
+  margin: 0 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.content {
+  flex: 1 1 1px;
+  background: #fff;
+}
+
