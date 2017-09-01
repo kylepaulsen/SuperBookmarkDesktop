@@ -24,7 +24,7 @@
         </div>
         <div class="buttons">
             <button class="cancelBtn btn" data-id="cancelBtn">Cancel</button>
-            <button class="applyBtn btn" data-id="applyBtn">Apply</button>
+            <button class="applyBtn btn defaultBtn" data-id="applyBtn">Apply</button>
         </div>
     `;
 

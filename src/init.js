@@ -12,36 +12,27 @@
     };
     const app = window.app;
     app.util = window.util;
-    const {randomInt, setBackgroundStylesFromMode, getNextBgInCycle} = app.util;
+    const {randomInt, setBackgroundStylesFromMode, getNextBgInCycle, createBG,
+        getBgImageFromDB, loadImage, sleep} = app.util;
 
     // load in localStorage data...
     let data;
     try {
         data = JSON.parse(localStorage.data);
     } catch (e) {
-        const backgrounds = app.defaultBackgrounds.map((bg, idx) => {
-            return {
-                id: `_bg${idx}`,
-                image: `backgrounds/${bg}`,
-                mode: 'fill',
-                color: '#000000',
-                filter: 'rgba(0,0,0,0)',
-                default: true,
-                selected: true
-            };
-        });
-        const bg = backgrounds[randomInt(0, backgrounds.length - 1)];
+        const backgrounds = app.defaultBackgrounds.map((bg, idx) => createBG(idx, bg, true));
         data = {
             icons: {},
             locations: {},
             backgrounds,
-            background: bg,
+            background: undefined,
             rotateMinutes: 20,
             random: false
         };
     }
     // Seems pointless but This makes sure data.background points at one of our backgrounds in the list.
-    data.background = data.backgrounds.find((bg) => data.background.id === bg.id);
+    const lastId = localStorage.lastBgId || data.backgrounds[randomInt(0, data.backgrounds.length - 1)].id;
+    data.background = data.backgrounds.find((bg) => lastId === bg.id);
     app.data = data;
 
     const now = Date.now();
@@ -50,6 +41,12 @@
     }
     if (!localStorage.lastBgId) {
         localStorage.lastBgId = data.background.id;
+    }
+    if (!localStorage.desktopBgsCollapsed) {
+        localStorage.desktopBgsCollapsed = false;
+    }
+    if (!localStorage.userBgsCollapsed) {
+        localStorage.userBgsCollapsed = false;
     }
 
     const lastRotation = localStorage.lastRotation;
@@ -62,24 +59,40 @@
         localStorage.lastRotation = now;
     }
 
-    const bg = data.background;
+    let userImagesDidLoad;
+    app.afterUserImagesLoaded = new Promise((res) => {
+        userImagesDidLoad = res;
+    });
 
-    // get that bg loadin'
-    const img = new Image();
-    img.onload = () => {
-        // initial fade in to avoid an ugly image load screen tear.
+    const bg = data.background;
+    app.loadingSpinner = document.getElementById('loading');
+
+    const loadBG = async (bg) => {
+        if (!bg.default) {
+            await getBgImageFromDB(bg);
+        }
+
+        const desktop = document.getElementById('desktop');
+        desktop.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}),` +
+            ` url(${bg.image})`;
+        setBackgroundStylesFromMode(desktop, bg.mode);
+        document.body.style.background = bg.color;
+
+        // wait till the image is loaded before we reveil
+        await loadImage(bg.image, false);
         const fadeIn = document.getElementById('loadFadeIn');
         fadeIn.style.opacity = 0;
-        setTimeout(() => {
-            fadeIn.parentNode.removeChild(fadeIn);
-        }, 500);
+
+        await sleep(500);
+        fadeIn.parentNode.removeChild(fadeIn);
+
+        // load all other images
+        Promise.all(data.backgrounds.filter((bg1) => {
+            return !bg1.default && bg1 !== bg;
+        }).map((bg) => {
+            return getBgImageFromDB(bg).then(() => loadImage(bg.image, false));
+        })).then(userImagesDidLoad);
     };
-    img.src = bg.image;
-
-    const desktop = document.getElementById('desktop');
-    desktop.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}),` +
-        ` url(${bg.image})`;
-    setBackgroundStylesFromMode(desktop, bg.mode);
-
-    document.body.style.background = bg.color;
+    // get that bg loadin'
+    loadBG(bg);
 }

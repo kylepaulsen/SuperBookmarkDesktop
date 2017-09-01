@@ -41,11 +41,18 @@
         hide(contextMenu);
     });
 
-    ui.delete.addEventListener('click', () => {
+    ui.delete.addEventListener('click', async () => {
+        hide(contextMenu);
+        const confirmBtns = [
+            'Yes',
+            {text: 'No Way!', value: 'false', default: true}
+        ];
+        if (await app.confirm('Really? Delete this bookmark?', confirmBtns) === 'false') {
+            return;
+        }
         chrome.bookmarks.remove(context.dataset.id);
         context.parentNode.removeChild(context);
         idbKeyval.delete(context.dataset.id);
-        hide(contextMenu);
     });
 
     ui.properties.addEventListener('click', () => {

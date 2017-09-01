@@ -1,35 +1,34 @@
-/* global app */
+/* global app, idbKeyval */
 {
     const {openModal, closeModal, saveData} = app;
     const {getUiElements, selectImageFromDisk, getParentElementWithClass, pad, updateBackground,
-        setBackgroundStylesFromMode} = app.util;
+        setBackgroundStylesFromMode, debounce, createBG, markupToElement, getNextBgInCycle, loadImage} = app.util;
 
     const makeBgTile = (bg) => {
         return `
             <div class="bgTile${bg.selected ? ' selected' : ''}" data-bgid="${bg.id}">
-                <div class="bgTileOverlay"></div>
-                <img src="${bg.image}" alt="">
-                <input type="checkbox" class="bgCheckbox" ${bg.selected ? 'checked="checked"' : ''}>
+                <div class="aspect16-9">
+                    <div class="aspect-container">
+                        <img src="${bg.image}" alt="">
+                        <input type="checkbox" class="bgCheckbox" ${bg.selected ? 'checked="checked"' : ''}>
+                    </div>
+                </div>
             </div>
         `;
     };
-
-    let defaultBgsMarkup = [];
-    app.data.backgrounds.forEach((bg) => {
-        if (bg.default) {
-            defaultBgsMarkup.push(makeBgTile(bg));
-        }
-    });
-    defaultBgsMarkup = defaultBgsMarkup.join('');
 
     const content = document.createElement('div');
     content.innerHTML = `
         <div class="desktopProperties">
             <div class="backgroundUi">
                 <div class="backgroundProperties">
-                    <div>
-                        <div class="previewBG" data-id="previewBG">
-                            <img src="" alt="" class="previewBGFake" data-id="previewBGFake">
+                    <div data-id="backgroundPreviewSizeRef">
+                        <div class="preview">
+                            <div class="previewPageBG" data-id="previewPageBG">
+                                <div class="previewBG" data-id="previewBG">
+                                    <div class="pageSizeRatio" data-id="pageSizeRatio"></div>
+                                </div>
+                            </div>
                         </div>
                         <div class="topBgOptions">
                             <div>
@@ -62,10 +61,10 @@
                     </div>
                 </div>
                 <div class="backgroundSelector" data-id="backgroundSelector">
-                    <div class="defaultBackgrounds">
-                        ${defaultBgsMarkup}
-                    </div>
-                    <div class="userBackgrounds"></div>
+                    <div class="backgroundSectionTitle" data-id="collapseDefaultBgs">Default Backgrounds<span class="arrow"></span></div>
+                    <div class="defaultBackgrounds backgroundSection" data-id="defaultBackgroundsSection"></div>
+                    <div class="backgroundSectionTitle" data-id="collapseUserBgs">Your Backgrounds<span class="arrow"></span></div>
+                    <div class="userBackgrounds backgroundSection" data-id="userBackgroundsSection"></div>
                 </div>
             </div>
         </div>
@@ -95,15 +94,59 @@
 
     const loadDesktopFromDisk = async () => {
         const blobToSave = await selectImageFromDisk();
-        console.log(blobToSave);
+        const imageSrc = URL.createObjectURL(blobToSave);
+        const newBg = createBG(app.data.backgrounds.length, imageSrc);
+        await idbKeyval.set(newBg.id, blobToSave);
+        app.data.backgrounds.push(newBg);
+        saveData();
+
+        const newBgTile = markupToElement(makeBgTile(newBg));
+        await loadImage(imageSrc, false);
+        ui.userBackgroundsSection.appendChild(newBgTile);
+        if (localStorage.userBgsCollapsed === 'false') {
+            ui.userBackgroundsSection.style.maxHeight = ui.userBackgroundsSection.scrollHeight + 'px';
+        }
+    };
+
+    const populateDefaultImages = () => {
+        let defaultBgsMarkup = [];
+        app.data.backgrounds.forEach((bg) => {
+            if (bg.default) {
+                defaultBgsMarkup.push(makeBgTile(bg));
+            }
+        });
+        defaultBgsMarkup = defaultBgsMarkup.join('');
+        ui.defaultBackgroundsSection.innerHTML = defaultBgsMarkup;
+    };
+
+    const updateUserImages = () => {
+        let userBgs = [];
+        app.data.backgrounds.forEach((bg) => {
+            if (!bg.default) {
+                userBgs.push(makeBgTile(bg));
+            }
+        });
+        userBgs = userBgs.join('');
+        ui.userBackgroundsSection.innerHTML = userBgs;
     };
 
     const changeBackgroundPreview = (bg = currentBg) => {
-        ui.previewBGFake.src = bg.image;
-        ui.previewBG.style.borderColor = bg.color;
-        ui.previewBG.style.backgroundColor = bg.color;
+        const maxHeight = 250;
+        let previewWidth = ui.backgroundPreviewSizeRef.offsetWidth;
+        let previewHeight = window.innerHeight * previewWidth / window.innerWidth;
+        if (previewHeight > maxHeight) {
+            previewHeight = maxHeight;
+            previewWidth = window.innerWidth * maxHeight / window.innerHeight;
+        }
+        ui.pageSizeRatio.style.width = previewWidth + 'px';
+        ui.pageSizeRatio.style.height = previewHeight + 'px';
+
+        ui.previewPageBG.style.backgroundColor = bg.color;
         ui.previewBG.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image})`;
         setBackgroundStylesFromMode(ui.previewBG, bg.mode);
+        if (bg.mode === 'tile' || bg.mode === 'center') {
+            ui.previewBG.style.backgroundSize = previewWidth * 0.7 + 'px';
+        }
         updateBackground(bg);
     };
 
@@ -120,6 +163,7 @@
         ui.bgMode.value = bg.mode;
         ui.bgRotateTime.value = app.data.rotateMinutes;
         ui.bgShuffle.checked = app.data.random;
+        ui.deleteBackgroundBtn.disabled = bg.default;
     };
 
     const updateSelected = (el, bg) => {
@@ -198,6 +242,31 @@
         changeBackgroundPreview();
     });
 
+    ui.deleteBackgroundBtn.addEventListener('click', async () => {
+        const confirmBtns = [
+            'Yes',
+            {text: 'No Way!', value: 'false', default: true}
+        ];
+        if (await app.confirm('Really? Delete this backgound?', confirmBtns) === 'false') {
+            return;
+        }
+        const nextBg = getNextBgInCycle(localStorage.lastBgId, app.data.backgrounds, app.data.random);
+
+        localStorage.lastRotation = Date.now();
+        idbKeyval.delete(currentBg.id);
+        const bgTile = ui.backgroundSelector.querySelectorAll('.bgTile').find((el) => el.dataset.bgid === currentBg.id);
+        bgTile.parentElement.removeChild(bgTile);
+        app.data.backgrounds = app.data.backgrounds.filter((bg) => bg.id !== currentBg.id);
+
+        if (nextBg) {
+            currentBg = nextBg;
+            updateBackground(nextBg);
+            app.saveData();
+            updateInputs();
+            changeBackgroundPreview();
+        }
+    });
+
     ui.bgRotateTime.addEventListener('change', () => {
         app.data.rotateMinutes = Math.max(Math.floor(ui.bgRotateTime.value), 1);
         localStorage.lastRotation = Date.now();
@@ -207,11 +276,52 @@
         app.data.random = ui.bgShuffle.checked;
     });
 
-    app.openDesktopProperties = () => {
+    const toggleBackgroundSection = (e, section) => {
+        const isCollapsed = section.classList.contains('collapsed');
+        if (isCollapsed) {
+            e.currentTarget.querySelector('.arrow').classList.remove('right');
+            section.classList.remove('collapsed');
+            section.style.maxHeight = section.scrollHeight + 'px';
+            return false;
+        } else {
+            e.currentTarget.querySelector('.arrow').classList.add('right');
+            section.classList.add('collapsed');
+            section.style.maxHeight = 0;
+            return true;
+        }
+    };
+    ui.collapseDefaultBgs.addEventListener('click', (e) => {
+        localStorage.desktopBgsCollapsed = toggleBackgroundSection(e, ui.defaultBackgroundsSection);
+    });
+    ui.collapseUserBgs.addEventListener('click', (e) => {
+        localStorage.userBgsCollapsed = toggleBackgroundSection(e, ui.userBackgroundsSection);
+    });
+
+    window.addEventListener('resize', debounce(changeBackgroundPreview, 100));
+
+    app.openDesktopProperties = async () => {
         openModal(content);
         modalOpen = true;
         app.modalOverlay.style.background = 'transparent';
         app.modal.style.background = 'rgba(255, 255, 255, 0.8)';
+
+        await app.afterUserImagesLoaded;
+        populateDefaultImages();
+        updateUserImages();
+        if (localStorage.desktopBgsCollapsed === 'false') {
+            ui.defaultBackgroundsSection.style.maxHeight = ui.defaultBackgroundsSection.scrollHeight + 'px';
+        } else {
+            ui.collapseDefaultBgs.querySelector('.arrow').classList.add('right');
+            ui.defaultBackgroundsSection.classList.add('collapsed');
+            ui.defaultBackgroundsSection.style.maxHeight = 0;
+        }
+        if (localStorage.userBgsCollapsed === 'false') {
+            ui.userBackgroundsSection.style.maxHeight = ui.userBackgroundsSection.scrollHeight + 'px';
+        } else {
+            ui.collapseUserBgs.querySelector('.arrow').classList.add('right');
+            ui.userBackgroundsSection.classList.add('collapsed');
+            ui.userBackgroundsSection.style.maxHeight = 0;
+        }
 
         currentBg = app.data.background;
         updateInputs();

@@ -49,6 +49,11 @@ input[type=checkbox]:focus {
 .bookmark {
     position: absolute;
     transition: top 0.2s, left 0.2s;
+    border-radius: 4px;
+}
+
+.bookmark:hover {
+    background: rgba(255, 255, 255, 0.25);
 }
 
 .bookmarkLink {
@@ -65,9 +70,11 @@ input[type=checkbox]:focus {
     align-self: center;
     width: 32px;
     height: 32px;
-    background: rgba(255, 255, 255, 0.5);
+    filter: drop-shadow(0px 0px 6px rgba(0, 0, 0, 1));
+    /* background: rgba(255, 255, 255, 0.5);
+    border-radius: 4px; */
     padding: 4px;
-    border-radius: 4px;
+    margin-top: 4px;
     box-sizing: content-box;
 }
 
@@ -193,15 +200,18 @@ input[type=checkbox]:focus {
     justify-content: space-between;
 }
 
-.previewBG {
-    border-width: 10px;
-    border-style: solid;
-    background-size: cover;
+.preview {
+    text-align: center;
 }
 
-.previewBGFake {
-    width: 100%;
-    visibility: hidden;
+.previewPageBG {
+    text-align: center;
+    display: inline-block;
+}
+
+.previewBG {
+    background-size: cover;
+    background-position: center center;
 }
 
 .topBgOptions {
@@ -248,14 +258,26 @@ input[type=checkbox]:focus {
 
 .backgroundSelector {
     flex: 1 1 70%;
-    overflow-y: auto;
+    overflow-y: scroll;
     border: 1px solid #000000;
     padding: 5px;
 }
 
-.defaultBackgrounds {
+.backgroundSectionTitle {
+    padding-bottom: 3px;
+    margin-left: 5px;
+    border-bottom: 1px solid #000000;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.backgroundSection {
     display: flex;
     flex-wrap: wrap;
+    transition: max-height 0.4s;
+    overflow: hidden;
+    margin-bottom: 16px;
 }
 
 .bgTile {
@@ -271,27 +293,12 @@ input[type=checkbox]:focus {
     display: block;
 }
 
-.bgTile:hover .bgTileOverlay {
-    display: block;
-}
-
-.bgTileOverlay {
-    background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%,rgba(69,72,77,0) 25%);
-    width: calc(100% - 12px);
-    height: calc(100% - 12px);
-    position: absolute;
-    display: none;
-}
-
 .bgTile img {
     max-width: 100%;
+    max-height: 100%;
 }
 
 .bgTile.selected .bgCheckbox {
-    display: block;
-}
-
-.bgTile.selected .bgTileOverlay {
     display: block;
 }
 
@@ -348,17 +355,48 @@ input[type=checkbox]:focus {
     margin-top: 12px;
 }
 
-.buttons .applyBtn {
-    background: #84CAFF;
-    border: 2px solid #000000;
+.loading {
+    z-index: 100;
 }
 
-.buttons .applyBtn:hover {
-    background: #6AB0FF;
+.spinner {
+    width: 100px;
+    height: 100px;
+    border: 10px solid #ffffff;
+    animation: animationFrames linear 2s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes animationFrames{
+    0% {
+        transform:  rotate(0deg);
+        border-radius: 0;
+    }
+    50% {
+        border-radius: 50px;
+    }
+    100% {
+        transform:  rotate(360deg);
+        border-radius: 0;
+    }
 }
 
 .cancelBtn {
     margin-right: 54px;
+}
+
+.confirmModal {
+    width: 300px;
+}
+
+.confirmMessage {
+    font-size: 16px;
+}
+
+.confirmButtons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
 }
 
 .btn {
@@ -367,16 +405,61 @@ input[type=checkbox]:focus {
     cursor: pointer;
     background: #dddddd;
     border: 1px solid #000000;
-}
-
-.center {
-    text-align: center;
+    user-select: none;
 }
 
 .btn:hover {
     background: #cccccc;
 }
 
+.btn[disabled] {
+    display: none;
+}
+
+.defaultBtn {
+    background: #84CAFF;
+    border: 2px solid #000000;
+}
+
+.defaultBtn:hover {
+    background: #6AB0FF;
+}
+
+.arrow {
+    border-bottom: 1px solid #000000;
+    border-right: 1px solid #000000;
+    width: 7px;
+    height: 7px;
+    display: inline-block;
+    margin: 0 5px;
+    transform: rotate(45deg) translate(-2px, -2px);
+    transition: transform 0.4s;
+}
+
+.arrow.right {
+    transform: rotate(-45deg) translate(0px, -1px);
+}
+
+.aspect16-9 {
+    width: 100%;
+    padding-top: 56.25%;
+    position: relative;
+    background: #000000;
+}
+
+.aspect-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+}
+
 .hidden {
     display: none;
+}
+
+.center {
+    text-align: center;
 }

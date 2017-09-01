@@ -125,7 +125,13 @@
             }
             localStorage.lastRotation = now;
         }
-    }, 10000);
+        if (localStorage.lastBgId !== data.background.id) {
+            const newBg = data.backgrounds.find((bg) => bg.id === localStorage.lastBgId);
+            if (newBg) {
+                updateBackground(newBg);
+            }
+        }
+    }, 3000);
 
     window.addEventListener('resize', () => {
         fixBackgroundSize();

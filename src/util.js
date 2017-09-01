@@ -1,4 +1,4 @@
-/* global app */
+/* global app, idbKeyval */
 {
     const util = app.util;
 
@@ -17,11 +17,15 @@
     util.selectImageFromDisk = () => {
         fileInput.click();
         return new Promise((res) => {
-            const onSelect = (e) => {
+            const onSelect = async (e) => {
+                util.show(app.loadingSpinner);
+                await util.sleep(300);
+
                 const file = e.target.files && e.target.files[0];
                 if (file && file.type.includes('image/')) {
                     const fr = new FileReader();
                     fr.onload = (e) => {
+                        util.hide(app.loadingSpinner);
                         res(new Blob([new Uint8Array(e.target.result)]));
                     };
                     fr.readAsArrayBuffer(file);
@@ -142,5 +146,23 @@
         app.desktop.style.height = 'auto';
         app.desktop.style.width = document.body.scrollWidth + 'px';
         app.desktop.style.height = document.body.scrollHeight + 'px';
+    };
+
+    util.debounce = (fn, time) => {
+        let timeout;
+        return (...args) => {
+            if (timeout) {
+                clearTimeout(timeout);
+            }
+            timeout = setTimeout(() => {
+                fn(...args);
+            }, time);
+        };
+    };
+
+    const markupToElementDiv = document.createElement('div');
+    util.markupToElement = (html) => {
+        markupToElementDiv.innerHTML = html;
+        return markupToElementDiv.children[0];
     };
 }

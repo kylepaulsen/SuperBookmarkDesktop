@@ -5,7 +5,7 @@
     const modalOverlay = document.createElement('div');
     modalOverlay.className = 'modalOverlay';
     modalOverlay.dataset.display = 'flex';
-    modalOverlay.innerHTML = '<div class="modal" data-id="modal"></div>';
+    modalOverlay.innerHTML = '<div class="modal"></div>';
     const modal = modalOverlay.children[0];
 
     app.openModal = (content) => {
