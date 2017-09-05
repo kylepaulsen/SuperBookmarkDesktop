@@ -42,8 +42,8 @@
     if (!localStorage.lastBgId) {
         localStorage.lastBgId = data.background.id;
     }
-    if (!localStorage.desktopBgsCollapsed) {
-        localStorage.desktopBgsCollapsed = false;
+    if (!localStorage.defaultBgsCollapsed) {
+        localStorage.defaultBgsCollapsed = false;
     }
     if (!localStorage.userBgsCollapsed) {
         localStorage.userBgsCollapsed = false;

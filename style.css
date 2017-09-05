@@ -69,8 +69,7 @@ input[type=checkbox]:focus {
 .bookmarkLink .icon {
     align-self: center;
     width: 32px;
-    height: 32px;
-    filter: drop-shadow(0px 0px 6px rgba(0, 0, 0, 1));
+    filter: drop-shadow(0px 0px 4px rgba(0, 0, 0, 1));
     /* background: rgba(255, 255, 255, 0.5);
     border-radius: 4px; */
     padding: 4px;
@@ -154,7 +153,6 @@ input[type=checkbox]:focus {
 
 .modal .icon img {
     width: 32px;
-    height: 32px;
 }
 
 .modal .iconBtn {

@@ -18,14 +18,13 @@
         fileInput.click();
         return new Promise((res) => {
             const onSelect = async (e) => {
-                util.show(app.loadingSpinner);
-                await util.sleep(300);
-
+                //util.show(app.loadingSpinner);
+                //await util.sleep(300);
                 const file = e.target.files && e.target.files[0];
                 if (file && file.type.includes('image/')) {
                     const fr = new FileReader();
                     fr.onload = (e) => {
-                        util.hide(app.loadingSpinner);
+                        //util.hide(app.loadingSpinner);
                         res(new Blob([new Uint8Array(e.target.result)]));
                     };
                     fr.readAsArrayBuffer(file);
@@ -150,12 +149,12 @@
 
     util.debounce = (fn, time) => {
         let timeout;
-        return (...args) => {
+        return () => {
             if (timeout) {
                 clearTimeout(timeout);
             }
             timeout = setTimeout(() => {
-                fn(...args);
+                fn();
             }, time);
         };
     };

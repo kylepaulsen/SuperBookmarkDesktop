@@ -74,9 +74,7 @@
             }
             if (deleteImage) {
                 idbKeyval.delete(context.dataset.id).then(saveData);
-                try {
-                    URL.revokeObjectURL(icon.image);
-                } catch (e) {}
+                URL.revokeObjectURL(icon.image);
                 icon.image = undefined;
                 iconEl.querySelector('.icon').src = getFaviconImageUrl(icon.url);
             }

@@ -103,9 +103,6 @@
         const newBgTile = markupToElement(makeBgTile(newBg));
         await loadImage(imageSrc, false);
         ui.userBackgroundsSection.appendChild(newBgTile);
-        if (localStorage.userBgsCollapsed === 'false') {
-            ui.userBackgroundsSection.style.maxHeight = ui.userBackgroundsSection.scrollHeight + 'px';
-        }
     };
 
     const populateDefaultImages = () => {
@@ -256,6 +253,7 @@
         idbKeyval.delete(currentBg.id);
         const bgTile = ui.backgroundSelector.querySelectorAll('.bgTile').find((el) => el.dataset.bgid === currentBg.id);
         bgTile.parentElement.removeChild(bgTile);
+        URL.revokeObjectURL(currentBg.image);
         app.data.backgrounds = app.data.backgrounds.filter((bg) => bg.id !== currentBg.id);
 
         if (nextBg) {
@@ -284,20 +282,37 @@
             section.style.maxHeight = section.scrollHeight + 'px';
             return false;
         } else {
+            section.style.maxHeight = section.scrollHeight + 'px';
             e.currentTarget.querySelector('.arrow').classList.add('right');
             section.classList.add('collapsed');
-            section.style.maxHeight = 0;
+            setTimeout(() => {
+                section.style.maxHeight = 0;
+            }, 0);
             return true;
         }
     };
     ui.collapseDefaultBgs.addEventListener('click', (e) => {
-        localStorage.desktopBgsCollapsed = toggleBackgroundSection(e, ui.defaultBackgroundsSection);
+        localStorage.defaultBgsCollapsed = toggleBackgroundSection(e, ui.defaultBackgroundsSection);
     });
     ui.collapseUserBgs.addEventListener('click', (e) => {
         localStorage.userBgsCollapsed = toggleBackgroundSection(e, ui.userBackgroundsSection);
     });
+    ui.defaultBackgroundsSection.addEventListener('transitionend', () => {
+        if (!ui.defaultBackgroundsSection.classList.contains('collapsed')) {
+            ui.defaultBackgroundsSection.style.maxHeight = 'none';
+        }
+    });
+    ui.userBackgroundsSection.addEventListener('transitionend', () => {
+        if (!ui.userBackgroundsSection.classList.contains('collapsed')) {
+            ui.userBackgroundsSection.style.maxHeight = 'none';
+        }
+    });
 
-    window.addEventListener('resize', debounce(changeBackgroundPreview, 100));
+    const changePreview = debounce(changeBackgroundPreview, 100);
+    window.addEventListener('resize', () => {
+        // debounce can't handle events?
+        changePreview();
+    });
 
     app.openDesktopProperties = async () => {
         openModal(content);
@@ -308,15 +323,15 @@
         await app.afterUserImagesLoaded;
         populateDefaultImages();
         updateUserImages();
-        if (localStorage.desktopBgsCollapsed === 'false') {
-            ui.defaultBackgroundsSection.style.maxHeight = ui.defaultBackgroundsSection.scrollHeight + 'px';
+        if (localStorage.defaultBgsCollapsed === 'false') {
+            ui.defaultBackgroundsSection.style.maxHeight = 'none';
         } else {
             ui.collapseDefaultBgs.querySelector('.arrow').classList.add('right');
             ui.defaultBackgroundsSection.classList.add('collapsed');
             ui.defaultBackgroundsSection.style.maxHeight = 0;
         }
         if (localStorage.userBgsCollapsed === 'false') {
-            ui.userBackgroundsSection.style.maxHeight = ui.userBackgroundsSection.scrollHeight + 'px';
+            ui.userBackgroundsSection.style.maxHeight = 'none';
         } else {
             ui.collapseUserBgs.querySelector('.arrow').classList.add('right');
             ui.userBackgroundsSection.classList.add('collapsed');
