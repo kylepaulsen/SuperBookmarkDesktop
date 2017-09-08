@@ -310,8 +310,9 @@
 
     const changePreview = debounce(changeBackgroundPreview, 100);
     window.addEventListener('resize', () => {
-        // debounce can't handle events?
-        changePreview();
+        if (modalOpen) {
+            changePreview();
+        }
     });
 
     app.openDesktopProperties = async () => {

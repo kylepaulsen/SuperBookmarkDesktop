@@ -37,7 +37,7 @@
     });
 
     ui.createFolder.addEventListener('click', () => {
-        console.log('create folder');
+        chrome.bookmarks.create({title: 'New Folder'});
         hide(contextMenu);
     });
 
@@ -47,11 +47,16 @@
             'Yes',
             {text: 'No Way!', value: 'false', default: true}
         ];
-        if (await app.confirm('Really? Delete this bookmark?', confirmBtns) === 'false') {
+        const icon = app.data.icons[context.dataset.id];
+        const thing = icon.folder ? 'folder' : 'bookmark';
+        if (await app.confirm(`Really? Delete this ${thing}?`, confirmBtns) === 'false') {
             return;
         }
-        chrome.bookmarks.remove(context.dataset.id);
-        context.parentNode.removeChild(context);
+        if (icon.folder) {
+            chrome.bookmarks.removeTree(context.dataset.id);
+        } else {
+            chrome.bookmarks.remove(context.dataset.id);
+        }
         idbKeyval.delete(context.dataset.id);
     });
 
@@ -65,33 +70,40 @@
     });
 
     const populateMenu = (e) => {
-        const isIcon = getParentElementWithClass(e.target, 'bookmark');
-        if (isIcon) {
-            context = isIcon;
-            show(ui.newTab);
-            show(ui.newWindow);
-            show(ui.incog);
-            show(ui.sep);
+        Object.keys(ui).forEach((key) => hide(ui[key]));
+        const iconEl = getParentElementWithClass(e.target, 'bookmark');
+        if (iconEl) {
+            const icon = app.data.icons[iconEl.dataset.id];
+            context = iconEl;
+            if (!icon.folder) {
+                show(ui.newTab);
+                show(ui.newWindow);
+                show(ui.incog);
+                show(ui.sep);
+            }
             show(ui.delete);
-            hide(ui.createFolder);
         } else {
             context = undefined;
-            hide(ui.newTab);
-            hide(ui.newWindow);
-            hide(ui.incog);
-            hide(ui.sep);
-            hide(ui.delete);
             show(ui.createFolder);
         }
+        show(ui.properties);
     };
 
     window.addEventListener('contextmenu', (e) => {
         if (getParentElementWithClass(e.target, ['bookmark', 'desktop'])) {
             e.preventDefault();
             populateMenu(e);
-            contextMenu.style.left = e.pageX + 'px';
-            contextMenu.style.top = e.pageY + 'px';
             show(contextMenu);
+            let x = e.pageX;
+            let y = e.pageY;
+            if (e.clientX + contextMenu.offsetWidth > window.innerWidth) {
+                x -= contextMenu.offsetWidth;
+            }
+            if (e.clientY + contextMenu.offsetHeight > window.innerHeight) {
+                y -= contextMenu.offsetHeight;
+            }
+            contextMenu.style.left = x + 'px';
+            contextMenu.style.top = y + 'px';
             return false;
         }
     });

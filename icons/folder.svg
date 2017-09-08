@@ -1,0 +1,24 @@
+<svg width="64" height="46" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="none">
+ <defs>
+  <g id="Layer0_0_FILL">
+   <path id="svg_1" d="m100,89.4q0.1,-2.1 2.2,-2.1l16.8,0l0,-2.2q0,-2.2 -2.2,-2.2l-14.6,0q-2.2,0 -2.2,2.2l0,4.3z" fill="#FCC900"/>
+   <path id="svg_2" d="m164,127.7l0,-38.2q0,-2.2 -2.1,-2.2l-42.9,0l-16.8,0q-2.1,0 -2.2,2.1l0,38.3l64,0z" fill="url(#Gradient_1)"/>
+  </g>
+  <path d="m119,87.3l42.9,0q2.1,0 2.1,2.2l0,38.2l-64,0l0,-38.3l0,-4.3q0,-2.2 2.2,-2.2l14.6,0q2.2,0 2.2,2.2l0,2.2l-16.8,0q-2.1,0 -2.2,2.1" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#996600" id="Layer0_0_1_STROKES"/>
+  <radialGradient spreadMethod="pad" gradientTransform="matrix( 0.22856203299331243, 0.9735293509052328, -2.499032718088263, 0.5835906663748553, 106.3,92.2) " fy="0" fx="0" r="37.954685" cy="0" cx="0" gradientUnits="userSpaceOnUse" id="Gradient_1">
+   <stop stop-color="#FFCC00" offset="0%"/>
+   <stop stop-color="#CC9900" offset="100%"/>
+  </radialGradient>
+ </defs>
+ <g>
+  <title>background</title>
+  <rect fill="none" id="canvas_background" height="48" width="66" y="-1" x="-1"/>
+ </g>
+ <g>
+  <title>Layer 1</title>
+  <g id="svg_3">
+   <use x="-100" y="-82.900002" id="svg_4" xlink:href="#Layer0_0_FILL"/>
+   <use x="-100" y="-82.900002" id="svg_5" xlink:href="#Layer0_0_1_STROKES"/>
+  </g>
+ </g>
+</svg>

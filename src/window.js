@@ -10,11 +10,9 @@
         return container.children[0];
     };
 
-    const makeWindow = (title) => {
+    const makeWindow = (title, x = 0, y = 0, width = 550, height = 400) => {
         const minWidth = 150;
         const minHeight = 150;
-        let width = 550;
-        let height = 400;
         const template = `
             <div class="window">
                 <div class="window-top">
@@ -45,10 +43,13 @@
 
         const win = instanceTemplate(template);
         const titleBar = win.querySelector('.title-bar');
+        const content = win.querySelector('.content');
         titleBar.querySelector('.title').textContent = title;
 
         win.style.width = width + 'px';
         win.style.height = height + 'px';
+        win.style.left = x + 'px';
+        win.style.top = y + 'px';
 
         const offset = {};
         const firstPoint = {};
@@ -58,8 +59,8 @@
             e.preventDefault();
             offset.x = e.pageX - win.offsetLeft;
             offset.y = e.pageY - win.offsetTop;
-            width = win.offsetWidth - 2;
-            height = win.offsetHeight - 2;
+            width = win.offsetWidth;
+            height = win.offsetHeight;
             firstPoint.x = e.pageX;
             firstPoint.y = e.pageY;
             mouseDown = true;
@@ -81,6 +82,7 @@
                     win.style.left = e.pageX - offset.x + 'px';
                     win.style.top = e.pageY - offset.y + 'px';
                 }
+
                 let newWidth = width;
                 let newHeight = height;
                 if (target.classList.contains('nw-resize')) {
@@ -90,49 +92,48 @@
                     const currentY = height - newHeight + firstPoint.y;
                     win.style.left = (currentX - offset.x) + 'px';
                     win.style.top = (currentY - offset.y) + 'px';
-                }
-                if (target.classList.contains('n-resize')) {
+                } else if (target.classList.contains('n-resize')) {
                     newHeight = Math.max(firstPoint.y - e.pageY + height, minHeight);
                     const currentY = height - newHeight + firstPoint.y;
                     win.style.top = (currentY - offset.y) + 'px';
-                }
-                if (target.classList.contains('ne-resize')) {
+                } else if (target.classList.contains('ne-resize')) {
                     newWidth = Math.max(e.pageX - firstPoint.x + width, minWidth);
                     newHeight = Math.max(firstPoint.y - e.pageY + height, minHeight);
                     const currentY = height - newHeight + firstPoint.y;
                     win.style.top = (currentY - offset.y) + 'px';
-                }
-                if (target.classList.contains('w-resize')) {
+                } else if (target.classList.contains('w-resize')) {
                     newWidth = Math.max(firstPoint.x - e.pageX + width, minWidth);
                     const currentX = width - newWidth + firstPoint.x;
                     win.style.left = (currentX - offset.x) + 'px';
-                }
-                if (target.classList.contains('e-resize')) {
+                } else if (target.classList.contains('e-resize')) {
                     newWidth = Math.max(e.pageX - firstPoint.x + width, minWidth);
-                }
-                if (target.classList.contains('sw-resize')) {
+                } else if (target.classList.contains('sw-resize')) {
                     newWidth = Math.max(firstPoint.x - e.pageX + width, minWidth);
                     newHeight = Math.max(e.pageY - firstPoint.y + height, minHeight);
                     const currentX = width - newWidth + firstPoint.x;
                     win.style.left = (currentX - offset.x) + 'px';
-                }
-                if (target.classList.contains('s-resize')) {
+                } else if (target.classList.contains('s-resize')) {
                     newHeight = Math.max(e.pageY - firstPoint.y + height, minHeight);
-                }
-                if (target.classList.contains('se-resize')) {
+                } else if (target.classList.contains('se-resize')) {
                     newHeight = Math.max(e.pageY - firstPoint.y + height, minHeight);
                     newWidth = Math.max(e.pageX - firstPoint.x + width, minWidth);
                 }
-
                 win.style.width = newWidth + 'px';
                 win.style.height = newHeight + 'px';
             }
         });
-        listen(win.querySelector('.close'), 'click', () => {
+        const removeWindow = () => {
             win.parentNode.removeChild(win);
-        });
+        };
+        listen(win.querySelector('.close'), 'click', removeWindow);
 
         document.body.appendChild(win);
+
+        return {
+            win,
+            content,
+            removeWindow
+        };
     };
 
     app.makeWindow = makeWindow;

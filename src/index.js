@@ -1,7 +1,8 @@
 /* global chrome, app, idbKeyval */
 {
     const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getFaviconImageUrl,
-           clampText, promisify, fixBackgroundSize, updateBackground, getNextBgInCycle} = app.util;
+           clampText, promisify, fixBackgroundSize, updateBackground,
+           getNextBgInCycle, debounce, getParentElementWithClass} = app.util;
     const desktop = document.querySelector('#desktop');
     app.desktop = desktop;
 
@@ -26,8 +27,8 @@
         }
     }
 
-    async function makeBookmarkIcon(bookmark) {
-        let icon = getFaviconImageUrl(bookmark.url);
+    async function makeBookmarkIcon(bookmark, currentPath, folder = false, container = desktop) {
+        let icon = folder ? 'icons/folder.svg' : getFaviconImageUrl(bookmark.url);
         try {
             const iconBlob = await idbKeyval.get(bookmark.id);
             if (iconBlob) {
@@ -39,19 +40,27 @@
         bookmarkIcon.dataset.url = bookmark.url;
         bookmarkIcon.dataset.name = bookmark.title;
         bookmarkIcon.dataset.id = bookmark.id;
+        bookmarkIcon.dataset.path = currentPath + '/' + bookmark.id;
+        bookmarkIcon.dataset.folder = folder;
         bookmarkIcon.title = bookmark.title;
+        const tag = folder ? 'div' : 'a';
         bookmarkIcon.innerHTML = `
-            <a class="bookmarkLink" draggable="false" href="${bookmark.url}">
-                <img class="icon" src="${icon}" alt="">
+            <${tag} class="bookmarkLink" draggable="false" href="${bookmark.url}">
+                <div class="iconContainer">
+                    <img class="icon" src="${icon}" alt="">
+                </div>
                 <div class="name">${bookmark.title}</div>
-            </a>
+            </${tag}>
         `;
         const nameDiv = bookmarkIcon.querySelector('.name');
         const positionData = data.icons[bookmark.id] || findNextOpenSpot();
         positionData.url = bookmark.url;
-        bookmarkIcon.style.left = positionData.x * (ICON_WIDTH + ICON_SPACING) + GUTTER + 'px';
-        bookmarkIcon.style.top = positionData.y * (ICON_HEIGHT + ICON_SPACING) + GUTTER + 'px';
-        desktop.appendChild(bookmarkIcon);
+        if (container === desktop) {
+            bookmarkIcon.style.position = 'absolute';
+            bookmarkIcon.style.left = positionData.x * (ICON_WIDTH + ICON_SPACING) + GUTTER + 'px';
+            bookmarkIcon.style.top = positionData.y * (ICON_HEIGHT + ICON_SPACING) + GUTTER + 'px';
+        }
+        container.appendChild(bookmarkIcon);
         clampText(nameDiv, bookmark.title);
         data.locations[`${positionData.x},${positionData.y}`] = positionData;
     }
@@ -72,7 +81,8 @@
                     x,
                     y,
                     url: child.dataset.url,
-                    name: child.dataset.name
+                    name: child.dataset.name,
+                    folder: child.dataset.folder === 'true'
                 };
                 data.icons[child.dataset.id] = bookmarkObj;
                 data.locations[`${x},${y}`] = bookmarkObj;
@@ -91,27 +101,63 @@
         });
     };
 
-    async function init() {
-        const bookmarkTree = await promisify(chrome.bookmarks.getTree)();
+    const getBookmarkTree = promisify(chrome.bookmarks.getTree);
+
+    async function render() {
+        const bookmarkTree = await getBookmarkTree();
+        desktop.innerHTML = '';
         const root = bookmarkTree[0];
         const rootChildren = root.children;
 
-        const bookmarkSet = {};
         const promises = [];
         // Create top level icons on "desktop"
-        rootChildren.forEach((node) => {
-            node.children.forEach((node) => {
-                if (node.url && !bookmarkSet[node.url]) {
-                    // this is a real bookmark node
-                    bookmarkSet[node.url] = 1;
-                    promises.push(makeBookmarkIcon(node));
+        rootChildren.forEach((rNode) => {
+            rNode.children.forEach((node) => {
+                if (node.url) {
+                    // this is a bookmark node
+                    promises.push(makeBookmarkIcon(node, rNode.id));
+                } else {
+                    // this is a folder node
+                    promises.push(makeBookmarkIcon(node, rNode.id, true));
                 }
             });
         });
         Promise.all(promises).then(app.saveData);
     }
+    render();
 
-    init();
+    async function getNodeFromPath(path) {
+        const pathParts = path.split('/');
+        const bookmarkTree = await getBookmarkTree();
+
+        let currentNode = bookmarkTree[0];
+        let currentPathPart = 0;
+        let nextId = pathParts[currentPathPart];
+        while (nextId !== undefined) {
+            const nextNode = currentNode.children.find((node) => nextId === node.id);
+            if (nextNode) {
+                currentPathPart++;
+                nextId = pathParts[currentPathPart];
+                currentNode = nextNode;
+            } else {
+                return null;
+            }
+        }
+        return currentNode;
+    }
+
+    async function renderFolder(path, container) {
+        const pNode = await getNodeFromPath(path);
+        pNode.children.forEach((node) => {
+            if (node.url) {
+                // this is a bookmark node
+                makeBookmarkIcon(node, path, false, container);
+            } else {
+                // this is a folder node
+                makeBookmarkIcon(node, path, true, container);
+            }
+        });
+    }
 
     // Start checking if we need to switch backgrounds.
     setInterval(() => {
@@ -136,6 +182,44 @@
     window.addEventListener('resize', () => {
         fixBackgroundSize();
     });
+
+    window.addEventListener('click', (e) => {
+        const iconEl = getParentElementWithClass(e.target, 'bookmark');
+        if (iconEl) {
+            const icon = app.data.icons[iconEl.dataset.id] || {};
+            if (icon.folder) {
+                e.preventDefault();
+                const currentWindow = getParentElementWithClass(iconEl, 'window');
+                if (!currentWindow) {
+                    const width = 550;
+                    const height = 400;
+                    let x = iconEl.offsetLeft + iconEl.offsetWidth;
+                    let y = iconEl.offsetTop;
+                    if (x + width > window.innerWidth) {
+                        x = iconEl.offsetLeft - width;
+                    }
+                    if (y + height > window.innerHeight) {
+                        y = iconEl.offsetTop - height + iconEl.offsetHeight;
+                    }
+                    const win = app.makeWindow(icon.name, x, y, width, height);
+                    //renderFolder('2/36/37/38', win.content);
+                    renderFolder(iconEl.dataset.path, win.content);
+                } else {
+                    const content = currentWindow.querySelector('.content');
+                    const title = currentWindow.querySelector('.title-bar .title');
+                    title.textContent = iconEl.dataset.name;
+                    content.innerHTML = '';
+                    renderFolder(iconEl.dataset.path, content);
+                }
+            }
+        }
+    });
+
+    const debouncedRender = debounce(render, 100);
+    ['onCreated', 'onImportEnded', 'onMoved', 'onRemoved'].forEach((eventName) => {
+        chrome.bookmarks[eventName].addListener(debouncedRender);
+    });
+
     /*
     { // root folder node
         "children": [{ // folder node

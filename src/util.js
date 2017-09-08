@@ -1,4 +1,4 @@
-/* global app, idbKeyval */
+/* global app */
 {
     const util = app.util;
 
@@ -6,6 +6,8 @@
     util.ICON_SPACING = 20;
     util.ICON_WIDTH = 80;
     util.ICON_HEIGHT = 90;
+
+    util.folderImage = 'icons/folder.svg';
 
     const imageTypes = ['.jpg', '.jpeg', '.png', '.apng', '.gif', '.bmp', '.webp', '.ico', '.svg'];
     const fileInput = document.createElement('input');

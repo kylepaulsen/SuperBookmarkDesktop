@@ -5,6 +5,7 @@
 
     const disableNav = (e) => {
         e.preventDefault();
+        e.stopPropagation();
         return false;
     };
 
@@ -38,7 +39,7 @@
             const iconH = ICON_HEIGHT + ICON_SPACING;
             lastX = Math.max(Math.floor((e.pageX - GUTTER) / iconW), 0);
             lastY = Math.max(Math.floor((e.pageY - GUTTER) / iconH), 0);
-            target.querySelector('a').removeEventListener('click', disableNav);
+            target.querySelector('.bookmarkLink').removeEventListener('click', disableNav);
         }
     });
 
@@ -49,7 +50,7 @@
             // chrome bug firing mousemove on down.
             const deltaTime = Date.now() - timeDown;
             if (deltaTime > 100) {
-                target.querySelector('a').addEventListener('click', disableNav);
+                target.querySelector('.bookmarkLink').addEventListener('click', disableNav);
                 const iconW = ICON_WIDTH + ICON_SPACING;
                 const iconH = ICON_HEIGHT + ICON_SPACING;
                 const x = Math.max(Math.floor((e.pageX - GUTTER) / iconW), 0);

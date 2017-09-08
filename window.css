@@ -1,6 +1,5 @@
 .window {
   border: 1px solid #000;
-  border-radius: 5px;
   position: absolute;
   display: flex;
   flex-direction: column;
@@ -29,14 +28,6 @@
 .window-bottom {
   flex: 0 0 8px;
   display: flex;
-}
-
-.nw-resize.top-resize {
-  border-radius: 5px 0 0 0;
-}
-
-.ne-resize.top-resize {
-  border-radius: 0 5px 0 0;
 }
 
 .w-resize.top-resize {
@@ -72,14 +63,6 @@
   flex: 0 0 8px;
   background: #fff;
   cursor: ew-resize;
-}
-
-.sw-resize {
-  border-radius: 0 0 0 5px;
-}
-
-.se-resize {
-  border-radius: 0 0 5px 0;
 }
 
 .top-resize {
