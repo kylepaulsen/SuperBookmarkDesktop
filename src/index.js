@@ -1,8 +1,7 @@
 /* global chrome, app, idbKeyval */
 {
     const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getFaviconImageUrl,
-           clampText, promisify, fixBackgroundSize, updateBackground,
-           getNextBgInCycle, debounce, getParentElementWithClass, getDataset, getUiElements} = app.util;
+           clampText, promisify, fixBackgroundSize, updateBackground, getNextBgInCycle, debounce} = app.util;
     const desktop = document.querySelector('#desktop');
     app.desktop = desktop;
 
@@ -65,6 +64,7 @@
         clampText(nameDiv, bookmark.title);
         data.locations[`${positionData.x},${positionData.y}`] = true;
     }
+    app.makeBookmarkIcon = makeBookmarkIcon;
 
     app.saveData = () => {
         // side task to update background.
@@ -85,10 +85,10 @@
         localStorage.data = JSON.stringify(data);
     };
 
-    const getBookmarkTree = promisify(chrome.bookmarks.getTree);
+    app.getBookmarkTree = promisify(chrome.bookmarks.getTree);
 
     async function render() {
-        const bookmarkTree = await getBookmarkTree();
+        const bookmarkTree = await app.getBookmarkTree();
         desktop.innerHTML = '';
         const root = bookmarkTree[0];
         const rootChildren = root.children;
@@ -107,48 +107,12 @@
             });
         });
         Promise.all(promises).then(app.saveData);
+        const windows = document.querySelectorAll('.window');
+        windows.forEach((win) => {
+            app.renderFolder(win.dataset.path, win);
+        });
     }
     render();
-
-    async function getNodeFromPath(path) {
-        const pathParts = path.split('/');
-        const bookmarkTree = await getBookmarkTree();
-
-        let currentNode = bookmarkTree[0];
-        let currentPathPart = 0;
-        let nextId = pathParts[currentPathPart];
-        while (nextId !== undefined) {
-            const nextNode = currentNode.children.find((node) => nextId === node.id);
-            if (nextNode) {
-                currentPathPart++;
-                nextId = pathParts[currentPathPart];
-                currentNode = nextNode;
-            } else {
-                return null;
-            }
-        }
-        return currentNode;
-    }
-
-    async function renderFolder(path, container) {
-        const pNode = await getNodeFromPath(path);
-        const folders = [];
-        const bookmarks = [];
-        pNode.children.forEach((node) => {
-            if (node.url) {
-                bookmarks.push(node);
-            } else {
-                folders.push(node);
-            }
-        });
-        const sort = (a, b) => a.title > b.title;
-        folders.sort(sort);
-        bookmarks.sort(sort);
-        const allNodes = folders.concat(bookmarks);
-        allNodes.forEach((node) => {
-            makeBookmarkIcon(node, path, !node.url, container);
-        });
-    }
 
     // Start checking if we need to switch backgrounds.
     setInterval(() => {
@@ -172,37 +136,6 @@
 
     window.addEventListener('resize', () => {
         fixBackgroundSize();
-    });
-
-    window.addEventListener('click', (e) => {
-        const iconEl = getParentElementWithClass(e.target, 'bookmark');
-        if (iconEl) {
-            const icon = getDataset(iconEl);
-            if (icon.folder) {
-                e.preventDefault();
-                const currentWindow = getParentElementWithClass(iconEl, 'window');
-                if (!currentWindow) {
-                    const width = 550;
-                    const height = 400;
-                    let x = iconEl.offsetLeft + iconEl.offsetWidth;
-                    let y = iconEl.offsetTop;
-                    if (x + width > window.innerWidth) {
-                        x = iconEl.offsetLeft - width;
-                    }
-                    if (y + height > window.innerHeight) {
-                        y = iconEl.offsetTop - height + iconEl.offsetHeight;
-                    }
-                    const win = app.makeWindow(icon.name, x, y, width, height);
-                    const winUi = getUiElements(win);
-                    renderFolder(icon.path, winUi.iconArea);
-                } else {
-                    const winUi = getUiElements(currentWindow);
-                    winUi.title.textContent = icon.name;
-                    winUi.iconArea.innerHTML = '';
-                    renderFolder(icon.path, winUi.iconArea);
-                }
-            }
-        }
     });
 
     const debouncedRender = debounce(() => {

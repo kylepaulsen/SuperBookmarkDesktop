@@ -28,6 +28,11 @@
                     </div>
                     <div class="e-resize top-resize"></div>
                 </div>
+                <div class="window-top-nav">
+                    <div class="w-resize top-resize"></div>
+                    <div class="nav-bar" data-id="navBar"></div>
+                    <div class="e-resize top-resize"></div>
+                </div>
                 <div class="window-middle">
                     <div class="w-resize"></div>
                     <div class="content">

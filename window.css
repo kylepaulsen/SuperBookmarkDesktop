@@ -13,21 +13,40 @@
 .window-top {
   flex: 0 0 8px;
   display: flex;
+  background: #ddd;
 }
 
 .window-middle {
   flex: 1 1 1px;
   display: flex;
+  background: #fff;
 }
 
 .window-top-middle {
   flex: 0 0 25px;
+  display: flex;
+  background: #ddd;
+}
+
+.window-top-nav {
+  flex: 0 0 25px;
+  display: flex;
+  background: #fff;
+}
+
+.window-top-nav .w-resize.top-resize, .window-top-nav .e-resize.top-resize {
+  border: 0;
+}
+
+.nav-bar {
+  flex: 1 1 1px;
   display: flex;
 }
 
 .window-bottom {
   flex: 0 0 8px;
   display: flex;
+  background: #fff;
 }
 
 .w-resize.top-resize {
@@ -41,37 +60,28 @@
 .nw-resize, .se-resize {
   flex: 0 0 8px;
   height: 8px;
-  background: #fff;
   cursor: nwse-resize;
 }
 
 .n-resize, .s-resize {
   flex: 1 1 1px;
   height: 8px;
-  background: #fff;
   cursor: ns-resize;
 }
 
 .ne-resize, .sw-resize {
   flex: 0 0 8px;
   height: 8px;
-  background: #fff;
   cursor: nesw-resize;
 }
 
 .w-resize, .e-resize {
   flex: 0 0 8px;
-  background: #fff;
   cursor: ew-resize;
-}
-
-.top-resize {
-  background: #ddd;
 }
 
 .title-bar {
   width: 100%;
-  background: #ddd;
   flex: 1 1 1px;
   display: flex;
   border-bottom: 1px solid #000000;
@@ -99,7 +109,6 @@
 
 .content {
   flex: 1 1 1px;
-  background: #fff;
   overflow-y: auto;
 }
 

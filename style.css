@@ -444,6 +444,21 @@ input[type=checkbox]:focus {
     flex-wrap: wrap;
 }
 
+.navButton {
+    padding: 5px 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.navButton:hover {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.navSep {
+    padding: 5px 2px;
+    user-select: none;
+}
+
 .window {
     z-index: 6;
 }
@@ -452,19 +467,21 @@ input[type=checkbox]:focus {
     margin: 10px;
 }
 
-.window .w-resize, .window .e-resize, .window .content, .window .sw-resize,
-.window .s-resize, .window .se-resize {
-    background: rgba(255, 255, 255, 0.3);
+.window .bookmark:hover {
+    background: rgba(0, 0, 0, 0.15);
 }
 
-.window.active .w-resize, .window.active .e-resize, .window.active .content, .window.active .sw-resize,
-.window.active .s-resize, .window.active .se-resize {
+.window .window-top-nav, .window .window-middle, .window .window-bottom {
     background: rgba(255, 255, 255, 0.7);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.window .window-top-middle .w-resize, .window .window-top-middle .e-resize,
-.window.active .window-top-middle .w-resize, .window.active .window-top-middle .e-resize {
-    background: #ddd;
+.window {
+    opacity: 0.5;
+}
+
+.window.active {
+    opacity: 1;
 }
 
 .arrow {

@@ -1,6 +1,11 @@
-/* global app */
+/* global idbKeyval, app */
 {
-    const util = app.util;
+    (['forEach', 'map', 'find']).forEach((func) => {
+        NodeList.prototype[func] = Array.prototype[func];
+        HTMLCollection.prototype[func] = Array.prototype[func];
+    });
+
+    const util = {};
 
     util.GUTTER = 20;
     util.ICON_SPACING = 20;
@@ -15,6 +20,82 @@
     fileInput.type = 'file';
     fileInput.setAttribute('accept', imageTypes.join(','));
     document.body.appendChild(fileInput);
+
+    util.sleep = (ms) => {
+        return new Promise((res) => setTimeout(res, ms));
+    };
+
+    util.randomInt = (min, max) => {
+        return Math.floor(Math.random() * (max - min + 1) + min);
+    };
+
+    util.setBackgroundStylesFromMode = (el, mode) => {
+        if (mode === 'fill') {
+            el.style.backgroundSize = 'cover';
+            el.style.backgroundRepeat = 'no-repeat';
+        } else if (mode === 'fit') {
+            el.style.backgroundSize = 'contain';
+            el.style.backgroundRepeat = 'no-repeat';
+        } else if (mode === 'stretch') {
+            el.style.backgroundSize = '100% 100%';
+            el.style.backgroundRepeat = 'no-repeat';
+        } else if (mode === 'tile') {
+            el.style.backgroundSize = 'initial';
+            el.style.backgroundRepeat = 'repeat';
+        } else if (mode === 'center') {
+            el.style.backgroundSize = 'initial';
+            el.style.backgroundRepeat = 'no-repeat';
+        }
+    };
+
+    util.getNextBgInCycle = (currentId, arr, random = false) => {
+        const selectedBgs = arr.filter((bg) => bg.selected);
+        if (selectedBgs.length === 0) {
+            return false;
+        }
+        const idx = Math.max(selectedBgs.findIndex((el) => currentId === el.id), 0);
+        if (random) {
+            let randIndex;
+            do {
+                randIndex = util.randomInt(0, selectedBgs.length - 1);
+            } while (randIndex === idx);
+            return selectedBgs[randIndex];
+        }
+        return selectedBgs[(idx + 1) % selectedBgs.length];
+    };
+
+    util.createBG = (id, url, isDefault = false) => {
+        let image = url;
+        let realId = `bg${id}`;
+        if (isDefault) {
+            image = `backgrounds/${url}`;
+            realId = `_bg${id}`;
+        }
+        return {
+            id: realId,
+            image,
+            mode: 'fill',
+            color: '#000000',
+            filter: 'rgba(0,0,0,0)',
+            default: isDefault,
+            selected: true
+        };
+    };
+
+    util.loadImage = (src, mustLoad = true) => {
+        return new Promise((res, rej) => {
+            const img = new Image();
+            img.onload = res;
+            img.onerror = mustLoad ? rej : res;
+            img.src = src;
+        });
+    };
+
+    util.getBgImageFromDB = async (bg) => {
+        const blob = await idbKeyval.get(bg.id);
+        bg.image = URL.createObjectURL(blob);
+        return bg.image;
+    };
 
     util.selectImageFromDisk = () => {
         fileInput.click();
@@ -177,4 +258,6 @@
         markupToElementDiv.innerHTML = html;
         return markupToElementDiv.children[0];
     };
+
+    window.util = util;
 }
