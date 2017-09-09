@@ -100,5 +100,6 @@
 .content {
   flex: 1 1 1px;
   background: #fff;
+  overflow-y: auto;
 }
 

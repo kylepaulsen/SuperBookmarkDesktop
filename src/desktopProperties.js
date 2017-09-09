@@ -241,27 +241,28 @@
 
     ui.deleteBackgroundBtn.addEventListener('click', async () => {
         const confirmBtns = [
-            'Yes',
-            {text: 'No Way!', value: 'false', default: true}
+            'Do It!',
+            {text: 'No Way!', value: false, default: true}
         ];
-        if (await app.confirm('Really? Delete this backgound?', confirmBtns) === 'false') {
-            return;
-        }
-        const nextBg = getNextBgInCycle(localStorage.lastBgId, app.data.backgrounds, app.data.random);
+        if (await app.confirm('Really? Delete this backgound?', confirmBtns)) {
+            const nextBg = getNextBgInCycle(localStorage.lastBgId, app.data.backgrounds, app.data.random);
 
-        localStorage.lastRotation = Date.now();
-        idbKeyval.delete(currentBg.id);
-        const bgTile = ui.backgroundSelector.querySelectorAll('.bgTile').find((el) => el.dataset.bgid === currentBg.id);
-        bgTile.parentElement.removeChild(bgTile);
-        URL.revokeObjectURL(currentBg.image);
-        app.data.backgrounds = app.data.backgrounds.filter((bg) => bg.id !== currentBg.id);
+            localStorage.lastRotation = Date.now();
+            idbKeyval.delete(currentBg.id);
+            const bgTile = ui.backgroundSelector.querySelectorAll('.bgTile').find((el) => {
+                return el.dataset.bgid === currentBg.id;
+            });
+            bgTile.parentElement.removeChild(bgTile);
+            URL.revokeObjectURL(currentBg.image);
+            app.data.backgrounds = app.data.backgrounds.filter((bg) => bg.id !== currentBg.id);
 
-        if (nextBg) {
-            currentBg = nextBg;
-            updateBackground(nextBg);
-            app.saveData();
-            updateInputs();
-            changeBackgroundPreview();
+            if (nextBg) {
+                currentBg = nextBg;
+                updateBackground(nextBg);
+                app.saveData();
+                updateInputs();
+                changeBackgroundPreview();
+            }
         }
     });
 

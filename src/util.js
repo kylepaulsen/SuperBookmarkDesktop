@@ -149,6 +149,17 @@
         app.desktop.style.height = document.body.scrollHeight + 'px';
     };
 
+    util.getDataset = (el) => {
+        const obj = {};
+        Object.keys(el.dataset).forEach((key) => {
+            obj[key] = el.dataset[key];
+            try {
+                obj[key] = JSON.parse(el.dataset[key]);
+            } catch(e) {}
+        });
+        return obj;
+    };
+
     util.debounce = (fn, time) => {
         let timeout;
         return () => {

@@ -13,14 +13,12 @@
     let lastX;
     let lastY;
     const checkForSwap = (x, y) => {
-        const data = app.data;
-        const existing = data.locations[`${x},${y}`] || {};
-        const existingEl = existing.element;
+        const checkX = x * (ICON_WIDTH + ICON_SPACING) + GUTTER + 10;
+        const checkY = y * (ICON_HEIGHT + ICON_SPACING) + GUTTER + 10;
+        const existingEl = getParentElementWithClass(document.elementFromPoint(checkX, checkY), 'bookmark');
         if (lastX !== undefined && existingEl && target !== existingEl) {
-            existing.element.style.left = lastX * (ICON_WIDTH + ICON_SPACING) + GUTTER + 'px';
-            existing.element.style.top = lastY * (ICON_HEIGHT + ICON_SPACING) + GUTTER + 'px';
-            data.locations[`${lastX},${lastY}`] = existing;
-            data.locations[`${x},${y}`] = undefined;
+            existingEl.style.left = lastX * (ICON_WIDTH + ICON_SPACING) + GUTTER + 'px';
+            existingEl.style.top = lastY * (ICON_HEIGHT + ICON_SPACING) + GUTTER + 'px';
         }
     };
 
@@ -35,6 +33,11 @@
         mouseDown = true;
         target = getParentElementWithClass(e.target, 'bookmark');
         if (target) {
+            const inWindow = getParentElementWithClass(target, 'window');
+            if (inWindow) {
+                target = undefined;
+                return;
+            }
             const iconW = ICON_WIDTH + ICON_SPACING;
             const iconH = ICON_HEIGHT + ICON_SPACING;
             lastX = Math.max(Math.floor((e.pageX - GUTTER) / iconW), 0);

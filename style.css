@@ -33,6 +33,7 @@ input[type=checkbox]:focus {
     opacity: 1;
     transition: opacity 0.30s;
     will-change: opacity;
+    pointer-events: none;
 }
 
 .desktop {
@@ -113,7 +114,7 @@ input[type=checkbox]:focus {
     width: 260px;
     padding: 2px 0;
     box-shadow: 4px 4px 2px -2px rgba(0, 0, 0, 0.5);
-    z-index: 10;
+    z-index: 20;
 }
 
 .contextMenuItem {
@@ -141,7 +142,7 @@ input[type=checkbox]:focus {
     display: none;
     justify-content: center;
     align-items: center;
-    z-index: 7
+    z-index: 15
 }
 
 .modal {
@@ -436,6 +437,34 @@ input[type=checkbox]:focus {
 
 .defaultBtn:hover {
     background: #6AB0FF;
+}
+
+.iconArea {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.window {
+    z-index: 6;
+}
+
+.window .bookmark {
+    margin: 10px;
+}
+
+.window .w-resize, .window .e-resize, .window .content, .window .sw-resize,
+.window .s-resize, .window .se-resize {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.window.active .w-resize, .window.active .e-resize, .window.active .content, .window.active .sw-resize,
+.window.active .s-resize, .window.active .se-resize {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.window .window-top-middle .w-resize, .window .window-top-middle .e-resize,
+.window.active .window-top-middle .w-resize, .window.active .window-top-middle .e-resize {
+    background: #ddd;
 }
 
 .arrow {

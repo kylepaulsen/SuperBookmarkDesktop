@@ -1,7 +1,8 @@
 /* global chrome, idbKeyval, app */
 {
     const {saveData, openModal, closeModal} = app;
-    const {getUiElements, selectImageFromDisk, getFaviconImageUrl, clampText, hide, show, folderImage} = app.util;
+    const {getUiElements, selectImageFromDisk, getFaviconImageUrl, clampText,
+        hide, show, folderImage, getDataset} = app.util;
 
     const content = document.createElement('div');
     content.innerHTML = `
@@ -55,40 +56,39 @@
         modalOpen = false;
     };
     const apply = () => {
-        const icon = app.data.icons[context.dataset.id];
-        const iconEl = icon.element;
-        if (iconEl) {
-            if (blobImgUrl) {
-                iconEl.querySelector('.icon').src = blobImgUrl;
-                icon.image = blobImgUrl;
-            }
-            if (icon.folder) {
-                icon.name = ui.folderName.value;
-                chrome.bookmarks.update(iconEl.dataset.id, {title: icon.name});
-            } else {
-                icon.name = ui.bmName.value;
-                icon.url = ui.bmUrl.value;
-                iconEl.querySelector('.bookmarkLink').href = icon.url;
-                chrome.bookmarks.update(iconEl.dataset.id, {title: icon.name, url: icon.url});
-            }
-            context.dataset.url = icon.url;
-            context.dataset.name = icon.name;
-            iconEl.title = icon.name;
-            clampText(iconEl.querySelector('.name'), icon.name);
-            if (blobToSave) {
-                idbKeyval.set(iconEl.dataset.id, blobToSave).then(() => {
-                    blobToSave = undefined;
-                    saveData();
-                });
-            } else {
+        app.ignoreNextRender = true;
+        const icon = getDataset(context);
+        const iconElUi = getUiElements(context);
+        const iconId = icon.id + ''; // must be a string.
+        const iconEl = context;
+        if (blobImgUrl) {
+            iconElUi.image.src = blobImgUrl;
+        }
+        if (icon.folder) {
+            icon.name = ui.folderName.value;
+            chrome.bookmarks.update(iconId, {title: icon.name});
+        } else {
+            icon.name = ui.bmName.value;
+            icon.url = ui.bmUrl.value;
+            iconElUi.link.href = icon.url;
+            chrome.bookmarks.update(iconId, {title: icon.name, url: icon.url});
+        }
+        context.dataset.url = icon.url;
+        context.dataset.name = icon.name;
+        iconEl.title = icon.name;
+        clampText(iconElUi.name, icon.name);
+        if (blobToSave) {
+            idbKeyval.set(iconId, blobToSave).then(() => {
+                blobToSave = undefined;
                 saveData();
-            }
+            });
+        } else {
             if (deleteImage) {
-                idbKeyval.delete(context.dataset.id).then(saveData);
-                URL.revokeObjectURL(icon.image);
-                icon.image = undefined;
-                iconEl.querySelector('.icon').src = icon.folder ? folderImage : getFaviconImageUrl(icon.url);
+                idbKeyval.delete(iconId);
+                URL.revokeObjectURL(iconElUi.image.src);
+                iconElUi.image.src = icon.folder ? folderImage : getFaviconImageUrl(icon.url);
             }
+            saveData();
         }
         close();
     };
@@ -114,7 +114,7 @@
     ui.changeIconBtn.addEventListener('click', loadIconFromDisk);
 
     ui.revertIconBtn.addEventListener('click', () => {
-        const icon = app.data.icons[context.dataset.id];
+        const icon = getDataset(context);
         ui.icon.src = icon.folder ? folderImage : getFaviconImageUrl(icon.url);
         deleteImage = true;
         blobToSave = undefined;
@@ -123,14 +123,16 @@
         show(ui.changeIconBtn);
     });
 
-    app.openBookmarkProperties = (ctx) => {
-        context = ctx;
+    app.openBookmarkProperties = (iconEl) => {
+        context = iconEl;
         blobImgUrl = undefined;
         blobToSave = undefined;
         deleteImage = false;
 
-        const icon = app.data.icons[context.dataset.id];
-        if (icon.image) {
+        const iconElUi = getUiElements(context);
+        const customImage = !iconElUi.image.src.startsWith('chrome');
+        const icon = getDataset(context);
+        if (customImage) {
             show(ui.revertIconBtn);
             hide(ui.changeIconBtn);
         } else {
@@ -140,12 +142,12 @@
         if (icon.folder) {
             show(ui.folderUi);
             hide(ui.bookmarkUi);
-            ui.icon.src = icon.image || folderImage;
+            ui.icon.src = customImage ? iconElUi.image.src : folderImage;
             ui.folderName.value = icon.name;
         } else {
             hide(ui.folderUi);
             show(ui.bookmarkUi);
-            ui.icon.src = icon.image || getFaviconImageUrl(icon.url);
+            ui.icon.src = customImage ? iconElUi.image.src : getFaviconImageUrl(icon.url);
             ui.bmName.value = icon.name;
             ui.bmUrl.value = icon.url;
         }

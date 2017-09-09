@@ -2,7 +2,7 @@
 {
     const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getFaviconImageUrl,
            clampText, promisify, fixBackgroundSize, updateBackground,
-           getNextBgInCycle, debounce, getParentElementWithClass} = app.util;
+           getNextBgInCycle, debounce, getParentElementWithClass, getDataset, getUiElements} = app.util;
     const desktop = document.querySelector('#desktop');
     app.desktop = desktop;
 
@@ -45,24 +45,25 @@
         bookmarkIcon.title = bookmark.title;
         const tag = folder ? 'div' : 'a';
         bookmarkIcon.innerHTML = `
-            <${tag} class="bookmarkLink" draggable="false" href="${bookmark.url}">
+            <${tag} class="bookmarkLink" data-id="link" draggable="false" href="${bookmark.url}">
                 <div class="iconContainer">
-                    <img class="icon" src="${icon}" alt="">
+                    <img class="icon" data-id="image" src="${icon}" alt="">
                 </div>
-                <div class="name">${bookmark.title}</div>
+                <div class="name" data-id="name">${bookmark.title}</div>
             </${tag}>
         `;
         const nameDiv = bookmarkIcon.querySelector('.name');
         const positionData = data.icons[bookmark.id] || findNextOpenSpot();
-        positionData.url = bookmark.url;
         if (container === desktop) {
             bookmarkIcon.style.position = 'absolute';
             bookmarkIcon.style.left = positionData.x * (ICON_WIDTH + ICON_SPACING) + GUTTER + 'px';
             bookmarkIcon.style.top = positionData.y * (ICON_HEIGHT + ICON_SPACING) + GUTTER + 'px';
+        } else {
+            bookmarkIcon.style.zIndex = 'auto';
         }
         container.appendChild(bookmarkIcon);
         clampText(nameDiv, bookmark.title);
-        data.locations[`${positionData.x},${positionData.y}`] = positionData;
+        data.locations[`${positionData.x},${positionData.y}`] = true;
     }
 
     app.saveData = () => {
@@ -77,28 +78,11 @@
                 const top = parseInt(child.style.top);
                 const x = (left - GUTTER) / (ICON_WIDTH + ICON_SPACING);
                 const y = (top - GUTTER) / (ICON_HEIGHT + ICON_SPACING);
-                const bookmarkObj = {
-                    x,
-                    y,
-                    url: child.dataset.url,
-                    name: child.dataset.name,
-                    folder: child.dataset.folder === 'true'
-                };
-                data.icons[child.dataset.id] = bookmarkObj;
-                data.locations[`${x},${y}`] = bookmarkObj;
+                data.icons[child.dataset.id] = {x, y};
+                data.locations[`${x},${y}`] = child.dataset.id;
             }
         });
         localStorage.data = JSON.stringify(data);
-        desktop.children.forEach((child) => {
-            if (child.classList.contains('bookmark')) {
-                const obj = data.icons[child.dataset.id];
-                const iconImg = child.querySelector('.icon');
-                if (!iconImg.src.startsWith('chrome')) {
-                    obj.image = iconImg.src;
-                }
-                obj.element = child;
-            }
-        });
     };
 
     const getBookmarkTree = promisify(chrome.bookmarks.getTree);
@@ -148,14 +132,21 @@
 
     async function renderFolder(path, container) {
         const pNode = await getNodeFromPath(path);
+        const folders = [];
+        const bookmarks = [];
         pNode.children.forEach((node) => {
             if (node.url) {
-                // this is a bookmark node
-                makeBookmarkIcon(node, path, false, container);
+                bookmarks.push(node);
             } else {
-                // this is a folder node
-                makeBookmarkIcon(node, path, true, container);
+                folders.push(node);
             }
+        });
+        const sort = (a, b) => a.title > b.title;
+        folders.sort(sort);
+        bookmarks.sort(sort);
+        const allNodes = folders.concat(bookmarks);
+        allNodes.forEach((node) => {
+            makeBookmarkIcon(node, path, !node.url, container);
         });
     }
 
@@ -186,7 +177,7 @@
     window.addEventListener('click', (e) => {
         const iconEl = getParentElementWithClass(e.target, 'bookmark');
         if (iconEl) {
-            const icon = app.data.icons[iconEl.dataset.id] || {};
+            const icon = getDataset(iconEl);
             if (icon.folder) {
                 e.preventDefault();
                 const currentWindow = getParentElementWithClass(iconEl, 'window');
@@ -202,21 +193,25 @@
                         y = iconEl.offsetTop - height + iconEl.offsetHeight;
                     }
                     const win = app.makeWindow(icon.name, x, y, width, height);
-                    //renderFolder('2/36/37/38', win.content);
-                    renderFolder(iconEl.dataset.path, win.content);
+                    const winUi = getUiElements(win);
+                    renderFolder(icon.path, winUi.iconArea);
                 } else {
-                    const content = currentWindow.querySelector('.content');
-                    const title = currentWindow.querySelector('.title-bar .title');
-                    title.textContent = iconEl.dataset.name;
-                    content.innerHTML = '';
-                    renderFolder(iconEl.dataset.path, content);
+                    const winUi = getUiElements(currentWindow);
+                    winUi.title.textContent = icon.name;
+                    winUi.iconArea.innerHTML = '';
+                    renderFolder(icon.path, winUi.iconArea);
                 }
             }
         }
     });
 
-    const debouncedRender = debounce(render, 100);
-    ['onCreated', 'onImportEnded', 'onMoved', 'onRemoved'].forEach((eventName) => {
+    const debouncedRender = debounce(() => {
+        if (!app.ignoreNextRender) {
+            render();
+        }
+        app.ignoreNextRender = false;
+    }, 100);
+    ['onCreated', 'onImportEnded', 'onMoved', 'onRemoved', 'onChanged'].forEach((eventName) => {
         chrome.bookmarks[eventName].addListener(debouncedRender);
     });
 

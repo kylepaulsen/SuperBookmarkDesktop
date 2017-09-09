@@ -24,13 +24,16 @@
                     <div class="w-resize top-resize"></div>
                     <div class="title-bar">
                         <div class="close"></div>
-                        <div class="title">Some Title</div>
+                        <div class="title" data-id="title">Some Title</div>
                     </div>
                     <div class="e-resize top-resize"></div>
                 </div>
                 <div class="window-middle">
                     <div class="w-resize"></div>
-                    <div class="content"></div>
+                    <div class="content">
+                        <div class="nav" data-id="nav"></div>
+                        <div class="iconArea" data-id="iconArea"></div>
+                    </div>
                     <div class="e-resize"></div>
                 </div>
                 <div class="window-bottom">
@@ -43,7 +46,6 @@
 
         const win = instanceTemplate(template);
         const titleBar = win.querySelector('.title-bar');
-        const content = win.querySelector('.content');
         titleBar.querySelector('.title').textContent = title;
 
         win.style.width = width + 'px';
@@ -127,17 +129,15 @@
         };
         listen(win.querySelector('.close'), 'click', removeWindow);
 
+        const currentActive = document.querySelector('.window.active');
+        if (currentActive) {
+            currentActive.classList.remove('active');
+        }
+        win.classList.add('active');
         document.body.appendChild(win);
 
-        return {
-            win,
-            content,
-            removeWindow
-        };
+        return win;
     };
 
     app.makeWindow = makeWindow;
 }
-
-// makeWindow('Some Window');
-// makeWindow('Some Other Window');

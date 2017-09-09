@@ -1,6 +1,6 @@
 /* global app */
 {
-    const {hide, show, getUiElements} = app.util;
+    const {hide, show, getUiElements, getDataset} = app.util;
 
     const modalOverlay = document.createElement('div');
     modalOverlay.className = 'modalOverlay';
@@ -37,14 +37,16 @@
         if (button.default) {
             classes += ' defaultBtn';
         }
-        return `<button class="${classes}" data-value="${button.value || button.text}">${button.text}</button>`;
+        const buttonVal = button.value === undefined ? button.text : button.value;
+        return `<button class="${classes}" data-value="${buttonVal}">${button.text}</button>`;
     };
 
     let currentResolve;
     modal.addEventListener('click', (e) => {
         const target = e.target;
         if (target.dataset.value) {
-            currentResolve(target.dataset.value);
+            const data = getDataset(target);
+            currentResolve(data.value);
             closeModal();
         }
     });
@@ -54,7 +56,8 @@
             if (e.keyCode === 27) { // esc
                 const defaultBtn = modal.querySelector('.defaultBtn');
                 if (defaultBtn) {
-                    currentResolve(defaultBtn.dataset.value);
+                    const data = getDataset(defaultBtn);
+                    currentResolve(data.value);
                     closeModal();
                 }
             }
@@ -67,7 +70,10 @@
             currentResolve = res;
             ui.confirmMessage.innerHTML = message;
             ui.confirmButtons.innerHTML = buttons.map(makeButton).join('');
-            modal.querySelector('.defaultBtn').focus();
+            const defaultBtn = modal.querySelector('.defaultBtn');
+            if (defaultBtn) {
+                defaultBtn.focus();
+            }
         });
     };
 

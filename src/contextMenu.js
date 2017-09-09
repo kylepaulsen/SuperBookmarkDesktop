@@ -1,7 +1,7 @@
 /* global chrome, idbKeyval, app */
 {
     const {openBookmarkProperties, openDesktopProperties} = app;
-    const {getUiElements, show, hide, getParentElementWithClass} = app.util;
+    const {getUiElements, show, hide, getParentElementWithClass, getDataset} = app.util;
 
     const contextMenu = document.createElement('div');
     contextMenu.className = 'contextMenu';
@@ -38,26 +38,30 @@
 
     ui.createFolder.addEventListener('click', () => {
         chrome.bookmarks.create({title: 'New Folder'});
+        app.saveData();
         hide(contextMenu);
     });
 
     ui.delete.addEventListener('click', async () => {
         hide(contextMenu);
         const confirmBtns = [
-            'Yes',
-            {text: 'No Way!', value: 'false', default: true}
+            'Do It!',
+            {text: 'No Way!', value: false, default: true}
         ];
-        const icon = app.data.icons[context.dataset.id];
+        const icon = getDataset(context);
+        const iconId = icon.id + ''; // must be string
         const thing = icon.folder ? 'folder' : 'bookmark';
-        if (await app.confirm(`Really? Delete this ${thing}?`, confirmBtns) === 'false') {
-            return;
+        if (await app.confirm(`Really? Delete this ${thing}?`, confirmBtns)) {
+            app.ignoreNextRender = true;
+            if (icon.folder) {
+                chrome.bookmarks.removeTree(iconId);
+            } else {
+                chrome.bookmarks.remove(iconId);
+            }
+            idbKeyval.delete(iconId);
+            context.parentElement.removeChild(context);
+            app.saveData();
         }
-        if (icon.folder) {
-            chrome.bookmarks.removeTree(context.dataset.id);
-        } else {
-            chrome.bookmarks.remove(context.dataset.id);
-        }
-        idbKeyval.delete(context.dataset.id);
     });
 
     ui.properties.addEventListener('click', () => {
@@ -69,12 +73,11 @@
         hide(contextMenu);
     });
 
-    const populateMenu = (e) => {
+    const populateMenu = (targetEl) => {
         Object.keys(ui).forEach((key) => hide(ui[key]));
-        const iconEl = getParentElementWithClass(e.target, 'bookmark');
-        if (iconEl) {
-            const icon = app.data.icons[iconEl.dataset.id];
-            context = iconEl;
+        if (targetEl.classList.contains('bookmark')) {
+            const icon = getDataset(targetEl);
+            context = targetEl;
             if (!icon.folder) {
                 show(ui.newTab);
                 show(ui.newWindow);
@@ -90,9 +93,10 @@
     };
 
     window.addEventListener('contextmenu', (e) => {
-        if (getParentElementWithClass(e.target, ['bookmark', 'desktop'])) {
+        const targetEl = getParentElementWithClass(e.target, ['bookmark', 'desktop']);
+        if (targetEl) {
             e.preventDefault();
-            populateMenu(e);
+            populateMenu(targetEl);
             show(contextMenu);
             let x = e.pageX;
             let y = e.pageY;
