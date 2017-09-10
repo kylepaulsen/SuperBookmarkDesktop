@@ -10,6 +10,7 @@
         <div class="contextMenuItem" data-id="newWindow">Open link in new window</div>
         <div class="contextMenuItem" data-id="incog">Open link in incognito window</div>
         <div class="contextMenuSeperator" data-id="sep"></div>
+        <div class="contextMenuItem" data-id="createBookmark">Create Bookmark</div>
         <div class="contextMenuItem" data-id="createFolder">Create Folder</div>
         <div class="contextMenuItem" data-id="delete">Delete</div>
         <div class="contextMenuItem" data-id="properties">Properties</div>
@@ -36,8 +37,21 @@
         hide(contextMenu);
     });
 
+    ui.createBookmark.addEventListener('click', () => {
+        chrome.bookmarks.create({
+            parentId: context.dataset.id,
+            title: 'New Bookmark',
+            url: 'about:blank'
+        });
+        app.saveData();
+        hide(contextMenu);
+    });
+
     ui.createFolder.addEventListener('click', () => {
-        chrome.bookmarks.create({title: 'New Folder'});
+        chrome.bookmarks.create({
+            parentId: context.dataset.id,
+            title: 'New Folder'
+        });
         app.saveData();
         hide(contextMenu);
     });
@@ -65,7 +79,7 @@
     });
 
     ui.properties.addEventListener('click', () => {
-        if (context) {
+        if (context.classList.contains('bookmark')) {
             openBookmarkProperties(context);
         } else {
             openDesktopProperties();
@@ -86,14 +100,15 @@
             }
             show(ui.delete);
         } else {
-            context = undefined;
+            context = getParentElementWithClass(targetEl, ['desktop', 'window']);
+            show(ui.createBookmark);
             show(ui.createFolder);
         }
         show(ui.properties);
     };
 
     window.addEventListener('contextmenu', (e) => {
-        const targetEl = getParentElementWithClass(e.target, ['bookmark', 'desktop']);
+        const targetEl = getParentElementWithClass(e.target, ['bookmark', 'desktop', 'window']);
         if (targetEl) {
             e.preventDefault();
             populateMenu(targetEl);

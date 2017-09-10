@@ -69,7 +69,9 @@
             chrome.bookmarks.update(iconId, {title: icon.name});
         } else {
             icon.name = ui.bmName.value;
-            icon.url = ui.bmUrl.value;
+            let url = ui.bmUrl.value;
+            url = url.includes(':') ? url : 'http://' + url;
+            icon.url = url;
             iconElUi.link.href = icon.url;
             chrome.bookmarks.update(iconId, {title: icon.name, url: icon.url});
         }
@@ -149,7 +151,7 @@
             show(ui.bookmarkUi);
             ui.icon.src = customImage ? iconElUi.image.src : getFaviconImageUrl(icon.url);
             ui.bmName.value = icon.name;
-            ui.bmUrl.value = icon.url;
+            ui.bmUrl.value = icon.url === 'about:blank' ? '' : icon.url;
         }
 
         openModal(content);
