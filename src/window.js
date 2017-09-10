@@ -1,5 +1,7 @@
 /* global app */
 {
+    const {getParentElementWithClass} = app.util;
+
     const listen = (el, type, func) => {
         el.addEventListener(type, func, false);
     };
@@ -14,7 +16,7 @@
         const minWidth = 150;
         const minHeight = 150;
         const template = `
-            <div class="window">
+            <div class="window" data-folder="true">
                 <div class="window-top">
                     <div class="nw-resize top-resize"></div>
                     <div class="n-resize top-resize"></div>
@@ -63,7 +65,9 @@
         let mouseDown = false;
         let target;
         listen(win, 'mousedown', (e) => {
-            e.preventDefault();
+            if (!getParentElementWithClass(e.target, 'bookmark')) {
+                e.preventDefault();
+            }
             offset.x = e.pageX - win.offsetLeft;
             offset.y = e.pageY - win.offsetTop;
             width = win.offsetWidth;

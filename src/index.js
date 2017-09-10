@@ -35,18 +35,19 @@
             }
         } catch (e) {}
         const bookmarkIcon = document.createElement('div');
-        bookmarkIcon.className = 'bookmark';
+        bookmarkIcon.className = folder ? 'bookmark folder' : 'bookmark';
         bookmarkIcon.dataset.url = bookmark.url;
         bookmarkIcon.dataset.name = bookmark.title;
         bookmarkIcon.dataset.id = bookmark.id;
         bookmarkIcon.dataset.path = currentPath + '/' + bookmark.id;
         bookmarkIcon.dataset.folder = folder;
         bookmarkIcon.title = bookmark.title;
+        bookmarkIcon.setAttribute('draggable', 'true');
         const tag = folder ? 'div' : 'a';
         bookmarkIcon.innerHTML = `
             <${tag} class="bookmarkLink" data-id="link" draggable="false" href="${bookmark.url}">
                 <div class="iconContainer">
-                    <img class="icon" data-id="image" src="${icon}" alt="">
+                    <img class="icon" data-id="image" draggable="false" src="${icon}" alt="">
                 </div>
                 <div class="name" data-id="name">${bookmark.title}</div>
             </${tag}>
@@ -57,12 +58,12 @@
             bookmarkIcon.style.position = 'absolute';
             bookmarkIcon.style.left = positionData.x * (ICON_WIDTH + ICON_SPACING) + GUTTER + 'px';
             bookmarkIcon.style.top = positionData.y * (ICON_HEIGHT + ICON_SPACING) + GUTTER + 'px';
+            data.locations[`${positionData.x},${positionData.y}`] = true;
         } else {
             bookmarkIcon.style.zIndex = 'auto';
         }
         container.appendChild(bookmarkIcon);
         clampText(nameDiv, bookmark.title);
-        data.locations[`${positionData.x},${positionData.y}`] = true;
     }
     app.makeBookmarkIcon = makeBookmarkIcon;
 
@@ -138,14 +139,14 @@
         fixBackgroundSize();
     });
 
-    const debouncedRender = debounce(() => {
+    app.debouncedRender = debounce(() => {
         if (!app.ignoreNextRender) {
             render();
         }
         app.ignoreNextRender = false;
     }, 100);
     ['onCreated', 'onImportEnded', 'onMoved', 'onRemoved', 'onChanged'].forEach((eventName) => {
-        chrome.bookmarks[eventName].addListener(debouncedRender);
+        chrome.bookmarks[eventName].addListener(app.debouncedRender);
     });
 
     /*

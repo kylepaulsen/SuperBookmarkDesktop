@@ -57,6 +57,14 @@ input[type=checkbox]:focus {
     background: rgba(255, 255, 255, 0.25);
 }
 
+.bookmark.dragHover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.bookmark.selected {
+    background: rgba(100, 200, 255, 0.25);
+}
+
 .bookmarkLink {
     width: 80px;
     max-height: 102px;
@@ -471,17 +479,31 @@ input[type=checkbox]:focus {
     background: rgba(0, 0, 0, 0.15);
 }
 
+.window .bookmark.dragHover {
+    background: rgba(0, 0, 0, 0.15);
+}
+
 .window .window-top-nav, .window .window-middle, .window .window-bottom {
     background: rgba(255, 255, 255, 0.7);
+}
+
+.window .window-top-nav {
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .window {
-    opacity: 0.5;
+    opacity: 0.8;
 }
 
 .window.active {
     opacity: 1;
+}
+
+.selectBox {
+    position: absolute;
+    border: 1px solid rgb(0, 105, 255);
+    background: rgba(0, 105, 255, 0.25);
+    z-index: 300;
 }
 
 .arrow {

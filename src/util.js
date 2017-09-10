@@ -1,6 +1,6 @@
 /* global idbKeyval, app */
 {
-    (['forEach', 'map', 'find']).forEach((func) => {
+    (['forEach', 'map', 'find', 'includes']).forEach((func) => {
         NodeList.prototype[func] = Array.prototype[func];
         HTMLCollection.prototype[func] = Array.prototype[func];
     });
@@ -239,6 +239,44 @@
             } catch(e) {}
         });
         return obj;
+    };
+
+    util.deselectAll = () => {
+        document.querySelectorAll('.bookmark.selected').forEach((bookmark) => {
+            bookmark.classList.remove('selected');
+        });
+    };
+
+    util.findFreeSpotNear = (x, y, acceptableCollisions = {}) => {
+        // does a spiral search starting from the center, then right, then down, then left, then up... etc.
+        let dx = 1;
+        let dy = 0;
+        let stepsTillChange = 1;
+        let currentStep = 0;
+        while (x < 0 || y < 0 || (app.data.locations[`${x},${y}`] && !acceptableCollisions[`${x},${y}`])) {
+            x += dx;
+            y += dy;
+            currentStep++;
+            if (currentStep >= stepsTillChange) {
+                currentStep = 0;
+                if (dx === 1) {
+                    dx = 0;
+                    dy = 1;
+                } else if (dy === 1) {
+                    stepsTillChange++;
+                    dx = -1;
+                    dy = 0;
+                } else if (dx === -1) {
+                    dx = 0;
+                    dy = -1;
+                } else {
+                    stepsTillChange++;
+                    dx = 1;
+                    dy = 0;
+                }
+            }
+        }
+        return {x, y};
     };
 
     util.debounce = (fn, time) => {

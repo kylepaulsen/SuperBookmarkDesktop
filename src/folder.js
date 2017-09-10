@@ -50,6 +50,7 @@
             win.parentElement.removeChild(win);
             return;
         }
+        win.dataset.id = path.split('/').pop();
         win.dataset.path = path;
         winUi.navBar.innerHTML = '';
         for (let x = 1; x < navPaths.length; x++) {
@@ -89,7 +90,8 @@
         const iconEl = getParentElementWithClass(e.target, 'bookmark');
         if (iconEl) {
             const icon = getDataset(iconEl);
-            if (icon.folder) {
+            const specialKeysDown = e.metaKey || e.ctrlKey || e.shiftKey;
+            if (icon.folder && !specialKeysDown) {
                 e.preventDefault();
                 const currentWindow = getParentElementWithClass(iconEl, 'window');
                 if (!currentWindow) {
