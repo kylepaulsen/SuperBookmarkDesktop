@@ -191,13 +191,34 @@
         return str;
     };
 
-    util.updateBackground = (bg) => {
-        app.desktop.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image})`;
-        document.body.style.background = bg.color;
-        util.setBackgroundStylesFromMode(app.desktop, bg.mode);
-        app.data.background = bg;
-        localStorage.lastRotation = Date.now();
-        localStorage.lastBgId = bg.id;
+    util.updateBackground = async (bg) => {
+        if (app.data.background.id !== bg.id) {
+            app.data.background = bg;
+            localStorage.lastRotation = Date.now();
+            localStorage.lastBgId = bg.id;
+
+            const temp = document.createElement('div');
+            const temp2 = document.createElement('div');
+            temp.appendChild(temp2);
+            temp.className = 'tempBG';
+            temp2.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image})`;
+            util.setBackgroundStylesFromMode(temp2, bg.mode);
+            temp.style.background = bg.color;
+            document.body.appendChild(temp);
+
+            await util.sleep(0);
+            temp.style.opacity = 1;
+            document.body.style.background = bg.color;
+            await util.sleep(400);
+            app.desktop.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image})`;
+            temp.parentElement.removeChild(temp);
+            util.setBackgroundStylesFromMode(app.desktop, bg.mode);
+        } else {
+            app.data.background = bg;
+            document.body.style.background = bg.color;
+            app.desktop.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image})`;
+            util.setBackgroundStylesFromMode(app.desktop, bg.mode);
+        }
     };
 
     util.fixBackgroundSize = () => {

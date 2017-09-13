@@ -9,7 +9,7 @@
             <div class="bgTile${bg.selected ? ' selected' : ''}" data-bgid="${bg.id}">
                 <div class="aspect16-9">
                     <div class="aspect-container">
-                        <img src="${bg.image}" alt="">
+                        <img src="${bg.image}" alt="" draggable="false">
                         <input type="checkbox" class="bgCheckbox" ${bg.selected ? 'checked="checked"' : ''}>
                     </div>
                 </div>
@@ -238,6 +238,7 @@
                 el.parentElement.removeChild(el);
             });
             window.removeEventListener('mousedown', removeColorPickers);
+            saveData();
         }
     };
 

@@ -8,7 +8,7 @@ html, body {
     padding: 0;
     width: 100%;
     height: 100%;
-    transition: background-color 0.5s;
+    transition: background-color 0.3s;
 }
 
 input[type=checkbox] {
@@ -43,9 +43,33 @@ input[type=checkbox]:focus {
     background-position: center center;
     background-attachment: fixed;
     background-size: cover;
-    /* background-size: contain; */
     background-repeat: no-repeat;
-    /* background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url() */
+}
+
+.tempBG {
+    min-width: 100%;
+    min-height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 4;
+    transition: opacity 0.30s;
+    will-change: opacity;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.tempBG div {
+    background-position: center center;
+    background-attachment: fixed;
+    background-size: cover;
+    background-repeat: no-repeat;
+    position: fixed;
+    top: 0;
+    left: 0;
+    min-width: 100%;
+    min-height: 100%;
+    pointer-events: none;
 }
 
 .bookmark {

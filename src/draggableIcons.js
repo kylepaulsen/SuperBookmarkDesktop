@@ -17,11 +17,13 @@
     }
 
     window.addEventListener('dragstart', (e) => {
-        dragStartElement = e.target;
-        const container = getParentElementWithClass(dragStartElement, ['window', 'desktop']);
-        selected = Array.prototype.slice.call(container.querySelectorAll('.bookmark.selected'));
-        selected = selected.filter((item) => item !== dragStartElement);
-        selected.unshift(dragStartElement);
+        if (e.target.classList.contains('bookmark')) {
+            dragStartElement = e.target;
+            const container = getParentElementWithClass(dragStartElement, ['window', 'desktop']);
+            selected = Array.prototype.slice.call(container.querySelectorAll('.bookmark.selected'));
+            selected = selected.filter((item) => item !== dragStartElement);
+            selected.unshift(dragStartElement);
+        }
     });
 
     window.addEventListener('dragover', (e) => {
