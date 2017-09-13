@@ -54,7 +54,7 @@
             return false;
         }
         const idx = Math.max(selectedBgs.findIndex((el) => currentId === el.id), 0);
-        if (random) {
+        if (random && selectedBgs.length > 1) {
             let randIndex;
             do {
                 randIndex = util.randomInt(0, selectedBgs.length - 1);
@@ -184,34 +184,11 @@
         return `chrome://favicon/size/${size}/${url}`;
     };
 
-    util.randomInt = (min, max) => {
-        return Math.floor(Math.random() * (max - min + 1) + min);
-    };
-
     util.pad = (str, length, pad = '0') => {
         while (str.length < length) {
             str = pad + str;
         }
         return str;
-    };
-
-    util.setBackgroundStylesFromMode = (el, mode) => {
-        if (mode === 'fill') {
-            el.style.backgroundSize = 'cover';
-            el.style.backgroundRepeat = 'no-repeat';
-        } else if (mode === 'fit') {
-            el.style.backgroundSize = 'contain';
-            el.style.backgroundRepeat = 'no-repeat';
-        } else if (mode === 'stretch') {
-            el.style.backgroundSize = '100% 100%';
-            el.style.backgroundRepeat = 'no-repeat';
-        } else if (mode === 'tile') {
-            el.style.backgroundSize = 'initial';
-            el.style.backgroundRepeat = 'repeat';
-        } else if (mode === 'center') {
-            el.style.backgroundSize = 'initial';
-            el.style.backgroundRepeat = 'no-repeat';
-        }
     };
 
     util.updateBackground = (bg) => {
@@ -275,6 +252,9 @@
                     dy = 0;
                 }
             }
+        }
+        if (acceptableCollisions[`${x},${y}`]) {
+            acceptableCollisions[`${x},${y}`] = false;
         }
         return {x, y};
     };

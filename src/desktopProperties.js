@@ -61,9 +61,23 @@
                     </div>
                 </div>
                 <div class="backgroundSelector" data-id="backgroundSelector">
-                    <div class="backgroundSectionTitle" data-id="collapseDefaultBgs">Default Backgrounds<span class="arrow"></span></div>
+                    <div class="backgroundSectionTitle" data-id="collapseDefaultBgs">
+                        <div>
+                            Default Backgrounds<span class="arrow"></span>
+                        </div>
+                        <div>
+                            <button data-check="true">Check All</button> <button>Uncheck All</button>
+                        </div>
+                    </div>
                     <div class="defaultBackgrounds backgroundSection" data-id="defaultBackgroundsSection"></div>
-                    <div class="backgroundSectionTitle" data-id="collapseUserBgs">Your Backgrounds<span class="arrow"></span></div>
+                    <div class="backgroundSectionTitle" data-id="collapseUserBgs">
+                        <div>
+                            Your Backgrounds<span class="arrow"></span>
+                        </div>
+                        <div>
+                            <button data-check="true">Check All</button> <button>Uncheck All</button>
+                        </div>
+                    </div>
                     <div class="userBackgrounds backgroundSection" data-id="userBackgroundsSection"></div>
                 </div>
             </div>
@@ -163,6 +177,18 @@
         ui.deleteBackgroundBtn.disabled = bg.default;
     };
 
+    const changeCheckmarks = (container, checked = false) => {
+        const bgTiles = container.querySelectorAll('.bgTile');
+        bgTiles.forEach((bgTile) => {
+            const bg = app.data.backgrounds.find((bg) => bg.id === bgTile.dataset.bgid);
+            bgTile.querySelector('.bgCheckbox').checked = checked;
+            bg.selected = checked;
+            updateSelected(bgTile, bg);
+            updateInputs();
+        });
+        saveData();
+    };
+
     const updateSelected = (el, bg) => {
         if (bg.selected) {
             el.classList.add('selected');
@@ -202,6 +228,7 @@
                 bg.selected = e.target.checked;
                 updateSelected(bgTile, bg);
                 updateInputs();
+                saveData();
             } else {
                 currentBg = bg;
                 updateInputs();
@@ -293,10 +320,18 @@
         }
     };
     ui.collapseDefaultBgs.addEventListener('click', (e) => {
-        localStorage.defaultBgsCollapsed = toggleBackgroundSection(e, ui.defaultBackgroundsSection);
+        if (e.target.tagName !== 'BUTTON') {
+            localStorage.defaultBgsCollapsed = toggleBackgroundSection(e, ui.defaultBackgroundsSection);
+        } else {
+            changeCheckmarks(ui.defaultBackgroundsSection, !!e.target.dataset.check);
+        }
     });
     ui.collapseUserBgs.addEventListener('click', (e) => {
-        localStorage.userBgsCollapsed = toggleBackgroundSection(e, ui.userBackgroundsSection);
+        if (e.target.tagName !== 'BUTTON') {
+            localStorage.userBgsCollapsed = toggleBackgroundSection(e, ui.userBackgroundsSection);
+        } else {
+            changeCheckmarks(ui.userBackgroundsSection, !!e.target.dataset.check);
+        }
     });
     ui.defaultBackgroundsSection.addEventListener('transitionend', () => {
         if (!ui.defaultBackgroundsSection.classList.contains('collapsed')) {
