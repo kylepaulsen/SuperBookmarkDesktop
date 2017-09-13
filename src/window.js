@@ -1,6 +1,6 @@
 /* global app */
 {
-    const {getParentElementWithClass} = app.util;
+    const {getParentElementWithClass, fixBackgroundSize} = app.util;
 
     const listen = (el, type, func) => {
         el.addEventListener(type, func, false);
@@ -131,6 +131,7 @@
                 }
                 win.style.width = newWidth + 'px';
                 win.style.height = newHeight + 'px';
+                fixBackgroundSize();
             }
         });
         const removeWindow = () => {

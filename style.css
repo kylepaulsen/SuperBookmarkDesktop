@@ -87,7 +87,7 @@ input[type=checkbox]:focus {
 }
 
 .bookmark.selected {
-    background: rgba(100, 200, 255, 0.25);
+    background: rgba(100, 200, 255, 0.5);
 }
 
 .bookmarkLink {
@@ -516,6 +516,10 @@ input[type=checkbox]:focus {
 
 .window .bookmark:hover {
     background: rgba(0, 0, 0, 0.15);
+}
+
+.window .bookmark.selected:hover {
+    background: rgba(100, 200, 255, 0.5);
 }
 
 .window .bookmark.dragHover {
