@@ -450,6 +450,18 @@ input[type=checkbox]:focus {
     background: #6AB0FF;
 }
 
+.colorBtn {
+    width: 60px;
+    height: 30px;
+    border: 5px solid #aaa;
+    cursor: pointer;
+}
+
+.color-picker {
+    position: absolute;
+    z-index: 500;
+}
+
 .iconArea {
     display: flex;
     flex-wrap: wrap;

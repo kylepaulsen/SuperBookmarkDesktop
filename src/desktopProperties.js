@@ -1,4 +1,4 @@
-/* global app, idbKeyval */
+/* global app, idbKeyval, makeColorPicker */
 {
     const {openModal, closeModal, saveData} = app;
     const {getUiElements, selectImageFromDisk, getParentElementWithClass, pad, updateBackground,
@@ -33,12 +33,11 @@
                         <div class="topBgOptions">
                             <div>
                                 <div class="label">Page Color</div>
-                                <input type="color" data-id="bgColor">
+                                <div class="colorBtn" data-id="bgColor"></div>
                             </div>
                             <div>
                                 <div class="label">Filter Color</div>
-                                <input type="color" data-id="filterColor">
-                                <span><input type="number" data-id="filterOpacity" value="0" min="0" max="100">%</span>
+                                <div class="colorBtn" data-id="filterColor"></div>
                             </div>
                             <div class="center">
                                 <div class="label">In Rotation?</div>
@@ -162,14 +161,8 @@
     };
 
     const updateInputs = (bg = currentBg) => {
-        ui.bgColor.value = bg.color;
-        const filterParts = bg.filter.split('(')[1].split(',');
-        const r = pad(parseInt(filterParts[0]).toString(16), 2);
-        const g = pad(parseInt(filterParts[1]).toString(16), 2);
-        const b = pad(parseInt(filterParts[2]).toString(16), 2);
-        const a = parseFloat(filterParts[3]);
-        ui.filterColor.value = `#${r}${g}${b}`;
-        ui.filterOpacity.value = Math.floor(a * 100);
+        ui.bgColor.style.background = bg.color;
+        ui.filterColor.style.background = bg.filter;
         ui.inRotation.checked = bg.selected;
         ui.bgMode.value = bg.mode;
         ui.bgRotateTime.value = app.data.rotateMinutes;
@@ -199,6 +192,7 @@
 
     const close = () => {
         closeModal();
+        removeColorPickers({target: document.body});
         modalOpen = false;
     };
     const apply = () => {
@@ -237,22 +231,52 @@
         }
     });
 
-    ui.bgColor.addEventListener('input', () => {
-        currentBg.color = ui.bgColor.value;
-        changeBackgroundPreview();
+    const removeColorPickers = (e) => {
+        const colorPicker = getParentElementWithClass(e.target, 'color-picker');
+        if (!colorPicker) {
+            document.querySelectorAll('.color-picker').forEach((el) => {
+                el.parentElement.removeChild(el);
+            });
+            window.removeEventListener('mousedown', removeColorPickers);
+        }
+    };
+
+    const setupColorPicker = (e, btn, alpha = false) => {
+        const colorPicker = makeColorPicker(alpha);
+        colorPicker.container.style.left = btn.offsetLeft + 'px';
+        colorPicker.container.style.top = btn.offsetTop + 'px';
+        document.body.appendChild(colorPicker.container);
+
+        window.addEventListener('mousedown', removeColorPickers);
+        return colorPicker;
+    };
+
+    ui.bgColor.addEventListener('click', (e) => {
+        const colorPicker = setupColorPicker(e, ui.bgColor, false);
+        const rgb = ui.bgColor.style.background.match(/[0-9]+/g);
+        colorPicker.setColor(parseInt(rgb[0]), parseInt(rgb[1]), parseInt(rgb[2]));
+
+        colorPicker.onChange((color) => {
+            const hex = '#' + pad(color.r.toString(16), 2) + pad(color.g.toString(16), 2) +
+                pad(color.b.toString(16), 2);
+            ui.bgColor.style.background = hex;
+            currentBg.color = hex;
+            changeBackgroundPreview();
+        });
     });
 
-    const parseFilterColor = () => {
-        const color = ui.filterColor.value;
-        const r = parseInt(color.substring(1, 3), 16);
-        const g = parseInt(color.substring(3, 5), 16);
-        const b = parseInt(color.substring(5), 16);
-        const a = Math.min(Math.max(ui.filterOpacity.value / 100, 0), 1);
-        currentBg.filter = `rgba(${r},${g},${b},${a})`;
-        changeBackgroundPreview();
-    };
-    ui.filterColor.addEventListener('input', parseFilterColor);
-    ui.filterOpacity.addEventListener('change', parseFilterColor);
+    ui.filterColor.addEventListener('click', (e) => {
+        const colorPicker = setupColorPicker(e, ui.filterColor, true);
+        const rgb = ui.filterColor.style.background.match(/[0-9\.]+/g);
+        colorPicker.setColor(parseInt(rgb[0]), parseInt(rgb[1]), parseInt(rgb[2]), parseFloat(rgb[3]));
+
+        colorPicker.onChange((color) => {
+            const colorStr = `rgba(${color.r},${color.g},${color.b},${color.a})`;
+            ui.filterColor.style.background = colorStr;
+            currentBg.filter = colorStr;
+            changeBackgroundPreview();
+        });
+    });
 
     ui.inRotation.addEventListener('change', () => {
         currentBg.selected = ui.inRotation.checked;
