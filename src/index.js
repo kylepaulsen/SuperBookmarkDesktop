@@ -1,11 +1,11 @@
 /* global chrome, app, idbKeyval */
 {
-    const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getFaviconImageUrl,
+    const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getFaviconImageUrl, loadData,
            clampText, promisify, fixBackgroundSize, updateBackground, getNextBgInCycle, debounce} = app.util;
     const desktop = document.querySelector('#desktop');
     app.desktop = desktop;
 
-    const data = app.data;
+    let data = app.data;
 
     function findNextOpenSpot() {
         for (let x = 0; x < 12; x++) {
@@ -84,6 +84,10 @@
             }
         });
         localStorage.data = JSON.stringify(data);
+        if (app.sendSyncEventAfterSave) {
+            app.sendSyncEventAfterSave = false;
+            chrome.runtime.sendMessage({action: 'reload'});
+        }
     };
 
     app.getBookmarkTree = promisify(chrome.bookmarks.getTree);
@@ -149,34 +153,11 @@
         chrome.bookmarks[eventName].addListener(app.debouncedRender);
     });
 
-    /*
-    { // root folder node
-        "children": [{ // folder node
-            "children": [{ // bookmark node
-                "dateAdded": 1425441500109,
-                "id": "5",
-                "index": 0,
-                "parentId": "1",
-                "title": "Inbox - krazykylep@gmail.com - Gmail",
-                "url": "https://mail.google.com/mail/u/0/?pli=1#inbox"
-            }],
-            "dateAdded": 1398133602091,
-            "dateGroupModified": 1503811743189,
-            "id": "1",
-            "index": 0,
-            "parentId": "0",
-            "title": "Bookmarks bar"
-        }, { // folder node
-            "children": [],
-            "dateAdded": 1398133602091,
-            "id": "2",
-            "index": 1,
-            "parentId": "0",
-            "title": "Other bookmarks"
-        }],
-        "dateAdded": 1503694544274,
-        "id": "0",
-        "title": ""
-    }
-    */
+    chrome.runtime.onMessage.addListener((msgObj) => {
+        if (msgObj.action === 'reload') {
+            app.data = loadData();
+            data = app.data;
+            app.debouncedRender();
+        }
+    });
 }

@@ -1,6 +1,5 @@
 /* global chrome, app */
 {
-    const {saveData} = app;
     const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getParentElementWithClass,
         getDataset, deselectAll, findFreeSpotNear, debounce} = app.util;
 
@@ -26,8 +25,11 @@
         }
     });
 
+    let mouseGridPos;
     window.addEventListener('dragover', (e) => {
         e.preventDefault();
+        // collecting mouse grid pos here because there is a weird AF bug in mac chrome with bad mouse coords.
+        mouseGridPos = pointToGrid(e.pageX, e.pageY);
         const potentialDropTarget = document.elementFromPoint(e.clientX, e.clientY);
         const dropTarget = getParentElementWithClass(potentialDropTarget, ['bookmark', 'window', 'desktop']);
         if (lastHovered) {
@@ -43,25 +45,29 @@
         }
     });
 
-    window.addEventListener('dragend', (e) => {
-        const dropTarget = lastHovered;
+    window.addEventListener('dragend', () => {
+        let dropTarget = lastHovered;
+        if (!dropTarget && dragStartElement.parentElement === app.desktop) {
+            dropTarget = app.desktop;
+        }
         if (dropTarget && !selected.includes(dropTarget)) {
             let gridOffset;
             let acceptableCollisions = {};
-            const gridPos = pointToGrid(e.pageX, e.pageY);
+            let shouldSave = false;
             if (dropTarget === app.desktop) {
                 if (dragStartElement.parentElement === app.desktop) {
                     // chrome likes to send a change event when a folder moves but not really.
                     app.ignoreNextRender = true;
                     // set up stuff for moving icons just on the desktop.
+                    shouldSave = true;
                     selected.forEach((item) => {
                         const gridPos = pointToGrid(item.offsetLeft, item.offsetTop);
                         acceptableCollisions[`${gridPos.x},${gridPos.y}`] = true;
                     });
                     const gridAnchorPoint = pointToGrid(dragStartElement.offsetLeft, dragStartElement.offsetTop);
                     gridOffset = {
-                        x: gridPos.x - gridAnchorPoint.x,
-                        y: gridPos.y - gridAnchorPoint.y
+                        x: mouseGridPos.x - gridAnchorPoint.x,
+                        y: mouseGridPos.y - gridAnchorPoint.y
                     };
                 }
             }
@@ -72,23 +78,29 @@
                         const gridPos = pointToGrid(item.offsetLeft, item.offsetTop);
                         const gridPosAfterMove = {
                             x: gridPos.x + gridOffset.x,
-                            y: gridPos.y + gridOffset.y,
+                            y: gridPos.y + gridOffset.y
                         };
                         const newSpot = findFreeSpotNear(gridPosAfterMove.x, gridPosAfterMove.y, acceptableCollisions);
                         delete app.data.locations[`${gridPos.x},${gridPos.y}`];
                         app.data.locations[`${newSpot.x},${newSpot.y}`] = item.dataset.id;
                         item.style.left = newSpot.x * (ICON_WIDTH + ICON_SPACING) + GUTTER + 'px';
                         item.style.top = newSpot.y * (ICON_HEIGHT + ICON_SPACING) + GUTTER + 'px';
+                        // this is here to clear the ignoreNextRender that's set above.
                         app.debouncedRender();
+                        debouncedSync();
                     } else {
                         // moving items from folder to desktop.
-                        const newSpot = findFreeSpotNear(gridPos.x, gridPos.y);
+                        const newSpot = findFreeSpotNear(mouseGridPos.x, mouseGridPos.y);
                         app.data.locations[`${newSpot.x},${newSpot.y}`] = item.dataset.id;
                         app.data.icons[item.dataset.id] = newSpot;
+                        app.sendSyncEventAfterSave = true;
                     }
                 }
                 chrome.bookmarks.move(item.dataset.id, {parentId: dropTarget.dataset.id});
             });
+            if (shouldSave) {
+                app.saveData();
+            }
             selected = [];
         }
         if (lastHovered) {
@@ -97,12 +109,9 @@
         lastHovered = undefined;
     });
 
-    const debouncedSave = debounce(saveData, 100);
-    window.addEventListener('transitionend', (e) => {
-        if (e.target.classList.contains('bookmark')) {
-            debouncedSave();
-        }
-    });
+    const debouncedSync = debounce(() => {
+        chrome.runtime.sendMessage({action: 'reload'});
+    }, 100);
 
     let changeSelection = false;
     let lastSelected = [];

@@ -29,6 +29,27 @@
         return Math.floor(Math.random() * (max - min + 1) + min);
     };
 
+    util.loadData = () => {
+        let data;
+        try {
+            data = JSON.parse(localStorage.data);
+        } catch (e) {
+            const backgrounds = app.defaultBackgrounds.map((bg, idx) => util.createBG(idx, bg, true));
+            data = {
+                icons: {},
+                locations: {},
+                backgrounds,
+                background: undefined,
+                rotateMinutes: 20,
+                random: false
+            };
+        }
+        // Seems pointless but This makes sure data.background points at one of our backgrounds in the list.
+        const lastId = localStorage.lastBgId || data.backgrounds[util.randomInt(0, data.backgrounds.length - 1)].id;
+        data.background = data.backgrounds.find((bg) => lastId === bg.id);
+        return data;
+    };
+
     util.setBackgroundStylesFromMode = (el, mode) => {
         if (mode === 'fill') {
             el.style.backgroundSize = 'cover';

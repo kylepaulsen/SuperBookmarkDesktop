@@ -12,27 +12,10 @@
     };
     const app = window.app;
     app.util = window.util;
-    const {randomInt, setBackgroundStylesFromMode, getNextBgInCycle, createBG,
-        getBgImageFromDB, loadImage, sleep} = app.util;
+    const {setBackgroundStylesFromMode, getNextBgInCycle, getBgImageFromDB, loadImage, sleep, loadData} = app.util;
 
     // load in localStorage data...
-    let data;
-    try {
-        data = JSON.parse(localStorage.data);
-    } catch (e) {
-        const backgrounds = app.defaultBackgrounds.map((bg, idx) => createBG(idx, bg, true));
-        data = {
-            icons: {},
-            locations: {},
-            backgrounds,
-            background: undefined,
-            rotateMinutes: 20,
-            random: false
-        };
-    }
-    // Seems pointless but This makes sure data.background points at one of our backgrounds in the list.
-    const lastId = localStorage.lastBgId || data.backgrounds[randomInt(0, data.backgrounds.length - 1)].id;
-    data.background = data.backgrounds.find((bg) => lastId === bg.id);
+    const data = loadData();
     app.data = data;
 
     const now = Date.now();
