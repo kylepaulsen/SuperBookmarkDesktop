@@ -15,5 +15,6 @@
     ],
     "chrome_url_overrides": {
         "newtab": "index.html"
-    }
+    },
+    "minimum_chrome_version": "59"
 }

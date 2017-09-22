@@ -33,7 +33,8 @@
             }
             parentPaths.unshift({
                 path: nextPath,
-                name: nextNode.title
+                name: nextNode.title,
+                id: nextNode.id
             });
             pathParts.pop();
         }
@@ -56,7 +57,7 @@
         for (let x = 1; x < navPaths.length; x++) {
             const nextNav = navPaths[x];
             navBarMarkup.push(`
-                <div class="navButton" data-path="${nextNav.path}">
+                <div class="navButton" data-folder="true" data-id="${nextNav.id}" data-path="${nextNav.path}">
                     ${nextNav.name}
                 </div>
             `);

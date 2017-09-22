@@ -497,7 +497,7 @@ input[type=checkbox]:focus {
     user-select: none;
 }
 
-.navButton:hover {
+.navButton:hover, .navButton.dragHover {
     background: rgba(0, 0, 0, 0.15);
 }
 

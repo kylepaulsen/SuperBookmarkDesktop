@@ -31,7 +31,8 @@
         // collecting mouse grid pos here because there is a weird AF bug in mac chrome with bad mouse coords.
         mouseGridPos = pointToGrid(e.pageX, e.pageY);
         const potentialDropTarget = document.elementFromPoint(e.clientX, e.clientY);
-        const dropTarget = getParentElementWithClass(potentialDropTarget, ['bookmark', 'window', 'desktop']);
+        const dropTarget = getParentElementWithClass(potentialDropTarget,
+            ['bookmark', 'navButton', 'window', 'desktop']);
         if (lastHovered) {
             lastHovered.classList.remove('dragHover');
             lastHovered = undefined;
