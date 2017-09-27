@@ -2,7 +2,7 @@
 {
     const {saveData, openModal, closeModal} = app;
     const {getUiElements, selectImageFromDisk, getFaviconImageUrl, clampText,
-        hide, show, folderImage, getDataset} = app.util;
+        hide, show, folderImage, documentImage, getDataset} = app.util;
 
     const content = document.createElement('div');
     content.innerHTML = `
@@ -20,9 +20,9 @@
                     <input data-id="folderName" placeholder="Folder Name" class="input">
                 </div>
                 <div data-id="bookmarkUi">
-                    <div class="label">Bookmark Name</div>
+                    <div class="label" data-id="bmNameLabel">Bookmark Name</div>
                     <input data-id="bmName" placeholder="Bookmark Name" class="input">
-                    <div class="label">Bookmark URL</div>
+                    <div class="label" data-id="bmUrlLabel">Bookmark URL</div>
                     <input data-id="bmUrl" placeholder="Bookmark URL" class="input">
                 </div>
             </div>
@@ -71,9 +71,13 @@
             icon.name = ui.bmName.value;
             let url = ui.bmUrl.value;
             url = url.includes(':') ? url : 'http://' + url;
-            icon.url = url;
-            iconElUi.link.href = icon.url;
-            chrome.bookmarks.update(iconId, {title: icon.name, url: icon.url});
+            if (icon.document) {
+                chrome.bookmarks.update(iconId, {title: icon.name});
+            } else {
+                icon.url = url;
+                iconElUi.link.href = icon.url;
+                chrome.bookmarks.update(iconId, {title: icon.name, url: icon.url});
+            }
         }
         context.dataset.url = icon.url;
         context.dataset.name = icon.name;
@@ -88,7 +92,13 @@
             if (deleteImage) {
                 idbKeyval.delete(iconId);
                 URL.revokeObjectURL(iconElUi.image.src);
-                iconElUi.image.src = icon.folder ? folderImage : getFaviconImageUrl(icon.url);
+                iconElUi.image.src = getFaviconImageUrl(icon.url);
+                if (icon.folder) {
+                    iconElUi.image.src = folderImage;
+                }
+                if (icon.document) {
+                    iconElUi.image.src = documentImage;
+                }
             }
             saveData();
         }
@@ -117,7 +127,13 @@
 
     ui.revertIconBtn.addEventListener('click', () => {
         const icon = getDataset(context);
-        ui.icon.src = icon.folder ? folderImage : getFaviconImageUrl(icon.url);
+        ui.icon.src = getFaviconImageUrl(icon.url);
+        if (icon.folder) {
+            ui.icon.src = folderImage;
+        }
+        if (icon.document) {
+            ui.icon.src = documentImage;
+        }
         deleteImage = true;
         blobToSave = undefined;
         blobImgUrl = undefined;
@@ -149,9 +165,19 @@
         } else {
             hide(ui.folderUi);
             show(ui.bookmarkUi);
-            ui.icon.src = customImage ? iconElUi.image.src : getFaviconImageUrl(icon.url);
+            if (icon.document) {
+                ui.icon.src = customImage ? iconElUi.image.src : documentImage;
+                ui.bmNameLabel.textContent = 'Document Name';
+                hide(ui.bmUrlLabel);
+                hide(ui.bmUrl);
+            } else {
+                ui.icon.src = customImage ? iconElUi.image.src : getFaviconImageUrl(icon.url);
+                ui.bmUrl.value = icon.url === 'about:blank' ? '' : icon.url;
+                ui.bmNameLabel.textContent = 'Bookmark Name';
+                show(ui.bmUrlLabel);
+                show(ui.bmUrl);
+            }
             ui.bmName.value = icon.name;
-            ui.bmUrl.value = icon.url === 'about:blank' ? '' : icon.url;
         }
 
         openModal(content);

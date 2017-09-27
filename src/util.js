@@ -13,6 +13,7 @@
     util.ICON_HEIGHT = 90;
 
     util.folderImage = 'icons/folder.svg';
+    util.documentImage = 'icons/document.svg';
 
     const imageTypes = ['.jpg', '.jpeg', '.png', '.apng', '.gif', '.bmp', '.webp', '.ico', '.svg'];
     const fileInput = document.createElement('input');
@@ -219,34 +220,31 @@
             localStorage.lastBgId = bg.id;
 
             const temp = document.createElement('div');
-            const temp2 = document.createElement('div');
-            temp.appendChild(temp2);
             temp.className = 'tempBG';
-            temp2.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image})`;
-            util.setBackgroundStylesFromMode(temp2, bg.mode);
-            temp.style.background = bg.color;
-            document.body.appendChild(temp);
+            temp.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image}), linear-gradient(${bg.color}, ${bg.color})`;
+            util.setBackgroundStylesFromMode(temp, bg.mode);
 
+            await util.loadImage(bg.image);
+            document.body.appendChild(temp);
             await util.sleep(0);
             temp.style.opacity = 1;
-            document.body.style.background = bg.color;
             await util.sleep(400);
-            app.desktop.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image})`;
-            temp.parentElement.removeChild(temp);
+            app.desktop.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image}), linear-gradient(${bg.color}, ${bg.color})`;
             util.setBackgroundStylesFromMode(app.desktop, bg.mode);
+            temp.parentElement.removeChild(temp);
         } else {
             app.data.background = bg;
-            document.body.style.background = bg.color;
-            app.desktop.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image})`;
+            app.desktop.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image}), linear-gradient(${bg.color}, ${bg.color})`;
             util.setBackgroundStylesFromMode(app.desktop, bg.mode);
         }
     };
 
     util.fixBackgroundSize = () => {
+        const html = document.documentElement;
         app.desktop.style.width = 'auto';
         app.desktop.style.height = 'auto';
-        app.desktop.style.width = document.body.scrollWidth + 'px';
-        app.desktop.style.height = document.body.scrollHeight + 'px';
+        app.desktop.style.width = html.scrollWidth + 'px';
+        app.desktop.style.height = html.scrollHeight + 'px';
     };
 
     util.getDataset = (el) => {

@@ -1,7 +1,8 @@
 /* global chrome, app, idbKeyval */
 {
     const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getFaviconImageUrl, loadData,
-           clampText, promisify, fixBackgroundSize, updateBackground, getNextBgInCycle, debounce} = app.util;
+           clampText, promisify, fixBackgroundSize, updateBackground, getNextBgInCycle, debounce,
+           folderImage, documentImage} = app.util;
     const desktop = document.querySelector('#desktop');
     app.desktop = desktop;
 
@@ -27,7 +28,14 @@
     }
 
     async function makeBookmarkIcon(bookmark, currentPath, folder = false, container = desktop) {
-        let icon = folder ? 'icons/folder.svg' : getFaviconImageUrl(bookmark.url);
+        const isDocument = app.isValidDocument(bookmark.url);
+        let icon = getFaviconImageUrl(bookmark.url);
+        if (folder) {
+            icon = folderImage;
+        }
+        if (isDocument) {
+            icon = documentImage;
+        }
         try {
             const iconBlob = await idbKeyval.get(bookmark.id);
             if (iconBlob) {
@@ -39,11 +47,15 @@
         bookmarkIcon.dataset.url = bookmark.url;
         bookmarkIcon.dataset.name = bookmark.title;
         bookmarkIcon.dataset.id = bookmark.id;
+        bookmarkIcon.dataset.parentId = bookmark.parentId;
         bookmarkIcon.dataset.path = currentPath + '/' + bookmark.id;
         bookmarkIcon.dataset.folder = folder;
         bookmarkIcon.title = bookmark.title;
+        if (isDocument) {
+            bookmarkIcon.dataset.document = 'true';
+        }
         bookmarkIcon.setAttribute('draggable', 'true');
-        const tag = folder ? 'div' : 'a';
+        const tag = folder || isDocument ? 'div' : 'a';
         bookmarkIcon.innerHTML = `
             <${tag} class="bookmarkLink" data-id="link" draggable="false" href="${bookmark.url}">
                 <div class="iconContainer">
@@ -91,6 +103,7 @@
     };
 
     app.getBookmarkTree = promisify(chrome.bookmarks.getTree);
+    app.getBookmarks = promisify(chrome.bookmarks.get);
 
     async function render() {
         const bookmarkTree = await app.getBookmarkTree();

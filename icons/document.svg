@@ -1,0 +1,46 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="none" x="0px" y="0px" width="32px" height="32px" viewBox="0 0 32 32">
+<defs>
+<radialGradient id="Gradient_1" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="18.675" fx="0" fy="0" gradientTransform="matrix( 1, 0, 0, 1, 11.3,6.75) " spreadMethod="pad">
+<stop  offset="0%" stop-color="#B2B2A8"/>
+
+<stop  offset="41.96078431372549%" stop-color="#FFFFF7"/>
+</radialGradient>
+
+<g id="Layer1_0_FILL">
+<path fill="#FFFFF7" stroke="none" d="
+M 14 9.1
+L 14 1.25 5.4 9.1 14 9.1 Z"/>
+
+<path fill="url(#Gradient_1)" stroke="none" d="
+M 14.05 1.2
+L 14 1.25 14 9.1 5.4 9.1 5.35 9.15 5.35 31.2 26.6 31.2 26.6 1.2 14.05 1.2 Z"/>
+</g>
+
+<g id="Layer0_0_FILL">
+<path fill="#000000" stroke="none" d="
+M 22 13
+L 22 11 8 11 8 13 22 13
+M 24 18
+L 24 16 8 16 8 18 24 18
+M 8 21
+L 8 23 20 23 20 21 8 21
+M 24 8
+L 24 6 14 6 14 8 24 8 Z"/>
+</g>
+
+<path id="Layer1_0_1_STROKES" stroke="#000000" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" fill="none" d="
+M 5.4 9.1
+L 5.35 9.15 5.35 31.2 26.6 31.2 26.6 1.2 14.05 1.2 14 1.25 14 9.1 5.4 9.1 14 1.25"/>
+</defs>
+
+<g transform="matrix( 1, 0, 0, 1, 0,0) ">
+<use xlink:href="#Layer1_0_FILL"/>
+
+<use xlink:href="#Layer1_0_1_STROKES"/>
+</g>
+
+<g transform="matrix( 1, 0, 0, 1, 0,0) ">
+<use xlink:href="#Layer0_0_FILL"/>
+</g>
+</svg>

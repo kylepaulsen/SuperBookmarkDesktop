@@ -66,7 +66,13 @@
 
         const pNode = getNodeFromPath(path, bookmarkTree);
         winUi.title.textContent = pNode.title;
-        winUi.iconArea.innerHTML = '';
+
+        const iconArea = document.createElement('div');
+        iconArea.className = 'iconArea';
+        iconArea.dataset.id = 'iconArea';
+        winUi.content.innerHTML = '';
+        winUi.content.appendChild(iconArea);
+        winUi.iconArea = iconArea;
 
         const folders = [];
         const bookmarks = [];
@@ -107,8 +113,10 @@
                         y = iconEl.offsetTop - height + iconEl.offsetHeight;
                     }
                     const win = app.makeWindow(icon.name, x, y, width, height);
+                    win.dataset.folder = 'true';
                     renderFolder(icon.path, win);
                 } else {
+                    // icon is in folder window.
                     renderFolder(icon.path, currentWindow);
                 }
             }

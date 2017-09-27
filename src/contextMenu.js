@@ -12,6 +12,7 @@
         <div class="contextMenuSeperator" data-id="sep"></div>
         <div class="contextMenuItem" data-id="createBookmark">Create Bookmark</div>
         <div class="contextMenuItem" data-id="createFolder">Create Folder</div>
+        <div class="contextMenuItem" data-id="createDocument">Create Document</div>
         <div class="contextMenuItem" data-id="delete">Delete</div>
         <div class="contextMenuItem" data-id="properties">Properties</div>
     `;
@@ -51,6 +52,17 @@
         chrome.bookmarks.create({
             parentId: context.dataset.id,
             title: 'New Folder'
+        });
+        app.saveData();
+        hide(contextMenu);
+    });
+
+    ui.createDocument.addEventListener('click', () => {
+        chrome.bookmarks.create({
+            parentId: context.dataset.id,
+            title: 'New Document',
+            //btoa(unescape(encodeURIComponent('<!--sbd-doc-->')))
+            url: 'data:text/html;charset=UTF-8;base64,PCEtLXNiZC1kb2MtLT4='
         });
         app.saveData();
         hide(contextMenu);
@@ -103,6 +115,7 @@
             context = getParentElementWithClass(targetEl, ['desktop', 'window']);
             show(ui.createBookmark);
             show(ui.createFolder);
+            show(ui.createDocument);
         }
         show(ui.properties);
     };

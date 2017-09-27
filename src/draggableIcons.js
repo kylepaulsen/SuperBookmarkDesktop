@@ -1,7 +1,7 @@
 /* global chrome, app */
 {
     const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getParentElementWithClass,
-        getDataset, deselectAll, findFreeSpotNear, debounce} = app.util;
+        getDataset, deselectAll, findFreeSpotNear, debounce, fixBackgroundSize} = app.util;
 
     let lastHovered;
     let selected = [];
@@ -57,8 +57,6 @@
             let shouldSave = false;
             if (dropTarget === app.desktop) {
                 if (dragStartElement.parentElement === app.desktop) {
-                    // chrome likes to send a change event when a folder moves but not really.
-                    app.ignoreNextRender = true;
                     // set up stuff for moving icons just on the desktop.
                     shouldSave = true;
                     selected.forEach((item) => {
@@ -86,8 +84,6 @@
                         app.data.locations[`${newSpot.x},${newSpot.y}`] = item.dataset.id;
                         item.style.left = newSpot.x * (ICON_WIDTH + ICON_SPACING) + GUTTER + 'px';
                         item.style.top = newSpot.y * (ICON_HEIGHT + ICON_SPACING) + GUTTER + 'px';
-                        // this is here to clear the ignoreNextRender that's set above.
-                        app.debouncedRender();
                         debouncedSync();
                     } else {
                         // moving items from folder to desktop.
@@ -97,7 +93,9 @@
                         app.sendSyncEventAfterSave = true;
                     }
                 }
-                chrome.bookmarks.move(item.dataset.id, {parentId: dropTarget.dataset.id});
+                if (item.dataset.parentId !== dropTarget.dataset.id) {
+                    chrome.bookmarks.move(item.dataset.id, {parentId: dropTarget.dataset.id});
+                }
             });
             if (shouldSave) {
                 app.saveData();
@@ -113,6 +111,12 @@
     const debouncedSync = debounce(() => {
         chrome.runtime.sendMessage({action: 'reload'});
     }, 100);
+
+    window.addEventListener('transitionend', (e) => {
+        if (e.target.classList.contains('bookmark')) {
+            fixBackgroundSize();
+        }
+    });
 
     let changeSelection = false;
     let lastSelected = [];
@@ -150,11 +154,12 @@
         }
         selectContainer = undefined;
         const bookmark = getParentElementWithClass(e.target, 'bookmark');
+        const editorContent = getParentElementWithClass(e.target, 'text-editor');
         const folderContent = getParentElementWithClass(e.target, 'content');
         if (e.target === app.desktop) {
             selectContainer = app.desktop;
             selectBox.style.zIndex = 7;
-        } else if (folderContent && !bookmark) {
+        } else if (!editorContent && folderContent && !bookmark) {
             selectContainer = folderContent;
             selectBox.style.zIndex = 300;
         }

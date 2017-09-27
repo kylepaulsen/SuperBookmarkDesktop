@@ -12,11 +12,11 @@
         return container.children[0];
     };
 
-    const makeWindow = (title, x = 0, y = 0, width = 550, height = 400) => {
+    const makeWindow = (title, x = 0, y = 0, width = 550, height = 400, options = {}) => {
         const minWidth = 150;
         const minHeight = 150;
         const template = `
-            <div class="window" data-folder="true">
+            <div class="window">
                 <div class="window-top">
                     <div class="nw-resize top-resize"></div>
                     <div class="n-resize top-resize"></div>
@@ -30,17 +30,14 @@
                     </div>
                     <div class="e-resize top-resize"></div>
                 </div>
-                <div class="window-top-nav">
+                <div class="window-top-nav" data-id="navContainer">
                     <div class="w-resize top-resize"></div>
                     <div class="nav-bar" data-id="navBar"></div>
                     <div class="e-resize top-resize"></div>
                 </div>
                 <div class="window-middle">
                     <div class="w-resize"></div>
-                    <div class="content">
-                        <div class="nav" data-id="nav"></div>
-                        <div class="iconArea" data-id="iconArea"></div>
-                    </div>
+                    <div class="content" data-id="content"></div>
                     <div class="e-resize"></div>
                 </div>
                 <div class="window-bottom">
@@ -65,9 +62,6 @@
         let mouseDown = false;
         let target;
         listen(win, 'mousedown', (e) => {
-            if (!getParentElementWithClass(e.target, 'bookmark')) {
-                e.preventDefault();
-            }
             offset.x = e.pageX - win.offsetLeft;
             offset.y = e.pageY - win.offsetTop;
             width = win.offsetWidth;
@@ -135,7 +129,12 @@
             }
         });
         const removeWindow = () => {
-            win.parentNode.removeChild(win);
+            const closeFunc = () => win.parentNode.removeChild(win);
+            if (options.beforeClose) {
+                options.beforeClose(closeFunc);
+            } else {
+                closeFunc();
+            }
         };
         listen(win.querySelector('.close'), 'click', removeWindow);
 
