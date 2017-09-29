@@ -403,11 +403,11 @@ input[type=checkbox]:focus {
     width: 100px;
     height: 100px;
     border: 10px solid #ffffff;
-    animation: animationFrames linear 2s;
+    animation: spinnerAnimationFrames linear 2s;
     animation-iteration-count: infinite;
 }
 
-@keyframes animationFrames{
+@keyframes spinnerAnimationFrames{
     0% {
         transform:  rotate(0deg);
         border-radius: 0;
@@ -418,6 +418,24 @@ input[type=checkbox]:focus {
     100% {
         transform:  rotate(360deg);
         border-radius: 0;
+    }
+}
+
+.strobeHighlight {
+    animation: strobeHighlight linear 2s;
+    animation-iteration-count: infinite;
+    animation-timing-function: cubic-bezier(0.3, 0.7, 0.3, 0.7);
+}
+
+@keyframes strobeHighlight {
+    0% {
+        background: rgba(100, 200, 255, 0.0);
+    }
+    50% {
+        background: rgba(100, 200, 255, 0.5);
+    }
+    100% {
+        background: rgba(100, 200, 255, 0.0);
     }
 }
 
@@ -518,7 +536,7 @@ input[type=checkbox]:focus {
 }
 
 .window .window-top-nav, .window .window-middle, .window .window-bottom {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.9);
 }
 
 .window .window-top-nav {

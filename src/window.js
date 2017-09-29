@@ -1,6 +1,6 @@
 /* global app */
 {
-    const {getParentElementWithClass, fixBackgroundSize} = app.util;
+    const {fixBackgroundSize} = app.util;
 
     const listen = (el, type, func) => {
         el.addEventListener(type, func, false);

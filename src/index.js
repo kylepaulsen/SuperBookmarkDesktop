@@ -1,8 +1,8 @@
 /* global chrome, app, idbKeyval */
 {
-    const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getFaviconImageUrl, loadData,
-           clampText, promisify, fixBackgroundSize, updateBackground, getNextBgInCycle, debounce,
-           folderImage, documentImage} = app.util;
+    const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getFaviconImageUrl, loadData, getParentElementWithClass,
+           clampText, promisify, fixBackgroundSize, updateBackground, getNextBgInCycle, debounce, throttle,
+           folderImage, documentImage, removeNewNodeId} = app.util;
     const desktop = document.querySelector('#desktop');
     app.desktop = desktop;
 
@@ -42,8 +42,9 @@
                 icon = URL.createObjectURL(iconBlob);
             }
         } catch (e) {}
+        const newNodeIds = JSON.parse(localStorage.newNodeIds || '{}');
         const bookmarkIcon = document.createElement('div');
-        bookmarkIcon.className = folder ? 'bookmark folder' : 'bookmark';
+        bookmarkIcon.className = 'bookmark';
         bookmarkIcon.dataset.url = bookmark.url;
         bookmarkIcon.dataset.name = bookmark.title;
         bookmarkIcon.dataset.id = bookmark.id;
@@ -51,6 +52,9 @@
         bookmarkIcon.dataset.path = currentPath + '/' + bookmark.id;
         bookmarkIcon.dataset.folder = folder;
         bookmarkIcon.title = bookmark.title;
+        if (newNodeIds[bookmark.id]) {
+            bookmarkIcon.classList.add('strobeHighlight');
+        }
         if (isDocument) {
             bookmarkIcon.dataset.document = 'true';
         }
@@ -64,6 +68,11 @@
                 <div class="name" data-id="name">${bookmark.title}</div>
             </${tag}>
         `;
+        if (!isDocument && bookmark.url && bookmark.url.startsWith('data:')) {
+            bookmarkIcon.children[0].addEventListener('click', () => {
+                chrome.tabs.update({url: bookmark.url});
+            });
+        }
         const nameDiv = bookmarkIcon.querySelector('.name');
         const positionData = data.icons[bookmark.id] || findNextOpenSpot();
         if (container === desktop) {
@@ -130,7 +139,7 @@
             app.renderFolder(win.dataset.path, win);
         });
     }
-    render();
+    app.makeHelpDocument().then(render);
 
     // Start checking if we need to switch backgrounds.
     setInterval(() => {
@@ -155,6 +164,14 @@
     window.addEventListener('resize', () => {
         fixBackgroundSize();
     });
+
+    window.addEventListener('mousemove', throttle((e) => {
+        const strobingBookmark = getParentElementWithClass(e.target, 'strobeHighlight', 4);
+        if (strobingBookmark) {
+            strobingBookmark.classList.remove('strobeHighlight');
+            removeNewNodeId(strobingBookmark.dataset.id);
+        }
+    }, 200));
 
     app.debouncedRender = debounce(() => {
         if (!app.ignoreNextRender) {

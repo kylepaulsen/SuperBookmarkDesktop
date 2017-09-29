@@ -1,7 +1,7 @@
 /* global chrome, idbKeyval, app */
 {
     const {openBookmarkProperties, openDesktopProperties} = app;
-    const {getUiElements, show, hide, getParentElementWithClass, getDataset} = app.util;
+    const {getUiElements, show, hide, getParentElementWithClass, getDataset, addNewNodeId} = app.util;
 
     const contextMenu = document.createElement('div');
     contextMenu.className = 'contextMenu';
@@ -38,12 +38,15 @@
         hide(contextMenu);
     });
 
+    const recordNewBookmarkNode = (newNode) => {
+        addNewNodeId(newNode.id);
+    };
     ui.createBookmark.addEventListener('click', () => {
         chrome.bookmarks.create({
             parentId: context.dataset.id,
             title: 'New Bookmark',
             url: 'about:blank'
-        });
+        }, recordNewBookmarkNode);
         app.saveData();
         hide(contextMenu);
     });
@@ -52,7 +55,7 @@
         chrome.bookmarks.create({
             parentId: context.dataset.id,
             title: 'New Folder'
-        });
+        }, recordNewBookmarkNode);
         app.saveData();
         hide(contextMenu);
     });
@@ -63,7 +66,7 @@
             title: 'New Document',
             //btoa(unescape(encodeURIComponent('<!--sbd-doc-->')))
             url: 'data:text/html;charset=UTF-8;base64,PCEtLXNiZC1kb2MtLT4='
-        });
+        }, recordNewBookmarkNode);
         app.saveData();
         hide(contextMenu);
     });
@@ -122,7 +125,7 @@
 
     window.addEventListener('contextmenu', (e) => {
         const targetEl = getParentElementWithClass(e.target, ['bookmark', 'desktop', 'window']);
-        if (targetEl) {
+        if (targetEl && !(targetEl.dataset.document && !targetEl.classList.contains('bookmark'))) {
             e.preventDefault();
             populateMenu(targetEl);
             show(contextMenu);

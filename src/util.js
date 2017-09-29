@@ -45,6 +45,8 @@
                 random: false
             };
         }
+        const newNodeIds = JSON.parse(localStorage.newNodeIds || '{}');
+        localStorage.newNodeIds = JSON.stringify(newNodeIds);
         // Seems pointless but This makes sure data.background points at one of our backgrounds in the list.
         const lastId = localStorage.lastBgId || data.backgrounds[util.randomInt(0, data.backgrounds.length - 1)].id;
         data.background = data.backgrounds.find((bg) => lastId === bg.id);
@@ -149,18 +151,20 @@
         };
     };
 
-    util.getParentElementWithClass = (el, classes) => {
+    util.getParentElementWithClass = (el, classes, stepLimit = Infinity) => {
         if (typeof classes === 'string') {
             classes = [classes];
         }
+        let steps = 0;
         const classesLen = classes.length;
-        while (el && el.classList) {
+        while (el && el.classList && steps < stepLimit) {
             for (let x = 0; x < classesLen; x++) {
                 if (el.classList.contains(classes[x])) {
                     return el;
                 }
             }
             el = el.parentElement;
+            steps++;
         }
         return false;
     };
@@ -299,15 +303,38 @@
         return {x, y};
     };
 
+    util.addNewNodeId = (id) => {
+        const nodes = JSON.parse(localStorage.newNodeIds || '{}');
+        nodes[id] = 1;
+        localStorage.newNodeIds = JSON.stringify(nodes);
+    };
+
+    util.removeNewNodeId = (id) => {
+        const nodes = JSON.parse(localStorage.newNodeIds || '{}');
+        delete nodes[id];
+        localStorage.newNodeIds = JSON.stringify(nodes);
+    };
+
     util.debounce = (fn, time) => {
         let timeout;
-        return () => {
+        return (...args) => {
             if (timeout) {
                 clearTimeout(timeout);
             }
             timeout = setTimeout(() => {
-                fn();
+                fn.apply(null, args);
             }, time);
+        };
+    };
+
+    util.throttle = (fn, time) => {
+        let lastTime = 0;
+        return (...args) => {
+            const now = Date.now();
+            if (now - lastTime > time) {
+                lastTime = now;
+                fn.apply(null, args);
+            }
         };
     };
 

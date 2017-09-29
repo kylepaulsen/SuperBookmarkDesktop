@@ -5,17 +5,11 @@
     const dataUriStartString = 'data:text/html;charset=UTF-8;base64,';
     const dataStartString = '<!--sbd-doc-->';
 
-    const positionWindow = (iconEl, win) => {
-        const width = Math.max(Math.floor(window.innerWidth * 0.45), 550);
-        const height = Math.max(Math.floor(window.innerHeight * 0.5), 400);
-        let x = iconEl.offsetLeft + iconEl.offsetWidth;
-        let y = iconEl.offsetTop;
-        if (x + width > window.innerWidth) {
-            x = iconEl.offsetLeft - width;
-        }
-        if (y + height > window.innerHeight) {
-            y = iconEl.offsetTop - height + iconEl.offsetHeight;
-        }
+    const positionWindow = (win) => {
+        const width = Math.max(Math.floor(window.innerWidth * 0.7), 550);
+        const height = Math.max(Math.floor(window.innerHeight * 0.7), 400);
+        const x = Math.max((window.innerWidth - width) / 2, 10) + document.documentElement.scrollLeft;
+        const y = Math.max((window.innerHeight - height) / 2, 10) + document.documentElement.scrollTop;
         if (win) {
             win.style.left = x + 'px';
             win.style.top = y + 'px';
@@ -29,7 +23,7 @@
         const docData = getDocumentData(doc.url);
 
         if (docData !== null) {
-            const {x, y, width, height} = positionWindow(iconEl);
+            const {x, y, width, height} = positionWindow();
             let documentChanged = false;
             const beforeClose = async (close) => {
                 const confirmBtns = [
@@ -101,7 +95,7 @@
                 if (!currentWindow) {
                     renderEditor(iconEl);
                 } else {
-                    positionWindow(iconEl, currentWindow);
+                    positionWindow(currentWindow);
                 }
             }
         }
