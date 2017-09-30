@@ -1,11 +1,10 @@
 /* global chrome, app, idbKeyval */
 {
     const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getFaviconImageUrl, loadData, getParentElementWithClass,
-           clampText, promisify, fixBackgroundSize, updateBackground, getNextBgInCycle, debounce, throttle,
+           clampText, promisify, updateBackground, getNextBgInCycle, debounce, throttle,
            folderImage, documentImage, removeNewNodeId} = app.util;
-    const desktop = document.querySelector('#desktop');
-    app.desktop = desktop;
 
+    const desktop = app.desktop;
     let data = app.data;
 
     function findNextOpenSpot() {
@@ -89,9 +88,6 @@
     app.makeBookmarkIcon = makeBookmarkIcon;
 
     app.saveData = () => {
-        // side task to update background.
-        fixBackgroundSize();
-
         data.icons = {};
         data.locations = {};
         desktop.children.forEach((child) => {
@@ -160,10 +156,6 @@
             }
         }
     }, 3000);
-
-    window.addEventListener('resize', () => {
-        fixBackgroundSize();
-    });
 
     window.addEventListener('mousemove', throttle((e) => {
         const strobingBookmark = getParentElementWithClass(e.target, 'strobeHighlight', 4);

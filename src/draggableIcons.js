@@ -1,7 +1,7 @@
 /* global chrome, app */
 {
     const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getParentElementWithClass,
-        getDataset, deselectAll, findFreeSpotNear, debounce, fixBackgroundSize} = app.util;
+        getDataset, deselectAll, findFreeSpotNear, debounce} = app.util;
 
     let lastHovered;
     let selected = [];
@@ -111,12 +111,6 @@
     const debouncedSync = debounce(() => {
         chrome.runtime.sendMessage({action: 'reload'});
     }, 100);
-
-    window.addEventListener('transitionend', (e) => {
-        if (e.target.classList.contains('bookmark')) {
-            fixBackgroundSize();
-        }
-    });
 
     let changeSelection = false;
     let lastSelected = [];

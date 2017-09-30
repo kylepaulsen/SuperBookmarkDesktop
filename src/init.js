@@ -14,6 +14,9 @@
     app.util = window.util;
     const {setBackgroundStylesFromMode, getNextBgInCycle, getBgImageFromDB, loadImage, sleep, loadData} = app.util;
 
+    app.desktop = document.getElementById('desktop');
+    app.desktopBackground = document.getElementById('desktopBackground');
+
     // load in localStorage data...
     const data = loadData();
     app.data = data;
@@ -55,11 +58,9 @@
             await getBgImageFromDB(bg);
         }
 
-        const desktop = document.getElementById('desktop');
-        desktop.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}),` +
-            ` url(${bg.image})`;
-        setBackgroundStylesFromMode(desktop, bg.mode);
-        document.body.style.background = bg.color;
+        app.desktopBackground.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image}),` +
+            ` linear-gradient(${bg.color}, ${bg.color})`;
+        setBackgroundStylesFromMode(app.desktopBackground, bg.mode);
 
         // wait till the image is loaded before we reveil
         await loadImage(bg.image, false);

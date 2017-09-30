@@ -233,22 +233,14 @@
             await util.sleep(0);
             temp.style.opacity = 1;
             await util.sleep(400);
-            app.desktop.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image}), linear-gradient(${bg.color}, ${bg.color})`;
-            util.setBackgroundStylesFromMode(app.desktop, bg.mode);
+            app.desktopBackground.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image}), linear-gradient(${bg.color}, ${bg.color})`;
+            util.setBackgroundStylesFromMode(app.desktopBackground, bg.mode);
             temp.parentElement.removeChild(temp);
         } else {
             app.data.background = bg;
-            app.desktop.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image}), linear-gradient(${bg.color}, ${bg.color})`;
-            util.setBackgroundStylesFromMode(app.desktop, bg.mode);
+            app.desktopBackground.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image}), linear-gradient(${bg.color}, ${bg.color})`;
+            util.setBackgroundStylesFromMode(app.desktopBackground, bg.mode);
         }
-    };
-
-    util.fixBackgroundSize = () => {
-        const html = document.documentElement;
-        app.desktop.style.width = 'auto';
-        app.desktop.style.height = 'auto';
-        app.desktop.style.width = html.scrollWidth + 'px';
-        app.desktop.style.height = html.scrollHeight + 'px';
     };
 
     util.getDataset = (el) => {
