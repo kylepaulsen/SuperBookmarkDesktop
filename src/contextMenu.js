@@ -1,7 +1,7 @@
 /* global chrome, idbKeyval, app */
 {
     const {openBookmarkProperties, openDesktopProperties} = app;
-    const {getUiElements, show, hide, getParentElementWithClass, getDataset, addNewNodeId} = app.util;
+    const {getUiElements, show, hide, getParentElementWithClass, getDataset, addNewNodeId, deselectAll} = app.util;
 
     const contextMenu = document.createElement('div');
     contextMenu.className = 'contextMenu';
@@ -107,6 +107,12 @@
         if (targetEl.classList.contains('bookmark')) {
             const icon = getDataset(targetEl);
             context = targetEl;
+            ui.properties.textContent = 'Bookmark Properties';
+            if (icon.document) {
+                ui.properties.textContent = 'Document Properties';
+            } else if (icon.folder) {
+                ui.properties.textContent = 'Folder Properties';
+            }
             if (!icon.folder) {
                 show(ui.newTab);
                 show(ui.newWindow);
@@ -114,11 +120,14 @@
                 show(ui.sep);
             }
             show(ui.delete);
+            deselectAll();
+            targetEl.classList.add('selected');
         } else {
             context = getParentElementWithClass(targetEl, ['desktop', 'window']);
             show(ui.createBookmark);
             show(ui.createFolder);
             show(ui.createDocument);
+            ui.properties.textContent = 'Desktop Properties';
         }
         show(ui.properties);
     };

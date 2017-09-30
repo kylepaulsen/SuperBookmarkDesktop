@@ -49,7 +49,7 @@
             <h2>Some Notes on Background Settings:</h2>
             <div>
                 Reach background settings by <i>Right Clicking</i> anywhere on the desktop (not on an icon).
-                Then click on <i>Properties</i>.
+                Then click on <i>Desktop Properties</i>.
             </div>
             <br>
             <div>
