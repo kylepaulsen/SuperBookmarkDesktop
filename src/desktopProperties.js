@@ -108,7 +108,7 @@
     const loadDesktopFromDisk = async () => {
         const blobToSave = await selectImageFromDisk();
         const imageSrc = URL.createObjectURL(blobToSave);
-        const newBg = createBG(app.data.backgrounds.length, imageSrc);
+        const newBg = createBG(imageSrc);
         await idbKeyval.set(newBg.id, blobToSave);
         app.data.backgrounds.push(newBg);
         saveData();

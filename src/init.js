@@ -1,18 +1,20 @@
 {
     window.app = {
         defaultBackgrounds: [
+            'aurora-borealis.png',
             'beach.png',
             'clouds.png',
-            'fish.png',
             'kitten.png',
             'lizard.png',
+            'micro.png',
             'mountain.png',
             'plant.png'
         ]
     };
     const app = window.app;
     app.util = window.util;
-    const {setBackgroundStylesFromMode, getNextBgInCycle, getBgImageFromDB, loadImage, sleep, loadData} = app.util;
+    const {setBackgroundStylesFromMode, getNextBgInCycle, getBgImageFromDB, loadImage,
+        sleep, loadData} = app.util;
 
     app.desktop = document.getElementById('desktop');
     app.desktopBackground = document.getElementById('desktopBackground');

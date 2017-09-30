@@ -35,7 +35,7 @@
         try {
             data = JSON.parse(localStorage.data);
         } catch (e) {
-            const backgrounds = app.defaultBackgrounds.map((bg, idx) => util.createBG(idx, bg, true));
+            const backgrounds = app.defaultBackgrounds.map((bg, idx) => util.createBG(bg, idx, true));
             data = {
                 icons: {},
                 locations: {},
@@ -47,10 +47,46 @@
         }
         const newNodeIds = JSON.parse(localStorage.newNodeIds || '{}');
         localStorage.newNodeIds = JSON.stringify(newNodeIds);
+
+        // Just make sure default bgs are there.
+        const userBgs = data.backgrounds.filter((bg) => !bg.id.startsWith('_'));
+        data.backgrounds = app.defaultBackgrounds.map((bg, idx) => util.createBG(bg, idx, true)).concat(userBgs);
+
         // Seems pointless but This makes sure data.background points at one of our backgrounds in the list.
         const lastId = localStorage.lastBgId || data.backgrounds[util.randomInt(0, data.backgrounds.length - 1)].id;
         data.background = data.backgrounds.find((bg) => lastId === bg.id);
         return data;
+    };
+
+    let nextId;
+    util.createBG = (url, id = 0, isDefault = false) => {
+        if (app.data && nextId === undefined) {
+            // get max id.
+            app.data.backgrounds.forEach((bg) => {
+                nextId = Math.max(bg.idNum + 1, nextId || 0);
+            });
+        }
+        let image;
+        let realId;
+        if (isDefault) {
+            image = `backgrounds/${url}`;
+            realId = `_bg${id}`;
+        } else {
+            id = nextId;
+            nextId++;
+            image = url;
+            realId = `bg${id}`;
+        }
+        return {
+            id: realId,
+            idNum: id,
+            image,
+            mode: 'fill',
+            color: '#000000',
+            filter: 'rgba(0,0,0,0)',
+            default: isDefault,
+            selected: true
+        };
     };
 
     util.setBackgroundStylesFromMode = (el, mode) => {
@@ -86,24 +122,6 @@
             return selectedBgs[randIndex];
         }
         return selectedBgs[(idx + 1) % selectedBgs.length];
-    };
-
-    util.createBG = (id, url, isDefault = false) => {
-        let image = url;
-        let realId = `bg${id}`;
-        if (isDefault) {
-            image = `backgrounds/${url}`;
-            realId = `_bg${id}`;
-        }
-        return {
-            id: realId,
-            image,
-            mode: 'fill',
-            color: '#000000',
-            filter: 'rgba(0,0,0,0)',
-            default: isDefault,
-            selected: true
-        };
     };
 
     util.loadImage = (src, mustLoad = true) => {
