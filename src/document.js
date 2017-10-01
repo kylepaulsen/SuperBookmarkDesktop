@@ -17,13 +17,19 @@
         return {x, y, width, height};
     };
 
-    const renderEditor = async (iconEl) => {
-        const bookmarks = await app.getBookmarks(iconEl.dataset.id);
+    const renderEditor = async (id, options) => {
+        const bookmarks = await app.getBookmarks(id.toString());
         const doc = bookmarks[0];
         const docData = getDocumentData(doc.url);
 
         if (docData !== null) {
-            const {x, y, width, height} = positionWindow();
+            let {x, y, width, height} = positionWindow();
+            if (options) {
+                width = options.width;
+                height = options.height;
+                x = options.x;
+                y = options.y;
+            }
             let documentChanged = false;
             const beforeClose = async (close) => {
                 const confirmBtns = [
@@ -34,9 +40,9 @@
                     close();
                 }
             };
-            const win = app.makeWindow(iconEl.dataset.name, x, y, width, height, {beforeClose});
+            const win = app.makeWindow(doc.title, x, y, width, height, {beforeClose});
             win.dataset.document = 'true';
-            win.dataset.id = iconEl.dataset.id;
+            win.dataset.id = doc.id;
 
             const winUi = getUiElements(win);
             const editor = document.createElement('div');
@@ -60,7 +66,7 @@
             closeButtonContainerUi.saveClose.addEventListener('click', () => {
                 const newDocUrl = dataUriStartString +
                     btoa(unescape(encodeURIComponent(dataStartString + editor.content.innerHTML)));
-                chrome.bookmarks.update(iconEl.dataset.id, {url: newDocUrl});
+                chrome.bookmarks.update(doc.id, {url: newDocUrl});
                 win.parentElement.removeChild(win);
             });
         }
@@ -93,7 +99,7 @@
                 e.preventDefault();
                 const currentWindow = document.querySelector(`.window[data-id="${icon.id}"]`);
                 if (!currentWindow) {
-                    renderEditor(iconEl);
+                    renderEditor(icon.id);
                 } else {
                     positionWindow(currentWindow);
                 }
@@ -101,5 +107,6 @@
         }
     });
 
+    app.editDocument = renderEditor;
     app.isValidDocument = isValidDocument;
 }

@@ -639,6 +639,90 @@ input[type=checkbox]:focus {
     flex: 1 1 auto;
 }
 
+.optionsModal {
+    width: 30vw;
+    height: 40vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.optionsModal .buttons {
+    justify-content: flex-end;
+}
+
+.optionsTabs {
+    display: flex;
+    flex: 0 0 auto;
+}
+
+.optionsTab {
+    flex: 0 0 auto;
+    border-top: 1px solid #666666;
+    border-right: 1px solid #666666;
+    border-bottom: 1px solid #666666;
+    border-radius: 8px 8px 0 0;
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+.optionsTab:nth-child(2) {
+    border-left: 1px solid #666666;
+}
+
+.optionsTab.currentTab {
+  border-bottom: 0;
+}
+
+.optionsTabStartFiller {
+    flex: 0 0 10px;
+    border-bottom: 1px solid #666666;
+}
+
+.optionsTabsFiller {
+    flex: 1 1 auto;
+    border-bottom: 1px solid #666666;
+}
+
+.tabPages {
+    flex: 1 1 auto;
+    overflow: auto;
+}
+
+.tabPage {
+    display: none;
+    padding: 10px;
+    height: 100%;
+    overflow: auto;
+}
+
+.tabPage input[type=checkbox] {
+    width: initial;
+    height: initial;
+    margin-top: 3px;
+}
+
+.tabPage .option {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.tabPage .optionUi {
+    margin-left: 8px;
+}
+
+.tabPage.currentPage {
+    display: block;
+}
+
+.textareaContainer {
+    flex: 1 1 100%;
+}
+
+.textareaContainer textarea {
+    width: 100%;
+    height: 200px;
+}
+
 .hidden {
     display: none;
 }

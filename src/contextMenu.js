@@ -9,12 +9,14 @@
         <div class="contextMenuItem" data-id="newTab">Open link in new tab</div>
         <div class="contextMenuItem" data-id="newWindow">Open link in new window</div>
         <div class="contextMenuItem" data-id="incog">Open link in incognito window</div>
-        <div class="contextMenuSeperator" data-id="sep"></div>
+        <div class="contextMenuSeperator" data-id="sep1"></div>
         <div class="contextMenuItem" data-id="createBookmark">Create Bookmark</div>
         <div class="contextMenuItem" data-id="createFolder">Create Folder</div>
         <div class="contextMenuItem" data-id="createDocument">Create Document</div>
         <div class="contextMenuItem" data-id="delete">Delete</div>
+        <div class="contextMenuSeperator" data-id="sep2"></div>
         <div class="contextMenuItem" data-id="properties">Properties</div>
+        <div class="contextMenuItem" data-id="options">Options</div>
     `;
 
     const ui = getUiElements(contextMenu);
@@ -102,6 +104,11 @@
         hide(contextMenu);
     });
 
+    ui.options.addEventListener('click', () => {
+        app.openOptions();
+        hide(contextMenu);
+    });
+
     const populateMenu = (targetEl) => {
         Object.keys(ui).forEach((key) => hide(ui[key]));
         if (targetEl.classList.contains('bookmark')) {
@@ -117,7 +124,7 @@
                 show(ui.newTab);
                 show(ui.newWindow);
                 show(ui.incog);
-                show(ui.sep);
+                show(ui.sep1);
             }
             show(ui.delete);
             deselectAll();
@@ -127,6 +134,8 @@
             show(ui.createBookmark);
             show(ui.createFolder);
             show(ui.createDocument);
+            show(ui.sep2);
+            show(ui.options);
             ui.properties.textContent = 'Desktop Properties';
         }
         show(ui.properties);

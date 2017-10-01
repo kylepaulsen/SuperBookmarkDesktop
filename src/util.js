@@ -325,6 +325,18 @@
         localStorage.newNodeIds = JSON.stringify(nodes);
     };
 
+    util.applyStylesheet = (css, id) => {
+        let styleTag = document.getElementById(id);
+        if (!styleTag) {
+            styleTag = document.createElement('style');
+            if (id) {
+                styleTag.id = id;
+            }
+            document.head.appendChild(styleTag);
+        }
+        styleTag.textContent = css;
+    };
+
     util.debounce = (fn, time) => {
         let timeout;
         return (...args) => {

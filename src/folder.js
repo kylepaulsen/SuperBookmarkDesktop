@@ -2,70 +2,79 @@
 {
     const {getParentElementWithClass, getDataset, getUiElements} = app.util;
 
-    function getNodeFromPath(path, bookmarkTreeRoot) {
-        const pathParts = path.split('/');
-
-        let currentNode = bookmarkTreeRoot[0];
-        let currentPathPart = 0;
-        let nextId = pathParts[currentPathPart];
-        while (nextId !== undefined) {
-            const nextNode = currentNode.children.find((node) => nextId === node.id);
-            if (nextNode) {
-                currentPathPart++;
-                nextId = pathParts[currentPathPart];
-                currentNode = nextNode;
-            } else {
-                return null;
+    const getAncestors = async (id) => {
+        id = id.toString();
+        const nodes = [];
+        let currentNode;
+        while (!currentNode || currentNode.id !== '0') {
+            try {
+                currentNode = (await app.getBookmarks((currentNode && currentNode.parentId) || id))[0];
+            } catch (e) {
+                return;
+            }
+            if (currentNode.id !== '0') {
+                nodes.unshift(currentNode);
             }
         }
-        return currentNode;
-    }
+        return nodes;
+    };
 
-    function getParentPaths(path, bookmarkTreeRoot) {
-        const parentPaths = [];
-        const pathParts = path.split('/');
-
-        while (pathParts.length) {
-            const nextPath = pathParts.join('/');
-            const nextNode = getNodeFromPath(nextPath, bookmarkTreeRoot);
-            if (!nextNode) {
-                return null;
-            }
-            parentPaths.unshift({
-                path: nextPath,
-                name: nextNode.title,
-                id: nextNode.id
-            });
-            pathParts.pop();
-        }
-        return parentPaths;
-    }
-
-    async function renderFolder(path, win) {
-        const bookmarkTree = await app.getBookmarkTree();
-        const navBarMarkup = [];
-        const winUi = getUiElements(win);
-        const navPaths = getParentPaths(path, bookmarkTree);
-        if (!navPaths) {
-            // invalid path. Bail.
-            win.parentElement.removeChild(win);
+    async function renderFolder(id, iconEl, options) {
+        const ancestors = await getAncestors(id);
+        if (!ancestors) {
+            // invalid id. Bail.
             return;
         }
-        win.dataset.id = path.split('/').pop();
-        win.dataset.path = path;
+        const targetNode = ancestors[ancestors.length - 1];
+        const children = await app.getBookmarkChildren(targetNode.id);
+        let currentWindow;
+        if (iconEl) {
+            currentWindow = getParentElementWithClass(iconEl, 'window');
+        } else if (options.window) {
+            currentWindow = options.window;
+        }
+        if (!currentWindow) {
+            let width = 0;
+            let height = 0;
+            let x = 0;
+            let y = 0;
+            if (iconEl) {
+                width = 550;
+                height = 400;
+                x = iconEl.offsetLeft + iconEl.offsetWidth;
+                y = iconEl.offsetTop;
+                if (x + width > window.innerWidth) {
+                    x = iconEl.offsetLeft - width;
+                }
+                if (y + height > window.innerHeight) {
+                    y = iconEl.offsetTop - height + iconEl.offsetHeight;
+                }
+            }
+            if (options) {
+                width = options.width;
+                height = options.height;
+                x = options.x;
+                y = options.y;
+            }
+            currentWindow = app.makeWindow(targetNode.title, x, y, width, height);
+            currentWindow.dataset.folder = 'true';
+        }
+
+        const navBarMarkup = [];
+        const winUi = getUiElements(currentWindow);
+        currentWindow.dataset.id = targetNode.id;
         winUi.navBar.innerHTML = '';
-        for (let x = 1; x < navPaths.length; x++) {
-            const nextNav = navPaths[x];
+        for (let x = 0; x < ancestors.length; x++) {
+            const nextNav = ancestors[x];
             navBarMarkup.push(`
-                <div class="navButton" data-folder="true" data-id="${nextNav.id}" data-path="${nextNav.path}">
-                    ${nextNav.name}
+                <div class="navButton" data-folder="true" data-id="${nextNav.id}">
+                    ${nextNav.title}
                 </div>
             `);
         }
         winUi.navBar.innerHTML = navBarMarkup.join('<div class="navSep">/</div>');
 
-        const pNode = getNodeFromPath(path, bookmarkTree);
-        winUi.title.textContent = pNode.title;
+        winUi.title.textContent = targetNode.title;
 
         const iconArea = document.createElement('div');
         iconArea.className = 'iconArea';
@@ -76,7 +85,7 @@
 
         const folders = [];
         const bookmarks = [];
-        pNode.children.forEach((node) => {
+        children.forEach((node) => {
             if (node.url) {
                 bookmarks.push(node);
             } else {
@@ -88,10 +97,10 @@
         bookmarks.sort(sort);
         const allNodes = folders.concat(bookmarks);
         allNodes.forEach((node) => {
-            app.makeBookmarkIcon(node, path, !node.url, winUi.iconArea);
+            app.makeBookmarkIcon(node, !node.url, winUi.iconArea);
         });
     }
-    app.renderFolder = renderFolder;
+    app.openFolder = renderFolder;
 
     window.addEventListener('click', (e) => {
         const iconEl = getParentElementWithClass(e.target, 'bookmark');
@@ -100,31 +109,13 @@
             const specialKeysDown = e.metaKey || e.ctrlKey || e.shiftKey;
             if (icon.folder && !specialKeysDown) {
                 e.preventDefault();
-                const currentWindow = getParentElementWithClass(iconEl, 'window');
-                if (!currentWindow) {
-                    const width = 550;
-                    const height = 400;
-                    let x = iconEl.offsetLeft + iconEl.offsetWidth;
-                    let y = iconEl.offsetTop;
-                    if (x + width > window.innerWidth) {
-                        x = iconEl.offsetLeft - width;
-                    }
-                    if (y + height > window.innerHeight) {
-                        y = iconEl.offsetTop - height + iconEl.offsetHeight;
-                    }
-                    const win = app.makeWindow(icon.name, x, y, width, height);
-                    win.dataset.folder = 'true';
-                    renderFolder(icon.path, win);
-                } else {
-                    // icon is in folder window.
-                    renderFolder(icon.path, currentWindow);
-                }
+                renderFolder(icon.id, iconEl);
             }
         }
         const navButton = getParentElementWithClass(e.target, 'navButton');
         if (navButton) {
             const currentWindow = getParentElementWithClass(navButton, 'window');
-            renderFolder(navButton.dataset.path, currentWindow);
+            renderFolder(navButton.dataset.id, null, {window: currentWindow});
         }
     });
 }

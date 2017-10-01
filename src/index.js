@@ -26,7 +26,7 @@
         }
     }
 
-    async function makeBookmarkIcon(bookmark, currentPath, folder = false, container = desktop) {
+    async function makeBookmarkIcon(bookmark, folder = false, container = desktop) {
         const isDocument = app.isValidDocument(bookmark.url);
         let icon = getFaviconImageUrl(bookmark.url);
         if (folder) {
@@ -48,7 +48,6 @@
         bookmarkIcon.dataset.name = bookmark.title;
         bookmarkIcon.dataset.id = bookmark.id;
         bookmarkIcon.dataset.parentId = bookmark.parentId;
-        bookmarkIcon.dataset.path = currentPath + '/' + bookmark.id;
         bookmarkIcon.dataset.folder = folder;
         bookmarkIcon.title = bookmark.title;
         if (newNodeIds[bookmark.id]) {
@@ -109,6 +108,7 @@
 
     app.getBookmarkTree = promisify(chrome.bookmarks.getTree);
     app.getBookmarks = promisify(chrome.bookmarks.get);
+    app.getBookmarkChildren = promisify(chrome.bookmarks.getChildren);
 
     async function render() {
         const bookmarkTree = await app.getBookmarkTree();
@@ -122,17 +122,17 @@
             rNode.children.forEach((node) => {
                 if (node.url) {
                     // this is a bookmark node
-                    promises.push(makeBookmarkIcon(node, rNode.id));
+                    promises.push(makeBookmarkIcon(node));
                 } else {
                     // this is a folder node
-                    promises.push(makeBookmarkIcon(node, rNode.id, true));
+                    promises.push(makeBookmarkIcon(node, true));
                 }
             });
         });
         Promise.all(promises).then(app.saveData);
         const windows = document.querySelectorAll('.window');
         windows.forEach((win) => {
-            app.renderFolder(win.dataset.path, win);
+            app.openFolder(win.dataset.id, null, {window: win});
         });
     }
     app.makeHelpDocument().then(render);
