@@ -132,7 +132,9 @@
         Promise.all(promises).then(app.saveData);
         const windows = document.querySelectorAll('.window');
         windows.forEach((win) => {
-            app.openFolder(win.dataset.id, null, {window: win});
+            if (win.dataset.folder) {
+                app.openFolder(win.dataset.id, null, {window: win});
+            }
         });
     }
     app.makeHelpDocument().then(render);

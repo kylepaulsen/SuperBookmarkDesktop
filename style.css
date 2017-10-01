@@ -640,14 +640,15 @@ input[type=checkbox]:focus {
 }
 
 .optionsModal {
-    width: 30vw;
-    height: 40vh;
+    width: 600px;
+    height: 400px;
     display: flex;
     flex-direction: column;
 }
 
 .optionsModal .buttons {
     justify-content: flex-end;
+    flex: 0 0 auto;
 }
 
 .optionsTabs {
@@ -721,6 +722,29 @@ input[type=checkbox]:focus {
 .textareaContainer textarea {
     width: 100%;
     height: 200px;
+}
+
+.backgroundImageAttributions {
+    margin-top: 10px;
+}
+
+.imageAttribution {
+    display: flex;
+    margin-top: 8px;
+}
+
+.imageAttributionImg {
+    flex: 0 0 200px;
+    margin-right: 8px;
+}
+
+.imageAttributionImg img {
+    width: 100%;
+}
+
+.imageAttributionText {
+    display: flex;
+    align-items: center;
 }
 
 .hidden {

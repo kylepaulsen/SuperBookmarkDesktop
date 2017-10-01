@@ -50,23 +50,38 @@
             winUi.content.appendChild(editor);
             winUi.navContainer.style.display = 'none';
 
+            const unsavedRegex = / \(unsaved\)$/;
             pell.init({
                 element: editor,
-                onChange: () => { documentChanged = true; }
+                onChange: () => {
+                    if (!unsavedRegex.test(winUi.title.textContent)) {
+                        winUi.title.textContent += ' (unsaved)';
+                    }
+                    documentChanged = true;
+                }
             });
 
             editor.content.innerHTML = docData;
 
             const closeButtonContainer = document.createElement('div');
             closeButtonContainer.className = 'close-btns';
-            closeButtonContainer.innerHTML = '<button class="btn" data-id="saveClose">Save & Close</button>';
+            closeButtonContainer.innerHTML = `
+                <button class="btn" data-id="save">Save</button>
+                <button class="btn" data-id="saveClose">Save & Close</button>
+            `;
             editor.appendChild(closeButtonContainer);
 
             const closeButtonContainerUi = getUiElements(closeButtonContainer);
-            closeButtonContainerUi.saveClose.addEventListener('click', () => {
+            const save = () => {
                 const newDocUrl = dataUriStartString +
                     btoa(unescape(encodeURIComponent(dataStartString + editor.content.innerHTML)));
                 chrome.bookmarks.update(doc.id, {url: newDocUrl});
+                documentChanged = false;
+                winUi.title.textContent = winUi.title.textContent.replace(unsavedRegex, '');
+            };
+            closeButtonContainerUi.save.addEventListener('click', save);
+            closeButtonContainerUi.saveClose.addEventListener('click', () => {
+                save();
                 win.parentElement.removeChild(win);
             });
         }
