@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
-    "version": "0.1",
-    "name": "Bookmark Desktop",
+    "version": "1.0.0",
+    "name": "Super Bookmark Desktop",
     "icons": {
         "16": "icons/icon16.png",
         "48": "icons/icon48.png",
@@ -11,7 +11,6 @@
         "default_popup": "popup.html"
     },
     "permissions": [
-        "topSites",
         "bookmarks",
         "tabs",
         "chrome://favicon/"
