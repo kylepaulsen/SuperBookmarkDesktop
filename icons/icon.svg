@@ -1,0 +1,95 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="none" x="0px" y="0px" width="128px" height="128px" viewBox="0 0 128 128">
+<defs>
+<linearGradient id="Gradient_1" gradientUnits="userSpaceOnUse" x1="64" y1="-22.449999999999996" x2="64" y2="126.15" spreadMethod="pad">
+<stop  offset="0%" stop-color="#606060"/>
+
+<stop  offset="100%" stop-color="#1E1E1E"/>
+</linearGradient>
+
+<radialGradient id="Gradient_2" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="41.725" fx="0" fy="0" gradientTransform="matrix( 1, 0, 0, 1.1683642899940083, 62.15,29.6) " spreadMethod="pad">
+<stop  offset="0%" stop-color="#950000"/>
+
+<stop  offset="100%" stop-color="#5D0000"/>
+</radialGradient>
+
+<radialGradient id="Gradient_3" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="42.75" fx="0" fy="0" gradientTransform="matrix( 1, 0, 0, 1.1687134502923977, 65.6,28.4) " spreadMethod="pad">
+<stop  offset="0%" stop-color="#CB0000"/>
+
+<stop  offset="100%" stop-color="#950000"/>
+</radialGradient>
+
+<g id="Layer2_0_FILL">
+<path fill="#1E1E1E" stroke="none" d="
+M 73.9 92.25
+L 53.75 92.25 53.75 104.4
+Q 45.25 104.4 39.4 108.15 33.75 111.65 33.55 116.5
+L 94.05 116.5
+Q 93.85 111.65 88.2 108.15 82.35 104.4 73.9 104.4
+L 73.9 92.25 Z"/>
+
+<path fill="url(#Gradient_1)" stroke="none" d="
+M 117.45 92.25
+Q 127.5 92.25 127.5 80.65
+L 127.5 23.15
+Q 127.5 11.5 117.45 11.5
+L 10.6 11.5
+Q 0.5 11.5 0.5 23.15
+L 0.5 80.65
+Q 0.5 92.25 10.6 92.25
+L 53.75 92.25 73.9 92.25 117.45 92.25 Z"/>
+</g>
+
+<g id="Layer1_0_FILL">
+<path fill="#CCCCFF" stroke="none" d="
+M 118.25 80.15
+L 118.25 19.55 9.4 19.55 9.4 80.15 118.25 80.15 Z"/>
+</g>
+
+<g id="Layer0_0_FILL">
+<path fill="url(#Gradient_2)" stroke="none" d="
+M 64 26.45
+L 51.9 26.45 51.9 76.95 64 64.1 64 26.45 Z"/>
+
+<path fill="url(#Gradient_3)" stroke="none" d="
+M 76.1 26.45
+L 64 26.45 64 64.1 76.1 76.95 76.1 26.45 Z"/>
+</g>
+
+<path id="Layer2_0_1_STROKES" stroke="#000000" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" fill="none" d="
+M 53.75 92.25
+L 10.6 92.25
+Q 0.5 92.25 0.5 80.65
+L 0.5 23.15
+Q 0.5 11.5 10.6 11.5
+L 117.45 11.5
+Q 127.5 11.5 127.5 23.15
+L 127.5 80.65
+Q 127.5 92.25 117.45 92.25
+L 73.9 92.25 73.9 104.4
+Q 82.35 104.4 88.2 108.15 93.85 111.65 94.05 116.5
+L 33.55 116.5
+Q 33.75 111.65 39.4 108.15 45.25 104.4 53.75 104.4
+L 53.75 92.25 73.9 92.25"/>
+
+<path id="Layer1_0_1_STROKES" stroke="#000000" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" fill="none" d="
+M 9.4 19.55
+L 118.25 19.55 118.25 80.15 9.4 80.15 9.4 19.55 Z"/>
+</defs>
+
+<g transform="matrix( 1, 0, 0, 1, 0,0) ">
+<use xlink:href="#Layer2_0_FILL"/>
+
+<use xlink:href="#Layer2_0_1_STROKES"/>
+</g>
+
+<g transform="matrix( 1, 0, 0, 1, 0,0) ">
+<use xlink:href="#Layer1_0_FILL"/>
+
+<use xlink:href="#Layer1_0_1_STROKES"/>
+</g>
+
+<g transform="matrix( 1, 0, 0, 1, 0,0) ">
+<use xlink:href="#Layer0_0_FILL"/>
+</g>
+</svg>
