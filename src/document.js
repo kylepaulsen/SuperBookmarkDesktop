@@ -43,6 +43,7 @@
             const win = app.makeWindow(doc.title, x, y, width, height, {beforeClose});
             win.dataset.document = 'true';
             win.dataset.id = doc.id;
+            app.rememberOpenWindows();
 
             const winUi = getUiElements(win);
             const editor = document.createElement('div');

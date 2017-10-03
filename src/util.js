@@ -1,6 +1,6 @@
 /* global idbKeyval, app */
 {
-    (['forEach', 'map', 'find', 'includes']).forEach((func) => {
+    (['forEach', 'map', 'find', 'includes', 'filter']).forEach((func) => {
         NodeList.prototype[func] = Array.prototype[func];
         HTMLCollection.prototype[func] = Array.prototype[func];
     });

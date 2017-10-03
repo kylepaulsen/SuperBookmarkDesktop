@@ -63,6 +63,7 @@
         const navBarMarkup = [];
         const winUi = getUiElements(currentWindow);
         currentWindow.dataset.id = targetNode.id;
+        app.rememberOpenWindows();
         winUi.navBar.innerHTML = '';
         for (let x = 0; x < ancestors.length; x++) {
             const nextNav = ancestors[x];

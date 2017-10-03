@@ -23,7 +23,7 @@
             <div class="tabPages">
                 <div class="tabPage currentPage" data-id="optionsPage">
                     <div class="option">
-                        <div class="optionText">Remember opened windows:</div>
+                        <div class="optionText">Remember opened folder and document windows:</div>
                         <div class="optionUi">
                             <input type="checkbox" data-id="rememberWindows">
                         </div>
@@ -136,34 +136,41 @@
     if (localStorage.rememberWindows) {
         ui.rememberWindows.checked = true;
     }
-    window.addEventListener('beforeunload', () => {
+    app.rememberOpenWindows = () => {
         if (localStorage.rememberWindows) {
-            const windows = [];
-            document.querySelectorAll('.window').forEach((win) => {
-                windows.push({
+            let windowEls = document.querySelectorAll('.window');
+            const activeWin = document.querySelector('.window.active');
+            if (activeWin) {
+                // make the active window last so it shows up in front.
+                windowEls = windowEls.filter((win) => !win.classList.contains('active'));
+                windowEls.push(activeWin);
+            }
+            const windows = windowEls.map((win) => {
+                return {
                     x: win.offsetLeft,
                     y: win.offsetTop,
                     width: win.offsetWidth,
                     height: win.offsetHeight,
                     id: win.dataset.id,
                     type: win.dataset.document ? 'document' : 'folder'
-                });
+                };
             });
             localStorage.openedWindows = JSON.stringify(windows);
         } else {
             localStorage.openedWindows = '';
         }
-    });
+    };
 
-    const reopenWindows = () => {
+    const reopenWindows = async () => {
         const openedWindows = JSON.parse(localStorage.openedWindows || '[]');
-        openedWindows.forEach((win) => {
+        for (let x = 0; x < openedWindows.length; x++) {
+            const win = openedWindows[x];
             if (win.type === 'document') {
-                app.editDocument(win.id, win);
+                await app.editDocument(win.id, win);
             } else if (win.type === 'folder') {
-                app.openFolder(win.id, null, win);
+                await app.openFolder(win.id, null, win);
             }
-        });
+        }
     };
     reopenWindows();
 

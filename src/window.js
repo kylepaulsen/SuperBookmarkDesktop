@@ -76,6 +76,9 @@
         });
 
         listen(window, 'mouseup', () => {
+            if (mouseDown) {
+                app.rememberOpenWindows();
+            }
             mouseDown = false;
         });
 
@@ -126,7 +129,10 @@
             }
         });
         const removeWindow = () => {
-            const closeFunc = () => win.parentNode.removeChild(win);
+            const closeFunc = () => {
+                win.parentNode.removeChild(win);
+                app.rememberOpenWindows();
+            };
             if (options.beforeClose) {
                 options.beforeClose(closeFunc);
             } else {
