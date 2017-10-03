@@ -83,7 +83,6 @@
         const iconId = icon.id + ''; // must be string
         const thing = icon.folder ? 'folder' : 'bookmark';
         if (await app.confirm(`Really? Delete this ${thing}?`, confirmBtns)) {
-            app.ignoreNextRender = true;
             if (icon.folder) {
                 chrome.bookmarks.removeTree(iconId);
             } else {

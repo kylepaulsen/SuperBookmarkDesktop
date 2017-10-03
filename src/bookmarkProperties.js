@@ -56,7 +56,6 @@
         modalOpen = false;
     };
     const apply = () => {
-        app.ignoreNextRender = true;
         const icon = getDataset(context);
         const iconElUi = getUiElements(context);
         const iconId = icon.id + ''; // must be a string.
@@ -69,7 +68,7 @@
             chrome.bookmarks.update(iconId, {title: icon.name});
         } else {
             icon.name = ui.bmName.value;
-            let url = ui.bmUrl.value;
+            let url = ui.bmUrl.value || 'about:blank';
             url = url.includes(':') ? url : 'http://' + url;
             if (icon.document) {
                 chrome.bookmarks.update(iconId, {title: icon.name});

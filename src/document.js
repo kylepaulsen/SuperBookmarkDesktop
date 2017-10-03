@@ -57,6 +57,7 @@
                 onChange: () => {
                     if (!unsavedRegex.test(winUi.title.textContent)) {
                         winUi.title.textContent += ' (unsaved)';
+                        window.onbeforeunload = () => '';
                     }
                     documentChanged = true;
                 }
@@ -67,19 +68,26 @@
             const closeButtonContainer = document.createElement('div');
             closeButtonContainer.className = 'close-btns';
             closeButtonContainer.innerHTML = `
-                <button class="btn" data-id="save">Save</button>
+                <button class="btn" data-id="save">Save (&#8984;S, ^S)</button>
                 <button class="btn" data-id="saveClose">Save & Close</button>
             `;
             editor.appendChild(closeButtonContainer);
 
             const closeButtonContainerUi = getUiElements(closeButtonContainer);
             const save = () => {
+                window.onbeforeunload = null;
                 const newDocUrl = dataUriStartString +
                     btoa(unescape(encodeURIComponent(dataStartString + editor.content.innerHTML)));
                 chrome.bookmarks.update(doc.id, {url: newDocUrl});
                 documentChanged = false;
                 winUi.title.textContent = winUi.title.textContent.replace(unsavedRegex, '');
             };
+            editor.addEventListener('keydown', (e) => {
+                if (e.keyCode === 83 && (e.metaKey || e.ctrlKey)) { // ctrl+s or meta+s
+                    e.preventDefault();
+                    save();
+                }
+            });
             closeButtonContainerUi.save.addEventListener('click', save);
             closeButtonContainerUi.saveClose.addEventListener('click', () => {
                 save();

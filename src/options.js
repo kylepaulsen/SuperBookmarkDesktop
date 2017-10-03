@@ -1,7 +1,7 @@
 /* global app */
 {
     const {openModal, closeModal} = app;
-    const {getUiElements, applyStylesheet, getParentElementWithClass, hide, show} = app.util;
+    const {getUiElements, applyStylesheet, getParentElementWithClass} = app.util;
 
     const customCssPlaceholder = [
         '/* no transparent windows */',
@@ -131,7 +131,13 @@
     ui.closeBtn.addEventListener('click', close);
 
     ui.rememberWindows.addEventListener('change', () => {
-        localStorage.rememberWindows = ui.rememberWindows.checked ? '1' : '';
+        if (ui.rememberWindows.checked) {
+            localStorage.rememberWindows = '1';
+            app.rememberOpenWindows();
+        } else {
+            localStorage.rememberWindows = '';
+            localStorage.openedWindows = '';
+        }
     });
     if (localStorage.rememberWindows) {
         ui.rememberWindows.checked = true;
@@ -200,7 +206,7 @@
                 const focusedEl = document.activeElement;
                 if (focusedEl.tagName === 'INPUT') {
                     focusedEl.blur();
-                } else {
+                } else if (focusedEl.tagName !== 'TEXTAREA') {
                     close();
                 }
             }
