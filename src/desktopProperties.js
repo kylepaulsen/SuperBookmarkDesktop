@@ -1,8 +1,9 @@
-/* global app, idbKeyval, makeColorPicker */
+/* global chrome, app, idbKeyval, makeColorPicker */
 {
     const {openModal, closeModal, saveData} = app;
     const {getUiElements, selectImageFromDisk, getParentElementWithClass, pad, updateBackground,
-        setBackgroundStylesFromMode, debounce, createBG, markupToElement, getNextBgInCycle, loadImage} = app.util;
+        setBackgroundStylesFromMode, debounce, createBG, markupToElement, getNextBgInCycle,
+        loadImage, getBackground} = app.util;
 
     const makeBgTile = (bg) => {
         return `
@@ -103,7 +104,7 @@
     const ui = getUiElements(content);
 
     let modalOpen;
-    let currentBg;
+    let currentBgId;
 
     const loadDesktopFromDisk = async () => {
         const blobToSave = await selectImageFromDisk();
@@ -140,7 +141,8 @@
         ui.userBackgroundsSection.innerHTML = userBgs;
     };
 
-    const changeBackgroundPreview = (bg = currentBg) => {
+    const changeBackgroundPreview = (bgid = currentBgId) => {
+        const bg = getBackground(bgid);
         const maxHeight = 250;
         let previewWidth = ui.backgroundPreviewSizeRef.offsetWidth;
         let previewHeight = window.innerHeight * previewWidth / window.innerWidth;
@@ -160,7 +162,8 @@
         updateBackground(bg);
     };
 
-    const updateInputs = (bg = currentBg) => {
+    const updateInputs = (bgid = currentBgId) => {
+        const bg = getBackground(bgid);
         ui.bgColor.style.background = bg.color;
         ui.filterColor.style.background = bg.filter;
         ui.inRotation.checked = bg.selected;
@@ -173,13 +176,14 @@
     const changeCheckmarks = (container, checked = false) => {
         const bgTiles = container.querySelectorAll('.bgTile');
         bgTiles.forEach((bgTile) => {
-            const bg = app.data.backgrounds.find((bg) => bg.id === bgTile.dataset.bgid);
+            const bg = getBackground(bgTile.dataset.bgid);
             bgTile.querySelector('.bgCheckbox').checked = checked;
             bg.selected = checked;
             updateSelected(bgTile, bg);
             updateInputs();
         });
         saveData();
+        chrome.runtime.sendMessage({action: 'reload'});
     };
 
     const updateSelected = (el, bg) => {
@@ -217,17 +221,18 @@
     ui.backgroundSelector.addEventListener('click', (e) => {
         const bgTile = getParentElementWithClass(e.target, 'bgTile');
         if (bgTile) {
-            const bg = app.data.backgrounds.find((bg) => bg.id === bgTile.dataset.bgid);
+            const bg = getBackground(bgTile.dataset.bgid);
             if (e.target.classList.contains('bgCheckbox')) {
                 bg.selected = e.target.checked;
                 updateSelected(bgTile, bg);
                 updateInputs();
                 saveData();
             } else {
-                currentBg = bg;
+                currentBgId = bg.id;
                 updateInputs();
                 changeBackgroundPreview();
             }
+            chrome.runtime.sendMessage({action: 'reload'});
         }
     });
 
@@ -239,6 +244,7 @@
             });
             window.removeEventListener('mousedown', removeColorPickers);
             saveData();
+            chrome.runtime.sendMessage({action: 'reload'});
         }
     };
 
@@ -256,6 +262,7 @@
         const colorPicker = setupColorPicker(e, ui.bgColor, false);
         const rgb = ui.bgColor.style.background.match(/[0-9]+/g);
         colorPicker.setColor(parseInt(rgb[0]), parseInt(rgb[1]), parseInt(rgb[2]));
+        const currentBg = getBackground(currentBgId);
 
         colorPicker.onChange((color) => {
             const hex = '#' + pad(color.r.toString(16), 2) + pad(color.g.toString(16), 2) +
@@ -270,6 +277,7 @@
         const colorPicker = setupColorPicker(e, ui.filterColor, true);
         const rgb = ui.filterColor.style.background.match(/[0-9\.]+/g);
         colorPicker.setColor(parseInt(rgb[0]), parseInt(rgb[1]), parseInt(rgb[2]), parseFloat(rgb[3]));
+        const currentBg = getBackground(currentBgId);
 
         colorPicker.onChange((color) => {
             const colorStr = `rgba(${color.r},${color.g},${color.b},${color.a})`;
@@ -280,15 +288,20 @@
     });
 
     ui.inRotation.addEventListener('change', () => {
+        const currentBg = getBackground(currentBgId);
         currentBg.selected = ui.inRotation.checked;
         const bgel = ui.backgroundSelector.querySelectorAll('.bgTile').find((el) => el.dataset.bgid === currentBg.id);
         bgel.querySelector('.bgCheckbox').checked = currentBg.selected;
         updateSelected(bgel, currentBg);
+        chrome.runtime.sendMessage({action: 'reload'});
     });
 
     ui.bgMode.addEventListener('change', () => {
+        const currentBg = getBackground(currentBgId);
         currentBg.mode = ui.bgMode.value;
         changeBackgroundPreview();
+        saveData();
+        chrome.runtime.sendMessage({action: 'reload'});
     });
 
     ui.deleteBackgroundBtn.addEventListener('click', async () => {
@@ -298,6 +311,7 @@
         ];
         if (await app.confirm('Really? Delete this backgound?', confirmBtns)) {
             const nextBg = getNextBgInCycle(localStorage.lastBgId, app.data.backgrounds, app.data.random);
+            const currentBg = getBackground(currentBgId);
 
             localStorage.lastRotation = Date.now();
             idbKeyval.delete(currentBg.id);
@@ -309,11 +323,12 @@
             app.data.backgrounds = app.data.backgrounds.filter((bg) => bg.id !== currentBg.id);
 
             if (nextBg) {
-                currentBg = nextBg;
-                updateBackground(nextBg);
+                currentBgId = nextBg.id;
+                updateBackground(getBackground(currentBgId));
                 app.saveData();
                 updateInputs();
                 changeBackgroundPreview();
+                chrome.runtime.sendMessage({action: 'reload'});
             }
         }
     });
@@ -321,10 +336,13 @@
     ui.bgRotateTime.addEventListener('change', () => {
         app.data.rotateMinutes = Math.max(Math.floor(ui.bgRotateTime.value), 1);
         localStorage.lastRotation = Date.now();
+        chrome.runtime.sendMessage({action: 'reload'});
     });
 
     ui.bgShuffle.addEventListener('change', () => {
         app.data.random = ui.bgShuffle.checked;
+        saveData();
+        chrome.runtime.sendMessage({action: 'reload'});
     });
 
     const toggleBackgroundSection = (e, section) => {
@@ -376,7 +394,14 @@
         }
     });
 
+    chrome.runtime.onMessage.addListener((msgObj) => {
+        if (msgObj.action === 'closeDesktopProps') {
+            close();
+        }
+    });
+
     app.openDesktopProperties = async () => {
+        app.data = app.util.loadData();
         openModal(content);
         modalOpen = true;
         app.modalOverlay.style.background = 'transparent';
@@ -400,9 +425,10 @@
             ui.userBackgroundsSection.style.maxHeight = 0;
         }
 
-        currentBg = app.data.background;
+        currentBgId = app.data.background.id;
         updateInputs();
         changeBackgroundPreview();
+        chrome.runtime.sendMessage({action: 'closeDesktopProps'});
     };
 }
 

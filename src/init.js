@@ -1,14 +1,14 @@
 {
     window.app = {
         defaultBackgrounds: [
-            'aurora-borealis.png',
-            'beach.png',
-            'clouds.png',
-            'kitten.png',
-            'lizard.png',
-            'micro.png',
-            'mountain.png',
-            'plant.png'
+            'backgrounds/aurora-borealis.png',
+            'backgrounds/beach.png',
+            'backgrounds/clouds.png',
+            'backgrounds/kitten.png',
+            'backgrounds/lizard.png',
+            'backgrounds/micro.png',
+            'backgrounds/mountain.png',
+            'backgrounds/plant.png'
         ]
     };
     const app = window.app;

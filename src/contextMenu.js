@@ -15,8 +15,8 @@
         <div class="contextMenuItem" data-id="createDocument">Create Document</div>
         <div class="contextMenuItem" data-id="delete">Delete</div>
         <div class="contextMenuSeperator" data-id="sep2"></div>
-        <div class="contextMenuItem" data-id="properties">Properties</div>
         <div class="contextMenuItem" data-id="options">Options</div>
+        <div class="contextMenuItem" data-id="properties">Properties</div>
     `;
 
     const ui = getUiElements(contextMenu);

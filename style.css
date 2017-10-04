@@ -470,7 +470,7 @@ input[type=checkbox]:focus {
 }
 
 .btn {
-    width: 100px;
+    width: 105px;
     height: 35px;
     cursor: pointer;
     background: #dddddd;

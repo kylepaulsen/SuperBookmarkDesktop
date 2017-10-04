@@ -1,4 +1,4 @@
-/* global app */
+/* global chrome, app */
 {
     const {openModal, closeModal} = app;
     const {getUiElements, applyStylesheet, getParentElementWithClass} = app.util;
@@ -122,6 +122,43 @@
         ui[tab.dataset.page].classList.add('currentPage');
     };
 
+    const save = () => {
+        if (ui.rememberWindows.checked) {
+            localStorage.rememberWindows = '1';
+        } else {
+            localStorage.rememberWindows = '';
+            localStorage.openedWindows = '';
+        }
+
+        if (ui.windowCloseRight.checked) {
+            localStorage.windowCloseRight = '1';
+        } else {
+            localStorage.windowCloseRight = '';
+        }
+
+        localStorage.userStyles = ui.customCss.value;
+        chrome.runtime.sendMessage({action: 'reloadOptions'});
+    };
+
+    const load = () => {
+        ui.rememberWindows.checked = false;
+        if (localStorage.rememberWindows === '1') {
+            ui.rememberWindows.checked = true;
+        }
+
+        if (localStorage.windowCloseRight) {
+            ui.windowCloseRight.checked = true;
+            applyStylesheet('.title-bar{flex-direction: row-reverse;}', 'windowCloseRight');
+        } else {
+            ui.windowCloseRight.checked = false;
+            applyStylesheet('.title-bar{flex-direction: row;}', 'windowCloseRight');
+        }
+
+        const defaultCustomCss = '/*' + customCssPlaceholder.replace('/*', '').replace('*/', '') + '\n*/';
+        ui.customCss.value = localStorage.userStyles || defaultCustomCss;
+        applyStylesheet(localStorage.userStyles || '', 'userStyles');
+    };
+
     ui.tabs.addEventListener('click', (e) => {
         const tab = getParentElementWithClass(e.target, 'optionsTab');
         if (tab) {
@@ -131,17 +168,11 @@
     ui.closeBtn.addEventListener('click', close);
 
     ui.rememberWindows.addEventListener('change', () => {
-        if (ui.rememberWindows.checked) {
-            localStorage.rememberWindows = '1';
-            app.rememberOpenWindows();
-        } else {
-            localStorage.rememberWindows = '';
-            localStorage.openedWindows = '';
-        }
+        save();
+        app.rememberOpenWindows();
+        load();
     });
-    if (localStorage.rememberWindows) {
-        ui.rememberWindows.checked = true;
-    }
+
     app.rememberOpenWindows = () => {
         if (localStorage.rememberWindows) {
             let windowEls = document.querySelectorAll('.window');
@@ -181,24 +212,14 @@
     reopenWindows();
 
     ui.windowCloseRight.addEventListener('change', () => {
-        if (ui.windowCloseRight.checked) {
-            applyStylesheet('.title-bar{flex-direction: row-reverse;}', 'windowCloseRight');
-            localStorage.windowCloseRight = '1';
-        } else {
-            applyStylesheet('.title-bar{flex-direction: row;}', 'windowCloseRight');
-            localStorage.windowCloseRight = '';
-        }
+        save();
+        load();
     });
-    if (localStorage.windowCloseRight) {
-        applyStylesheet('.title-bar{flex-direction: row-reverse;}', 'windowCloseRight');
-        ui.windowCloseRight.checked = true;
-    }
 
     ui.customCss.addEventListener('change', () => {
-        applyStylesheet(ui.customCss.value, 'userStyles');
-        localStorage.userStyles = ui.customCss.value;
+        save();
+        load();
     });
-    applyStylesheet(localStorage.userStyles || '', 'userStyles');
 
     window.addEventListener('keydown', function(e) {
         if (modalOpen) {
@@ -213,8 +234,16 @@
         }
     });
 
+    chrome.runtime.onMessage.addListener((msgObj) => {
+        if (msgObj.action === 'reloadOptions') {
+            load();
+        }
+    });
+
+    load();
     app.openOptions = () => {
         openModal(content);
+        load();
         modalOpen = true;
     };
 }

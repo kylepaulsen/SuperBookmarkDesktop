@@ -2,15 +2,14 @@
 {
     const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getFaviconImageUrl, loadData, getParentElementWithClass,
            clampText, promisify, updateBackground, getNextBgInCycle, debounce, throttle,
-           folderImage, documentImage, removeNewNodeId} = app.util;
+           folderImage, documentImage, removeNewNodeId, getBackground} = app.util;
 
     const desktop = app.desktop;
-    let data = app.data;
 
     function findNextOpenSpot() {
         for (let x = 0; x < 12; x++) {
             for (let y = 0; y < 6; y++) {
-                if (!data.locations[`${x},${y}`]) {
+                if (!app.data.locations[`${x},${y}`]) {
                     return {x, y};
                 }
             }
@@ -18,7 +17,7 @@
         let y = 6;
         while (y < 99999) {
             for (let x = 0; x < 12; x++) {
-                if (!data.locations[`${x},${y}`]) {
+                if (!app.data.locations[`${x},${y}`]) {
                     return {x, y};
                 }
             }
@@ -72,12 +71,12 @@
             });
         }
         const nameDiv = bookmarkIcon.querySelector('.name');
-        const positionData = data.icons[bookmark.id] || findNextOpenSpot();
+        const positionData = app.data.icons[bookmark.id] || findNextOpenSpot();
         if (container === desktop) {
             bookmarkIcon.style.position = 'absolute';
             bookmarkIcon.style.left = positionData.x * (ICON_WIDTH + ICON_SPACING) + GUTTER + 'px';
             bookmarkIcon.style.top = positionData.y * (ICON_HEIGHT + ICON_SPACING) + GUTTER + 'px';
-            data.locations[`${positionData.x},${positionData.y}`] = true;
+            app.data.locations[`${positionData.x},${positionData.y}`] = true;
         } else {
             bookmarkIcon.style.zIndex = 'auto';
         }
@@ -87,19 +86,19 @@
     app.makeBookmarkIcon = makeBookmarkIcon;
 
     app.saveData = () => {
-        data.icons = {};
-        data.locations = {};
+        app.data.icons = {};
+        app.data.locations = {};
         desktop.children.forEach((child) => {
             if (child.classList.contains('bookmark')) {
                 const left = parseInt(child.style.left);
                 const top = parseInt(child.style.top);
                 const x = (left - GUTTER) / (ICON_WIDTH + ICON_SPACING);
                 const y = (top - GUTTER) / (ICON_HEIGHT + ICON_SPACING);
-                data.icons[child.dataset.id] = {x, y};
-                data.locations[`${x},${y}`] = child.dataset.id;
+                app.data.icons[child.dataset.id] = {x, y};
+                app.data.locations[`${x},${y}`] = child.dataset.id;
             }
         });
-        localStorage.data = JSON.stringify(data);
+        localStorage.data = JSON.stringify(app.data);
         if (app.sendSyncEventAfterSave) {
             app.sendSyncEventAfterSave = false;
             chrome.runtime.sendMessage({action: 'reload'});
@@ -135,6 +134,9 @@
             if (win.dataset.folder) {
                 app.openFolder(win.dataset.id, null, {window: win});
             }
+            if (win.dataset.document) {
+                app.syncEditorData(win.dataset.id, win);
+            }
         });
     }
     app.makeHelpDocument().then(render);
@@ -143,16 +145,16 @@
     setInterval(() => {
         const lastRotation = localStorage.lastRotation;
         const now = Date.now();
-        if ((now - lastRotation) > data.rotateMinutes * 60 * 1000) {
-            const nextBg = getNextBgInCycle(localStorage.lastBgId, data.backgrounds, data.random);
+        if ((now - lastRotation) > app.data.rotateMinutes * 60 * 1000) {
+            const nextBg = getNextBgInCycle(localStorage.lastBgId, app.data.backgrounds, app.data.random);
             if (nextBg) {
                 updateBackground(nextBg);
                 app.saveData();
             }
             localStorage.lastRotation = now;
         }
-        if (localStorage.lastBgId !== data.background.id) {
-            const newBg = data.backgrounds.find((bg) => bg.id === localStorage.lastBgId);
+        if (localStorage.lastBgId !== app.data.background.id) {
+            const newBg = getBackground(localStorage.lastBgId);
             if (newBg) {
                 updateBackground(newBg);
             }
@@ -180,8 +182,11 @@
     chrome.runtime.onMessage.addListener((msgObj) => {
         if (msgObj.action === 'reload') {
             app.data = loadData();
-            data = app.data;
             app.debouncedRender();
+            const newBg = getBackground(localStorage.lastBgId);
+            if (newBg) {
+                updateBackground(newBg);
+            }
         }
     });
 }

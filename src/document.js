@@ -17,6 +17,15 @@
         return {x, y, width, height};
     };
 
+    const syncEditorData = async (id, win) => {
+        const bookmarks = await app.getBookmarks(id.toString());
+        const doc = bookmarks[0];
+        const docData = getDocumentData(doc.url);
+        if (docData !== null && win) {
+            win.querySelector('.pell-content').innerHTML = docData;
+        }
+    };
+
     const renderEditor = async (id, options) => {
         const bookmarks = await app.getBookmarks(id.toString());
         const doc = bookmarks[0];
@@ -78,6 +87,7 @@
                 window.onbeforeunload = null;
                 const newDocUrl = dataUriStartString +
                     btoa(unescape(encodeURIComponent(dataStartString + editor.content.innerHTML)));
+                app.ignoreNextRender = true;
                 chrome.bookmarks.update(doc.id, {url: newDocUrl});
                 documentChanged = false;
                 winUi.title.textContent = winUi.title.textContent.replace(unsavedRegex, '');
@@ -133,4 +143,5 @@
 
     app.editDocument = renderEditor;
     app.isValidDocument = isValidDocument;
+    app.syncEditorData = syncEditorData;
 }

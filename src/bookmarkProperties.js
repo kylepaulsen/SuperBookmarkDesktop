@@ -102,6 +102,7 @@
             saveData();
         }
         close();
+        chrome.runtime.sendMessage({action: 'reload'});
     };
 
     ui.cancelBtn.addEventListener('click', close);

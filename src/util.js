@@ -30,12 +30,13 @@
         return Math.floor(Math.random() * (max - min + 1) + min);
     };
 
+    let nextBgId;
     util.loadData = () => {
         let data;
         try {
             data = JSON.parse(localStorage.data);
         } catch (e) {
-            const backgrounds = app.defaultBackgrounds.map((bg, idx) => util.createBG(bg, idx, true));
+            const backgrounds = app.defaultBackgrounds.map((bg) => util.createBG(bg, true));
             data = {
                 icons: {},
                 locations: {},
@@ -48,39 +49,39 @@
         const newNodeIds = JSON.parse(localStorage.newNodeIds || '{}');
         localStorage.newNodeIds = JSON.stringify(newNodeIds);
 
-        // Just make sure default bgs are there.
-        const userBgs = data.backgrounds.filter((bg) => !bg.id.startsWith('_'));
-        data.backgrounds = app.defaultBackgrounds.map((bg, idx) => util.createBG(bg, idx, true)).concat(userBgs);
+        if (nextBgId === undefined) {
+            // get max id
+            data.backgrounds.forEach((bg) => {
+                nextBgId = Math.max(parseInt(bg.id) + 1, nextBgId || 0);
+            });
+        }
+
+        // Make sure all the default BGs are there, remove any that shouldnt be.
+        const defaultBgs = data.backgrounds.filter((bg) => bg.default && app.defaultBackgrounds.includes(bg.image));
+        const defaultBgsPaths = defaultBgs.map((bg) => bg.image);
+        const defaultMissing = app.defaultBackgrounds.filter((bgPath) => !defaultBgsPaths.includes(bgPath)).map((bgPath) => {
+            return util.createBG(bgPath, true);
+        });
+        const userBgs = data.backgrounds.filter((bg) => !bg.default);
+        data.backgrounds = defaultBgs.concat(defaultMissing).concat(userBgs);
 
         // Seems pointless but This makes sure data.background points at one of our backgrounds in the list.
-        const lastId = localStorage.lastBgId || data.backgrounds[util.randomInt(0, data.backgrounds.length - 1)].id;
+        const lastId = localStorage.lastBgId || (data.backgrounds[util.randomInt(0, data.backgrounds.length - 1)].id).toString();
         data.background = data.backgrounds.find((bg) => lastId === bg.id);
+        if (!data.background) {
+            const randIdx = util.randomInt(0, data.backgrounds.length - 1);
+            localStorage.lastBgId = randIdx;
+            data.background = data.backgrounds[randIdx];
+        }
         return data;
     };
 
-    let nextId;
-    util.createBG = (url, id = 0, isDefault = false) => {
-        if (app.data && nextId === undefined) {
-            // get max id.
-            app.data.backgrounds.forEach((bg) => {
-                nextId = Math.max(bg.idNum + 1, nextId || 0);
-            });
-        }
-        let image;
-        let realId;
-        if (isDefault) {
-            image = `backgrounds/${url}`;
-            realId = `_bg${id}`;
-        } else {
-            id = nextId;
-            nextId++;
-            image = url;
-            realId = `bg${id}`;
-        }
+    util.createBG = (url, isDefault = false) => {
+        const id = nextBgId !== undefined ? nextBgId : 0;
+        nextBgId = id + 1;
         return {
-            id: realId,
-            idNum: id,
-            image,
+            id: id.toString(),
+            image: url,
             mode: 'fill',
             color: '#000000',
             filter: 'rgba(0,0,0,0)',
@@ -237,7 +238,7 @@
 
     util.updateBackground = async (bg) => {
         if (app.data.background.id !== bg.id) {
-            app.data.background = bg;
+            app.data.background = util.getBackground(bg);
             localStorage.lastRotation = Date.now();
             localStorage.lastBgId = bg.id;
 
@@ -255,7 +256,7 @@
             util.setBackgroundStylesFromMode(app.desktopBackground, bg.mode);
             temp.parentElement.removeChild(temp);
         } else {
-            app.data.background = bg;
+            app.data.background = util.getBackground(bg);
             app.desktopBackground.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image}), linear-gradient(${bg.color}, ${bg.color})`;
             util.setBackgroundStylesFromMode(app.desktopBackground, bg.mode);
         }
@@ -335,6 +336,11 @@
             document.head.appendChild(styleTag);
         }
         styleTag.textContent = css;
+    };
+
+    util.getBackground = (idOrBack = '') => {
+        const id = (idOrBack.id ? idOrBack.id : idOrBack).toString();
+        return app.data.backgrounds.find((bg) => bg.id === id);
     };
 
     util.debounce = (fn, time) => {
