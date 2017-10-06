@@ -3,14 +3,15 @@
     const {openModal, closeModal, saveData} = app;
     const {getUiElements, selectImageFromDisk, getParentElementWithClass, pad, updateBackground,
         setBackgroundStylesFromMode, debounce, createBG, markupToElement, getNextBgInCycle,
-        loadImage, getBackground} = app.util;
+        loadImage, getBackground, getBackgroundImage, getBgImageFromDB} = app.util;
 
     const makeBgTile = (bg) => {
+        const imgUrl = getBackgroundImage(bg.id);
         return `
-            <div class="bgTile${bg.selected ? ' selected' : ''}" data-bgid="${bg.id}">
+            <div class="bgTile${bg.selected ? ' selected' : ''}${bg.default ? '' : ' userBg'}" data-bgid="${bg.id}">
                 <div class="aspect16-9">
                     <div class="aspect-container">
-                        <img src="${bg.image}" alt="" draggable="false">
+                        <img src="${imgUrl}" alt="" draggable="false">
                         <input type="checkbox" class="bgCheckbox" ${bg.selected ? 'checked="checked"' : ''}>
                     </div>
                 </div>
@@ -108,14 +109,16 @@
 
     const loadDesktopFromDisk = async () => {
         const blobToSave = await selectImageFromDisk();
-        const imageSrc = URL.createObjectURL(blobToSave);
-        const newBg = createBG(imageSrc);
-        await idbKeyval.set(newBg.id, blobToSave);
+        const newBg = createBG();
+        await idbKeyval.set('b' + newBg.id, blobToSave);
+        const imgUrl = await getBgImageFromDB(newBg.id);
         app.data.backgrounds.push(newBg);
         saveData();
 
+        chrome.runtime.sendMessage({action: 'reload'});
+
         const newBgTile = markupToElement(makeBgTile(newBg));
-        await loadImage(imageSrc, false);
+        await loadImage(imgUrl, false);
         ui.userBackgroundsSection.appendChild(newBgTile);
     };
 
@@ -143,6 +146,7 @@
 
     const changeBackgroundPreview = (bgid = currentBgId) => {
         const bg = getBackground(bgid);
+        const imgUrl = getBackgroundImage(bgid);
         const maxHeight = 250;
         let previewWidth = ui.backgroundPreviewSizeRef.offsetWidth;
         let previewHeight = window.innerHeight * previewWidth / window.innerWidth;
@@ -154,7 +158,7 @@
         ui.pageSizeRatio.style.height = previewHeight + 'px';
 
         ui.previewPageBG.style.backgroundColor = bg.color;
-        ui.previewBG.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image})`;
+        ui.previewBG.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${imgUrl})`;
         setBackgroundStylesFromMode(ui.previewBG, bg.mode);
         if (bg.mode === 'tile' || bg.mode === 'center') {
             ui.previewBG.style.backgroundSize = previewWidth * 0.7 + 'px';
@@ -304,34 +308,37 @@
         chrome.runtime.sendMessage({action: 'reload'});
     });
 
-    ui.deleteBackgroundBtn.addEventListener('click', async () => {
+    const deleteBackground = async (idToDelete = currentBgId) => {
         const confirmBtns = [
             'Do It!',
             {text: 'No Way!', value: false, default: true}
         ];
         if (await app.confirm('Really? Delete this backgound?', confirmBtns)) {
-            const nextBg = getNextBgInCycle(localStorage.lastBgId, app.data.backgrounds, app.data.random);
-            const currentBg = getBackground(currentBgId);
-
             localStorage.lastRotation = Date.now();
-            idbKeyval.delete(currentBg.id);
+            idbKeyval.delete('b' + idToDelete);
             const bgTile = ui.backgroundSelector.querySelectorAll('.bgTile').find((el) => {
-                return el.dataset.bgid === currentBg.id;
+                return el.dataset.bgid === idToDelete;
             });
             bgTile.parentElement.removeChild(bgTile);
-            URL.revokeObjectURL(currentBg.image);
-            app.data.backgrounds = app.data.backgrounds.filter((bg) => bg.id !== currentBg.id);
+            app.data.backgrounds = app.data.backgrounds.filter((bg) => bg.id !== idToDelete);
+
+            let nextBg;
+            if (idToDelete === currentBgId) {
+                nextBg = getNextBgInCycle(localStorage.lastBgId, app.data.backgrounds, app.data.random, true);
+            }
 
             if (nextBg) {
                 currentBgId = nextBg.id;
                 updateBackground(getBackground(currentBgId));
-                app.saveData();
-                updateInputs();
                 changeBackgroundPreview();
-                chrome.runtime.sendMessage({action: 'reload'});
+                updateInputs();
             }
+            saveData();
+            chrome.runtime.sendMessage({action: 'reload'});
         }
-    });
+    };
+    app.deleteBackground = deleteBackground;
+    ui.deleteBackgroundBtn.addEventListener('click', () => deleteBackground());
 
     ui.bgRotateTime.addEventListener('change', () => {
         app.data.rotateMinutes = Math.max(Math.floor(ui.bgRotateTime.value), 1);
@@ -401,7 +408,7 @@
     });
 
     app.openDesktopProperties = async () => {
-        app.data = app.util.loadData();
+        app.data = await app.util.loadData();
         openModal(content);
         modalOpen = true;
         app.modalOverlay.style.background = 'transparent';

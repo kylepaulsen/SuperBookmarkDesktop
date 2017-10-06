@@ -14,13 +14,13 @@
     const app = window.app;
     app.util = window.util;
     const {setBackgroundStylesFromMode, getNextBgInCycle, getBgImageFromDB, loadImage,
-        sleep, loadData} = app.util;
+        sleep, loadData, loadUserBackgrounds, getBackgroundImage} = app.util;
 
     app.desktop = document.getElementById('desktop');
     app.desktopBackground = document.getElementById('desktopBackground');
 
     // load in localStorage data...
-    const data = loadData();
+    const data = loadData(false);
     app.data = data;
 
     const now = Date.now();
@@ -52,20 +52,21 @@
         userImagesDidLoad = res;
     });
 
-    const bg = data.background;
+    const currentBG = data.background;
     app.loadingSpinner = document.getElementById('loading');
 
-    const loadBG = async (bg) => {
-        if (!bg.default) {
-            await getBgImageFromDB(bg);
+    const loadBG = async () => {
+        if (!currentBG.default) {
+            await getBgImageFromDB(currentBG.id);
         }
+        const imgUrl = getBackgroundImage(currentBG.id);
 
-        app.desktopBackground.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image}),` +
-            ` linear-gradient(${bg.color}, ${bg.color})`;
-        setBackgroundStylesFromMode(app.desktopBackground, bg.mode);
+        app.desktopBackground.style.backgroundImage = `linear-gradient(${currentBG.filter}, ${currentBG.filter}), ` +
+            `url(${imgUrl}), linear-gradient(${currentBG.color}, ${currentBG.color})`;
+        setBackgroundStylesFromMode(app.desktopBackground, currentBG.mode);
 
         // wait till the image is loaded before we reveil
-        await loadImage(bg.image, false);
+        await loadImage(imgUrl, false);
         const fadeIn = document.getElementById('loadFadeIn');
         fadeIn.style.opacity = 0;
 
@@ -73,12 +74,9 @@
         fadeIn.parentNode.removeChild(fadeIn);
 
         // load all other images
-        Promise.all(data.backgrounds.filter((bg1) => {
-            return !bg1.default && bg1 !== bg;
-        }).map((bg) => {
-            return getBgImageFromDB(bg).then(() => loadImage(bg.image, false));
-        })).then(userImagesDidLoad);
+        await loadUserBackgrounds();
+        userImagesDidLoad();
     };
     // get that bg loadin'
-    loadBG(bg);
+    loadBG();
 }

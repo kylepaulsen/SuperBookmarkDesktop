@@ -30,8 +30,9 @@
         return Math.floor(Math.random() * (max - min + 1) + min);
     };
 
-    let nextBgId;
-    util.loadData = () => {
+    let nextBgId = localStorage.nextBgId ? parseInt(localStorage.nextBgId) : undefined;
+    const backgroundId2ObjectUrl = {};
+    util.loadData = (loadImages = true) => {
         let data;
         try {
             data = JSON.parse(localStorage.data);
@@ -51,10 +52,14 @@
 
         if (nextBgId === undefined) {
             // get max id
+            let maxBgId = 0;
             data.backgrounds.forEach((bg) => {
-                nextBgId = Math.max(parseInt(bg.id) + 1, nextBgId || 0);
+                maxBgId = Math.max(parseInt(bg.id) + 1, maxBgId);
             });
+            nextBgId = maxBgId;
+            localStorage.nextBgId = nextBgId;
         }
+        nextBgId = parseInt(localStorage.nextBgId);
 
         // Make sure all the default BGs are there, remove any that shouldnt be.
         const defaultBgs = data.backgrounds.filter((bg) => bg.default && app.defaultBackgrounds.includes(bg.image));
@@ -73,12 +78,22 @@
             localStorage.lastBgId = randIdx;
             data.background = data.backgrounds[randIdx];
         }
+
+        if (loadImages) {
+            return new Promise((res) => {
+                util.loadUserBackgrounds(data).then(() => {
+                    res(data);
+                });
+            });
+        }
+
         return data;
     };
 
     util.createBG = (url, isDefault = false) => {
         const id = nextBgId !== undefined ? nextBgId : 0;
         nextBgId = id + 1;
+        localStorage.nextBgId = nextBgId;
         return {
             id: id.toString(),
             image: url,
@@ -109,10 +124,14 @@
         }
     };
 
-    util.getNextBgInCycle = (currentId, arr, random = false) => {
+    util.getNextBgInCycle = (currentId, arr, random = false, mustReturnBg = false) => {
         const selectedBgs = arr.filter((bg) => bg.selected);
         if (selectedBgs.length === 0) {
-            return false;
+            if (mustReturnBg) {
+                return arr[util.randomInt(0, arr.length - 1)];
+            } else {
+                return false;
+            }
         }
         const idx = Math.max(selectedBgs.findIndex((el) => currentId === el.id), 0);
         if (random && selectedBgs.length > 1) {
@@ -134,10 +153,35 @@
         });
     };
 
-    util.getBgImageFromDB = async (bg) => {
-        const blob = await idbKeyval.get(bg.id);
-        bg.image = URL.createObjectURL(blob);
-        return bg.image;
+    util.getBgImageFromDB = async (bgId) => {
+        const blob = await idbKeyval.get('b' + bgId);
+        const url = URL.createObjectURL(blob);
+        backgroundId2ObjectUrl[bgId] = url;
+        return url;
+    };
+
+    util.getBackgroundImage = (bgId) => {
+        const bg = util.getBackground(bgId);
+        if (bg.default) {
+            return bg.image;
+        } else {
+            return backgroundId2ObjectUrl[bgId];
+        }
+    };
+
+    util.loadUserBackgrounds = (data = app.data) => {
+        return Promise.all(data.backgrounds.map((bg) => {
+            if (bg.default || backgroundId2ObjectUrl[bg.id]) {
+                return Promise.resolve();
+            } else {
+                return util.getBgImageFromDB(bg.id)
+                    .then((url) => util.loadImage(url, false))
+                    .catch(() => {
+                        console.log('failed to load image!');
+                        return Promise.resolve();
+                    });
+            }
+        }));
     };
 
     util.selectImageFromDisk = () => {
@@ -237,6 +281,7 @@
     };
 
     util.updateBackground = async (bg) => {
+        const imgUrl = util.getBackgroundImage(bg.id);
         if (app.data.background.id !== bg.id) {
             app.data.background = util.getBackground(bg);
             localStorage.lastRotation = Date.now();
@@ -244,20 +289,20 @@
 
             const temp = document.createElement('div');
             temp.className = 'tempBG';
-            temp.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image}), linear-gradient(${bg.color}, ${bg.color})`;
+            temp.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${imgUrl}), linear-gradient(${bg.color}, ${bg.color})`;
             util.setBackgroundStylesFromMode(temp, bg.mode);
 
-            await util.loadImage(bg.image);
+            await util.loadImage(imgUrl);
             document.body.appendChild(temp);
             await util.sleep(0);
             temp.style.opacity = 1;
             await util.sleep(400);
-            app.desktopBackground.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image}), linear-gradient(${bg.color}, ${bg.color})`;
+            app.desktopBackground.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${imgUrl}), linear-gradient(${bg.color}, ${bg.color})`;
             util.setBackgroundStylesFromMode(app.desktopBackground, bg.mode);
             temp.parentElement.removeChild(temp);
         } else {
             app.data.background = util.getBackground(bg);
-            app.desktopBackground.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${bg.image}), linear-gradient(${bg.color}, ${bg.color})`;
+            app.desktopBackground.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${imgUrl}), linear-gradient(${bg.color}, ${bg.color})`;
             util.setBackgroundStylesFromMode(app.desktopBackground, bg.mode);
         }
     };

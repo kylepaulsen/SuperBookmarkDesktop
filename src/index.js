@@ -65,7 +65,7 @@
                 <div class="name" data-id="name">${bookmark.title}</div>
             </${tag}>
         `;
-        if (!isDocument && bookmark.url && bookmark.url.startsWith('data:')) {
+        if (!isDocument && bookmark.url && (bookmark.url.startsWith('data:') || bookmark.url.startsWith('file:'))) {
             bookmarkIcon.children[0].addEventListener('click', () => {
                 chrome.tabs.update({url: bookmark.url});
             });
@@ -179,9 +179,9 @@
         chrome.bookmarks[eventName].addListener(app.debouncedRender);
     });
 
-    chrome.runtime.onMessage.addListener((msgObj) => {
+    chrome.runtime.onMessage.addListener(async (msgObj) => {
         if (msgObj.action === 'reload') {
-            app.data = loadData();
+            app.data = await loadData();
             app.debouncedRender();
             const newBg = getBackground(localStorage.lastBgId);
             if (newBg) {

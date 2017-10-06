@@ -75,6 +75,10 @@
 
     ui.delete.addEventListener('click', async () => {
         hide(contextMenu);
+        if (context.classList.contains('userBg')) {
+            app.deleteBackground(context.dataset.bgid);
+            return;
+        }
         const confirmBtns = [
             'Do It!',
             {text: 'No Way!', value: false, default: true}
@@ -128,6 +132,10 @@
             show(ui.delete);
             deselectAll();
             targetEl.classList.add('selected');
+        } else if (targetEl.classList.contains('userBg')) {
+            context = targetEl;
+            show(ui.delete);
+            return;
         } else {
             context = getParentElementWithClass(targetEl, ['desktop', 'window']);
             show(ui.createBookmark);
@@ -141,8 +149,9 @@
     };
 
     window.addEventListener('contextmenu', (e) => {
-        const targetEl = getParentElementWithClass(e.target, ['bookmark', 'desktop', 'window']);
-        if (targetEl && !(targetEl.dataset.document && !targetEl.classList.contains('bookmark'))) {
+        const targetEl = getParentElementWithClass(e.target, ['bookmark', 'desktop', 'userBg', 'window']);
+        // weird case is a document window. It should not get a special context menu.
+        if (targetEl && (!targetEl.dataset.document || targetEl.classList.contains('bookmark'))) {
             e.preventDefault();
             populateMenu(targetEl);
             show(contextMenu);
@@ -157,6 +166,8 @@
             contextMenu.style.left = x + 'px';
             contextMenu.style.top = y + 'px';
             return false;
+        } else if (getParentElementWithClass(e.target, 'contextMenu')) {
+            e.preventDefault();
         }
     });
 
