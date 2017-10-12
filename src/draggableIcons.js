@@ -18,6 +18,9 @@
     window.addEventListener('dragstart', (e) => {
         if (e.target.classList.contains('bookmark')) {
             dragStartElement = e.target;
+            if (dragStartElement.dataset.url) {
+                e.dataTransfer.setData('text/plain', dragStartElement.dataset.url);
+            }
             const container = getParentElementWithClass(dragStartElement, ['window', 'desktop']);
             selected = Array.prototype.slice.call(container.querySelectorAll('.bookmark.selected'));
             selected = selected.filter((item) => item !== dragStartElement);
@@ -93,7 +96,9 @@
                         app.sendSyncEventAfterSave = true;
                     }
                 }
-                if (item.dataset.parentId !== dropTarget.dataset.id) {
+                // the root children are all treated as being children of id 2
+                const pidCheck = app.rootChildrenIds.includes(item.dataset.parentId) ? '2' : item.dataset.parentId;
+                if (pidCheck !== dropTarget.dataset.id) {
                     chrome.bookmarks.move(item.dataset.id, {parentId: dropTarget.dataset.id});
                 }
             });

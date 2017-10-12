@@ -13,9 +13,9 @@
         <h1>Super Bookmark Desktop Help</h1>
         <hr>
         <div>
-            Hey thanks for trying out <b>Super Bookmark Desktop</b>! To make the best use out of it, pretend that
-            this is just like your normal computer desktop. This means you can do things you are
-            familiar with like:
+            Hey thanks for trying out <b>Super Bookmark Desktop</b> - the bookmark manager that acts like
+            your computer desktop! To make the best use out of it, pretend that this is just like your normal
+            desktop. This means you can do things you are familiar with like:
         </div>
         <div>
             <ul>
@@ -24,12 +24,12 @@
                     Create a selection of multiple items by starting a <i>Click and Drag</i> off an icon
                     (then try moving all of them).
                 </li>
-                <li>Hold down Ctrl, Shift or Command and then click an icon to multi-select icons.</li>
+                <li>Hold down Ctrl, Shift, or Command and then click an icon to multi-select icons.</li>
                 <li>
                     <i>Right Click</i> the desktop create bookmarks or to change backgrounds and
                     set background settings.
                 </li>
-                <li><i>Right Click</i> icons to edit or delete them.</li>
+                <li><i>Right Click</i> icons to edit or delete them (editing and deleting affects the actual chrome bookmark).</li>
                 <li>
                     Create text files (like this one) that sync like a normal bookmark.
                     Good for making quick reminders!

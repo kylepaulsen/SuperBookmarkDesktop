@@ -116,6 +116,7 @@
         const rootChildren = root.children;
 
         const promises = [];
+        const rootChildrenIds = [];
         // Create top level icons on "desktop"
         rootChildren.forEach((rNode) => {
             rNode.children.forEach((node) => {
@@ -127,7 +128,9 @@
                     promises.push(makeBookmarkIcon(node, true));
                 }
             });
+            rootChildrenIds.push(rNode.id);
         });
+        app.rootChildrenIds = rootChildrenIds;
         Promise.all(promises).then(app.saveData);
         const windows = document.querySelectorAll('.window');
         windows.forEach((win) => {
