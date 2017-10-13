@@ -85,8 +85,8 @@
         ];
         const icon = getDataset(context);
         const iconId = icon.id + ''; // must be string
-        const thing = icon.folder ? 'folder' : 'bookmark';
-        if (await app.confirm(`Really? Delete this ${thing}?`, confirmBtns)) {
+        const thing = icon.folder ? 'folder and all its contents?' : 'bookmark?';
+        if (await app.confirm(`Really? Delete this ${thing}`, confirmBtns)) {
             if (icon.folder) {
                 chrome.bookmarks.removeTree(iconId);
             } else {

@@ -456,7 +456,7 @@ input[type=checkbox]:focus {
 }
 
 .confirmModal {
-    width: 300px;
+    width: 330px;
 }
 
 .confirmMessage {
@@ -694,6 +694,11 @@ input[type=checkbox]:focus {
     padding: 10px;
     height: 100%;
     overflow: auto;
+    user-select: auto;
+}
+
+.tabPage * {
+    user-select: auto;
 }
 
 .tabPage input[type=checkbox] {

@@ -14,7 +14,9 @@
         <hr>
         <div>
             Hey thanks for trying out <b>Super Bookmark Desktop</b> - the bookmark manager that acts like
-            your computer desktop! To make the best use out of it, pretend that this is just like your normal
+            your computer desktop!<br>You should see your bookmarks that belong in your "Bookmarks Bar" and
+            "Other Bookmarks" folders on your desktop now (the desktop represents both folders, though this can be
+            changed). To make the best use out of this extension, pretend that this is just like your normal
             desktop. This means you can do things you are familiar with like:
         </div>
         <div>
@@ -38,6 +40,12 @@
             <div>
                 There's quite a bit to explore! Just try things out to see what they do. I recommend adjusting your
                 icons to be where you want them so you can find your most common bookmarks fast!
+            </div><br>
+            <div>
+                Just a reminder that the desktop represents both the "Bookmarks Bar" and "Other Bookmarks" folders.
+                However, if you move a bookmark from a folder to the desktop, it will be placed in "Other Bookmarks".
+                You can hide "Bookmarks Bar" bookmarks by going into the options (right click somewhere on the desktop
+                and click Options).
             </div>
         </div>
         <br>
