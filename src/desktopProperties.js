@@ -254,8 +254,8 @@
 
     const setupColorPicker = (e, btn, alpha = false) => {
         const colorPicker = makeColorPicker(alpha);
-        colorPicker.container.style.left = btn.offsetLeft + 'px';
-        colorPicker.container.style.top = btn.offsetTop + 'px';
+        colorPicker.container.style.left = btn.offsetLeft + window.scrollX + 'px';
+        colorPicker.container.style.top = btn.offsetTop + window.scrollY + 'px';
         document.body.appendChild(colorPicker.container);
 
         window.addEventListener('mousedown', removeColorPickers);

@@ -21,7 +21,10 @@
             if (dragStartElement.dataset.url) {
                 e.dataTransfer.setData('text/plain', dragStartElement.dataset.url);
             }
-            const container = getParentElementWithClass(dragStartElement, ['window', 'desktop']);
+            let container = getParentElementWithClass(dragStartElement, ['window', 'desktop', 'desktopBackground']);
+            if (container.classList.contains('desktopBackground')) {
+                container = app.desktop;
+            }
             selected = Array.prototype.slice.call(container.querySelectorAll('.bookmark.selected'));
             selected = selected.filter((item) => item !== dragStartElement);
             selected.unshift(dragStartElement);
@@ -34,8 +37,11 @@
         // collecting mouse grid pos here because there is a weird AF bug in mac chrome with bad mouse coords.
         mouseGridPos = pointToGrid(e.pageX, e.pageY);
         const potentialDropTarget = document.elementFromPoint(e.clientX, e.clientY);
-        const dropTarget = getParentElementWithClass(potentialDropTarget,
-            ['bookmark', 'navButton', 'window', 'desktop']);
+        let dropTarget = getParentElementWithClass(potentialDropTarget,
+            ['bookmark', 'navButton', 'window', 'desktop', 'desktopBackground']);
+        if (dropTarget.classList.contains('desktopBackground')) {
+            dropTarget = app.desktop;
+        }
         if (lastHovered) {
             lastHovered.classList.remove('dragHover');
             lastHovered = undefined;
@@ -155,7 +161,7 @@
         const bookmark = getParentElementWithClass(e.target, 'bookmark');
         const editorContent = getParentElementWithClass(e.target, 'text-editor');
         const folderContent = getParentElementWithClass(e.target, 'content');
-        if (e.target === app.desktop) {
+        if (e.target === app.desktop || e.target === app.desktopBackground) {
             selectContainer = app.desktop;
             selectBox.style.zIndex = 7;
         } else if (!editorContent && folderContent && !bookmark) {
