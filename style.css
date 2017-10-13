@@ -724,6 +724,10 @@ input[type=checkbox]:focus {
     height: 200px;
 }
 
+.changelogEntry {
+    margin-left: 20px;
+}
+
 .backgroundImageAttributions {
     margin-top: 10px;
 }

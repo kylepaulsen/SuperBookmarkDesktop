@@ -35,6 +35,12 @@
                         </div>
                     </div>
                     <div class="option">
+                        <div class="optionText">Hide "Bookmarks Bar" bookmarks on desktop:</div>
+                        <div class="optionUi">
+                            <input type="checkbox" data-id="hideBookmarksBarBookmarks">
+                        </div>
+                    </div>
+                    <div class="option">
                         <div class="textareaContainer">
                             <div class="label">Custom Styles (CSS):</div>
                             <div>
@@ -48,7 +54,8 @@
                 </div>
                 <div class="tabPage" data-id="aboutPage">
                     <h3>Super Bookmark Desktop v1.0.0</h3>
-                    <div>&copy; Kyle Paulsen (2017)</div><br>
+                    <div>&copy; Kyle Paulsen (2017)</div>
+                    <div><a href="https://github.com/kylepaulsen/SuperBookmarkDesktop">Open Source on Github</a></div><br>
                     <div>
                         <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
                         <input type="hidden" name="cmd" value="_s-xclick">
@@ -61,8 +68,17 @@
                         <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
                         </form>
                     </div>
+                    <div>
+                        <h3>Changelog</h3>
+                        <div class="changelogEntry">
+                            <b>v1.0.0</b>
+                            <ul>
+                                <li>Initial release!</li>
+                            </ul>
+                        </div>
+                    </div>
                     <div class="backgroundImageAttributions">
-                        <div><b>Background Image Attributions</b></div>
+                        <h3>Background Image Attributions</h3>
                         <div>All default background images are &copy; Kyle Paulsen except for the ones listed below:</div>
                         <div class="imageAttribution">
                             <div class="imageAttributionImg"><img src="backgrounds/aurora-borealis.png"></div>
@@ -136,6 +152,12 @@
             localStorage.windowCloseRight = '';
         }
 
+        if (ui.hideBookmarksBarBookmarks.checked) {
+            localStorage.hideBookmarksBarBookmarks = '1';
+        } else {
+            localStorage.hideBookmarksBarBookmarks = '';
+        }
+
         localStorage.userStyles = ui.customCss.value;
         chrome.runtime.sendMessage({action: 'reloadOptions'});
     };
@@ -154,9 +176,15 @@
             applyStylesheet('.title-bar{flex-direction: row;}', 'windowCloseRight');
         }
 
+        ui.hideBookmarksBarBookmarks.checked = false;
+        if (localStorage.hideBookmarksBarBookmarks === '1') {
+            ui.hideBookmarksBarBookmarks.checked = true;
+        }
+
         const defaultCustomCss = '/*' + customCssPlaceholder.replace('/*', '').replace('*/', '') + '\n*/';
         ui.customCss.value = localStorage.userStyles || defaultCustomCss;
         applyStylesheet(localStorage.userStyles || '', 'userStyles');
+        app.debouncedRender();
     };
 
     ui.tabs.addEventListener('click', (e) => {
@@ -212,6 +240,11 @@
     reopenWindows();
 
     ui.windowCloseRight.addEventListener('change', () => {
+        save();
+        load();
+    });
+
+    ui.hideBookmarksBarBookmarks.addEventListener('change', () => {
         save();
         load();
     });

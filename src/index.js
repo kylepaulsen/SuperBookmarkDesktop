@@ -119,6 +119,9 @@
         const rootChildrenIds = [];
         // Create top level icons on "desktop"
         rootChildren.forEach((rNode) => {
+            if (rNode.id === '1' && localStorage.hideBookmarksBarBookmarks === '1') {
+                return; // don't render "bookmarks bar" bookmarks.
+            }
             rNode.children.forEach((node) => {
                 if (node.url) {
                     // this is a bookmark node
