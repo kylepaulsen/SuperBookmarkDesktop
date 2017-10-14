@@ -9,10 +9,12 @@
         <div class="contextMenuItem" data-id="newTab">Open link in new tab</div>
         <div class="contextMenuItem" data-id="newWindow">Open link in new window</div>
         <div class="contextMenuItem" data-id="incog">Open link in incognito window</div>
+        <div class="contextMenuItem" data-id="allNewTab">Open all bookmarks</div>
+        <div class="contextMenuItem" data-id="allNewWindow">Open all bookmarks in new window</div>
         <div class="contextMenuSeperator" data-id="sep1"></div>
         <div class="contextMenuItem" data-id="createBookmark">Create Bookmark</div>
-        <div class="contextMenuItem" data-id="createFolder">Create Folder</div>
         <div class="contextMenuItem" data-id="createDocument">Create Document</div>
+        <div class="contextMenuItem" data-id="createFolder">Create Folder</div>
         <div class="contextMenuItem" data-id="delete">Delete</div>
         <div class="contextMenuSeperator" data-id="sep2"></div>
         <div class="contextMenuItem" data-id="options">Options</div>
@@ -37,6 +39,31 @@
     ui.incog.addEventListener('click', () => {
         const url = context.dataset.url;
         chrome.windows.create({url, state: 'maximized', incognito: true});
+        hide(contextMenu);
+    });
+
+    ui.allNewTab.addEventListener('click', () => {
+        const bookmarks = context.querySelectorAll('.bookmark').filter((item) => {
+            return item.dataset.folder !== 'true' && item.dataset.document !== 'true';
+        });
+        bookmarks.forEach((bookmark) => {
+            chrome.tabs.create({url: bookmark.dataset.url});
+        });
+        hide(contextMenu);
+    });
+
+    ui.allNewWindow.addEventListener('click', () => {
+        const bookmarks = context.querySelectorAll('.bookmark').filter((item) => {
+            return item.dataset.folder !== 'true' && item.dataset.document !== 'true';
+        });
+        const first = bookmarks.shift();
+        if (first) {
+            chrome.windows.create({url: first.dataset.url, state: 'maximized'}, (win) => {
+                bookmarks.forEach((bookmark) => {
+                    chrome.tabs.create({url: bookmark.dataset.url, windowId: win.id});
+                });
+            });
+        }
         hide(contextMenu);
     });
 
@@ -138,9 +165,12 @@
             return;
         } else {
             context = getParentElementWithClass(targetEl, ['desktop', 'window']);
+            show(ui.allNewTab);
+            show(ui.allNewWindow);
             show(ui.createBookmark);
             show(ui.createFolder);
             show(ui.createDocument);
+            show(ui.sep1);
             show(ui.sep2);
             show(ui.options);
             ui.properties.textContent = 'Desktop Properties';
