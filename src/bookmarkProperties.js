@@ -1,8 +1,8 @@
 /* global chrome, idbKeyval, app */
 {
     const {saveData, openModal, closeModal} = app;
-    const {getUiElements, selectImageFromDisk, getFaviconImageUrl, clampText,
-        hide, show, folderImage, documentImage, getDataset} = app.util;
+    const {getUiElements, selectImageFromDisk, getFaviconImageUrl, hide, show,
+        folderImage, documentImage, getDataset} = app.util;
 
     const content = document.createElement('div');
     content.innerHTML = `
@@ -57,12 +57,8 @@
     };
     const apply = () => {
         const icon = getDataset(context);
-        const iconElUi = getUiElements(context);
         const iconId = icon.id + ''; // must be a string.
-        const iconEl = context;
-        if (blobImgUrl) {
-            iconElUi.image.src = blobImgUrl;
-        }
+
         if (icon.folder) {
             icon.name = ui.folderName.value;
             chrome.bookmarks.update(iconId, {title: icon.name});
@@ -74,14 +70,9 @@
                 chrome.bookmarks.update(iconId, {title: icon.name});
             } else {
                 icon.url = url;
-                iconElUi.link.href = icon.url;
                 chrome.bookmarks.update(iconId, {title: icon.name, url: icon.url});
             }
         }
-        context.dataset.url = icon.url;
-        context.dataset.name = icon.name;
-        iconEl.title = icon.name;
-        clampText(iconElUi.name, icon.name);
         if (blobToSave) {
             idbKeyval.set(iconId, blobToSave).then(() => {
                 blobToSave = undefined;
@@ -90,19 +81,12 @@
         } else {
             if (deleteImage) {
                 idbKeyval.delete(iconId);
-                URL.revokeObjectURL(iconElUi.image.src);
-                iconElUi.image.src = getFaviconImageUrl(icon.url);
-                if (icon.folder) {
-                    iconElUi.image.src = folderImage;
-                }
-                if (icon.document) {
-                    iconElUi.image.src = documentImage;
-                }
             }
-            saveData();
         }
+
         close();
         chrome.runtime.sendMessage({action: 'reload'});
+        app.debouncedRender();
     };
 
     ui.cancelBtn.addEventListener('click', close);

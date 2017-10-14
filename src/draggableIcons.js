@@ -1,19 +1,11 @@
 /* global chrome, app */
 {
-    const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getParentElementWithClass,
+    const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, pointToGrid, getParentElementWithClass,
         getDataset, deselectAll, findFreeSpotNear, debounce} = app.util;
 
     let lastHovered;
     let selected = [];
     let dragStartElement;
-    function pointToGrid(x, y) {
-        const iconW = ICON_WIDTH + ICON_SPACING;
-        const iconH = ICON_HEIGHT + ICON_SPACING;
-        return {
-            x: Math.max(Math.floor((x - GUTTER) / iconW), 0),
-            y: Math.max(Math.floor((y - GUTTER) / iconH), 0)
-        };
-    }
 
     // A counter to see if you are dragging inside the current window...
     // ... Yes, we have to do this insanity just to know that.

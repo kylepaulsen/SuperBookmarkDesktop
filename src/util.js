@@ -388,6 +388,15 @@
         return app.data.backgrounds.find((bg) => bg.id === id);
     };
 
+    util.pointToGrid = (x, y) => {
+        const iconW = util.ICON_WIDTH + util.ICON_SPACING;
+        const iconH = util.ICON_HEIGHT + util.ICON_SPACING;
+        return {
+            x: Math.max(Math.floor((x - util.GUTTER) / iconW), 0),
+            y: Math.max(Math.floor((y - util.GUTTER) / iconH), 0)
+        };
+    };
+
     util.debounce = (fn, time) => {
         let timeout;
         return (...args) => {

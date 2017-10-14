@@ -102,7 +102,7 @@
         bookmarks.sort(sort);
         const allNodes = folders.concat(bookmarks);
         allNodes.forEach((node) => {
-            app.makeBookmarkIcon(node, !node.url, winUi.iconArea);
+            app.makeBookmarkIcon(node, winUi.iconArea);
         });
     }
     app.openFolder = renderFolder;

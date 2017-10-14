@@ -25,8 +25,9 @@
         }
     }
 
-    async function makeBookmarkIcon(bookmark, folder = false, container = desktop) {
+    async function makeIconElement(bookmark) {
         const isDocument = app.isValidDocument(bookmark.url);
+        const folder = bookmark.url === undefined;
         let icon = getFaviconImageUrl(bookmark.url);
         if (folder) {
             icon = folderImage;
@@ -65,13 +66,27 @@
                 <div class="name" data-id="name">${bookmark.title}</div>
             </${tag}>
         `;
+        return bookmarkIcon;
+    }
+    app.makeIconElement = makeIconElement;
+
+    async function makeBookmarkIcon(bookmark, container = desktop) {
+        const bookmarkIcon = await makeIconElement(bookmark);
+        const isDocument = bookmarkIcon.dataset.document === 'true';
         if (!isDocument && bookmark.url && (bookmark.url.startsWith('data:') || bookmark.url.startsWith('file:'))) {
             bookmarkIcon.children[0].addEventListener('click', () => {
                 chrome.tabs.update({url: bookmark.url});
             });
         }
         const nameDiv = bookmarkIcon.querySelector('.name');
-        const positionData = app.data.icons[bookmark.id] || findNextOpenSpot();
+        let positionData;
+        if (app.newIcon && app.newIcon.id === bookmark.id) {
+            positionData = app.newIcon.pos;
+            app.newIcon = undefined;
+        } else {
+            positionData = app.data.icons[bookmark.id] || findNextOpenSpot();
+        }
+
         if (container === desktop) {
             bookmarkIcon.style.position = 'absolute';
             bookmarkIcon.style.left = positionData.x * (ICON_WIDTH + ICON_SPACING) + GUTTER + 'px';
@@ -123,13 +138,7 @@
                 return; // don't render "bookmarks bar" bookmarks.
             }
             rNode.children.forEach((node) => {
-                if (node.url) {
-                    // this is a bookmark node
-                    promises.push(makeBookmarkIcon(node));
-                } else {
-                    // this is a folder node
-                    promises.push(makeBookmarkIcon(node, true));
-                }
+                promises.push(makeBookmarkIcon(node));
             });
             rootChildrenIds.push(rNode.id);
         });
@@ -193,6 +202,10 @@
             if (newBg) {
                 updateBackground(newBg);
             }
+        } else if (msgObj.action === 'newIcon') {
+            // some tab added a new icon... when this tab renders it for the first time, place it in the right spot.
+            app.newIcon = msgObj.data;
+            app.debouncedRender();
         }
     });
 }

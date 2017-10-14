@@ -1,7 +1,8 @@
 /* global chrome, idbKeyval, app */
 {
     const {openBookmarkProperties, openDesktopProperties} = app;
-    const {getUiElements, show, hide, getParentElementWithClass, getDataset, addNewNodeId, deselectAll} = app.util;
+    const {getUiElements, show, hide, getParentElementWithClass, getDataset,
+        addNewNodeId, deselectAll, pointToGrid, findFreeSpotNear} = app.util;
 
     const contextMenu = document.createElement('div');
     contextMenu.className = 'contextMenu';
@@ -23,6 +24,7 @@
 
     const ui = getUiElements(contextMenu);
     let context;
+    let mousePoint;
 
     ui.newTab.addEventListener('click', () => {
         const url = context.dataset.url;
@@ -67,8 +69,14 @@
         hide(contextMenu);
     });
 
-    const recordNewBookmarkNode = (newNode) => {
+    const recordNewBookmarkNode = async (newNode) => {
+        if (context === app.desktop) {
+            const gridPoint = pointToGrid(mousePoint.x, mousePoint.y);
+            app.newIcon = {pos: findFreeSpotNear(gridPoint.x, gridPoint.y), id: newNode.id};
+            chrome.runtime.sendMessage({action: 'newIcon', data: app.newIcon});
+        }
         addNewNodeId(newNode.id);
+        openBookmarkProperties(await app.makeIconElement(newNode));
     };
     ui.createBookmark.addEventListener('click', () => {
         chrome.bookmarks.create({
@@ -183,6 +191,7 @@
         // weird case is a document window. It should not get a special context menu.
         if (targetEl && (!targetEl.dataset.document || targetEl.classList.contains('bookmark'))) {
             e.preventDefault();
+            mousePoint = {x: e.pageX, y: e.pageY};
             populateMenu(targetEl);
             show(contextMenu);
             let x = e.pageX;
