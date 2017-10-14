@@ -15,7 +15,19 @@
         };
     }
 
+    // A counter to see if you are dragging inside the current window...
+    // ... Yes, we have to do this insanity just to know that.
+    let dragInsideLevel = 0;
+    window.addEventListener('dragenter', () => {
+        dragInsideLevel++;
+    });
+
+    window.addEventListener('dragleave', () => {
+        dragInsideLevel--;
+    });
+
     window.addEventListener('dragstart', (e) => {
+        dragInsideLevel = 0;
         if (e.target.classList.contains('bookmark')) {
             dragStartElement = e.target;
             if (dragStartElement.dataset.url) {
@@ -60,7 +72,8 @@
         if (!dropTarget && dragStartElement.parentElement === app.desktop) {
             dropTarget = app.desktop;
         }
-        if (dropTarget && !selected.includes(dropTarget)) {
+        // dragInsideLevel is a weird way to tell if you are dragging inside the browser window when > 0.
+        if (dropTarget && !selected.includes(dropTarget) && dragInsideLevel > 0) {
             let gridOffset;
             let acceptableCollisions = {};
             let shouldSave = false;

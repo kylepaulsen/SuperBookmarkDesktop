@@ -23,6 +23,9 @@
         const ancestors = await getAncestors(id);
         if (!ancestors) {
             // invalid id. Bail.
+            if (options.window) {
+                options.window.parentElement.removeChild(options.window);
+            }
             return;
         }
         const targetNode = ancestors[ancestors.length - 1];
