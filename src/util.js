@@ -12,6 +12,8 @@
     util.ICON_WIDTH = 80;
     util.ICON_HEIGHT = 90;
 
+    util.DOUBLE_CLICK_SPEED = 500;
+
     util.folderImage = 'icons/folder.svg';
     util.documentImage = 'icons/document.svg';
 
@@ -395,6 +397,25 @@
             x: Math.max(Math.floor((x - util.GUTTER) / iconW), 0),
             y: Math.max(Math.floor((y - util.GUTTER) / iconH), 0)
         };
+    };
+
+    util.attachClickHandler = (element, fn) => {
+        let lastTime = 0;
+        let lastTarget;
+        element.addEventListener('click', (e) => {
+            const target = util.getParentElementWithClass(e.target, 'bookmark');
+            const now = Date.now();
+            if (now - lastTime > util.DOUBLE_CLICK_SPEED || lastTarget !== target) {
+                // single click
+                fn(e, false);
+                lastTime = now;
+            } else {
+                // double click!
+                fn(e, true);
+                lastTime = 0;
+            }
+            lastTarget = target;
+        });
     };
 
     util.debounce = (fn, time) => {

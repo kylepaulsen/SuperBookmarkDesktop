@@ -187,6 +187,9 @@
                 } else {
                     bookmark.classList.add('selected');
                 }
+                if (localStorage.useDoubleClicks) {
+                    bookmark.classList.add('selected');
+                }
             } else {
                 if (changeSelection) {
                     bookmark.classList.remove('selected');

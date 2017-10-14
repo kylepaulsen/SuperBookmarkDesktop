@@ -1,6 +1,6 @@
 /* global chrome, app, pell */
 {
-    const {getParentElementWithClass, getDataset, getUiElements} = app.util;
+    const {getParentElementWithClass, getDataset, getUiElements, attachClickHandler} = app.util;
 
     const dataUriStartString = 'data:text/html;charset=UTF-8;base64,';
     const dataStartString = '<!--sbd-doc-->';
@@ -124,12 +124,12 @@
         return getDocumentData(dataUri) !== null;
     };
 
-    window.addEventListener('click', (e) => {
+    attachClickHandler(window, (e, isDoubleClick) => {
         const iconEl = getParentElementWithClass(e.target, 'bookmark');
         if (iconEl) {
             const icon = getDataset(iconEl);
             const specialKeysDown = e.metaKey || e.ctrlKey || e.shiftKey;
-            if (icon.document && !specialKeysDown) {
+            if (icon.document && !specialKeysDown && (!localStorage.useDoubleClicks || isDoubleClick)) {
                 e.preventDefault();
                 const currentWindow = document.querySelector(`.window[data-id="${icon.id}"]`);
                 if (!currentWindow) {

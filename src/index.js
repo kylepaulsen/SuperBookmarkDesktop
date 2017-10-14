@@ -1,8 +1,8 @@
 /* global chrome, app, idbKeyval */
 {
-    const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getFaviconImageUrl, loadData, getParentElementWithClass,
-           clampText, promisify, updateBackground, getNextBgInCycle, debounce, throttle,
-           folderImage, documentImage, removeNewNodeId, getBackground} = app.util;
+    const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, DOUBLE_CLICK_SPEED, getFaviconImageUrl, loadData,
+           getParentElementWithClass, clampText, promisify, updateBackground, getNextBgInCycle, debounce, throttle,
+           folderImage, documentImage, removeNewNodeId, getBackground, attachClickHandler} = app.util;
 
     const desktop = app.desktop;
 
@@ -74,8 +74,10 @@
         const bookmarkIcon = await makeIconElement(bookmark);
         const isDocument = bookmarkIcon.dataset.document === 'true';
         if (!isDocument && bookmark.url && (bookmark.url.startsWith('data:') || bookmark.url.startsWith('file:'))) {
-            bookmarkIcon.children[0].addEventListener('click', () => {
-                chrome.tabs.update({url: bookmark.url});
+            attachClickHandler(bookmarkIcon.children[0], (e, isDoubleClick) => {
+                if (!localStorage.useDoubleClicks || isDoubleClick) {
+                    chrome.tabs.update({url: bookmark.url});
+                }
             });
         }
         const nameDiv = bookmarkIcon.querySelector('.name');
@@ -183,6 +185,28 @@
             removeNewNodeId(strobingBookmark.dataset.id);
         }
     }, 200));
+
+    { // double click option for all normal bookmarks.
+        let lastTime = 0;
+        let lastTarget;
+        window.addEventListener('click', (e) => {
+            const target = getParentElementWithClass(e.target, 'bookmark');
+            const now = Date.now();
+            if (now - lastTime > DOUBLE_CLICK_SPEED || lastTarget !== target) {
+                // single click
+                if (target && localStorage.useDoubleClicks) {
+                    e.preventDefault();
+                    lastTime = now;
+                } else {
+                    lastTime = 0;
+                }
+            } else {
+                // double click!
+                lastTime = 0;
+            }
+            lastTarget = target;
+        });
+    }
 
     app.debouncedRender = debounce(() => {
         if (!app.ignoreNextRender) {

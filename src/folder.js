@@ -1,6 +1,6 @@
-/* global chrome, app */
+/* global app */
 {
-    const {getParentElementWithClass, getDataset, getUiElements} = app.util;
+    const {getParentElementWithClass, getDataset, getUiElements, attachClickHandler} = app.util;
 
     const getAncestors = async (id) => {
         id = id.toString();
@@ -51,6 +51,18 @@
                 }
                 if (y + height > window.innerHeight) {
                     y = iconEl.offsetTop - height + iconEl.offsetHeight;
+                }
+
+                // move window a little bit if it will be exactly on top of another window.
+                const existingWindowPositions = {};
+                document.querySelectorAll('.window').forEach((win) => {
+                    existingWindowPositions[`${win.offsetLeft},${win.offsetTop}`] = true;
+                });
+                let currentPos = `${x},${y}`;
+                while (existingWindowPositions[currentPos]) {
+                    x += 10;
+                    y += 10;
+                    currentPos = `${x},${y}`;
                 }
             }
             if (options) {
@@ -107,12 +119,12 @@
     }
     app.openFolder = renderFolder;
 
-    window.addEventListener('click', (e) => {
+    attachClickHandler(window, (e, isDoubleClick) => {
         const iconEl = getParentElementWithClass(e.target, 'bookmark');
         if (iconEl) {
             const icon = getDataset(iconEl);
             const specialKeysDown = e.metaKey || e.ctrlKey || e.shiftKey;
-            if (icon.folder && !specialKeysDown) {
+            if (icon.folder && !specialKeysDown && (!localStorage.useDoubleClicks || isDoubleClick)) {
                 e.preventDefault();
                 renderFolder(icon.id, iconEl);
             }

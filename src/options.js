@@ -41,6 +41,12 @@
                         </div>
                     </div>
                     <div class="option">
+                        <div class="optionText">Use double click to open:</div>
+                        <div class="optionUi">
+                            <input type="checkbox" data-id="useDoubleClicks">
+                        </div>
+                    </div>
+                    <div class="option">
                         <div class="textareaContainer">
                             <div class="label">Custom Styles (CSS):</div>
                             <div>
@@ -158,6 +164,12 @@
             localStorage.hideBookmarksBarBookmarks = '';
         }
 
+        if (ui.useDoubleClicks.checked) {
+            localStorage.useDoubleClicks = '1';
+        } else {
+            localStorage.useDoubleClicks = '';
+        }
+
         localStorage.userStyles = ui.customCss.value;
         chrome.runtime.sendMessage({action: 'reloadOptions'});
     };
@@ -179,6 +191,11 @@
         ui.hideBookmarksBarBookmarks.checked = false;
         if (localStorage.hideBookmarksBarBookmarks === '1') {
             ui.hideBookmarksBarBookmarks.checked = true;
+        }
+
+        ui.useDoubleClicks.checked = false;
+        if (localStorage.useDoubleClicks === '1') {
+            ui.useDoubleClicks.checked = true;
         }
 
         const defaultCustomCss = '/*' + customCssPlaceholder.replace('/*', '').replace('*/', '') + '\n*/';
@@ -245,6 +262,11 @@
     });
 
     ui.hideBookmarksBarBookmarks.addEventListener('change', () => {
+        save();
+        load();
+    });
+
+    ui.useDoubleClicks.addEventListener('change', () => {
         save();
         load();
     });
