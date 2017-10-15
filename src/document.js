@@ -47,6 +47,7 @@
                 ];
                 if (!documentChanged || await app.confirm('Close without saving?', confirmBtns)) {
                     close();
+                    window.onbeforeunload = null;
                 }
             };
             const win = app.makeWindow(doc.title, x, y, width, height, {beforeClose});
