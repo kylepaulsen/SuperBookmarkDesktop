@@ -2,28 +2,12 @@
 {
     const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, DOUBLE_CLICK_SPEED, getFaviconImageUrl, loadData,
            getParentElementWithClass, clampText, promisify, updateBackground, getNextBgInCycle, debounce, throttle,
-           folderImage, documentImage, removeNewNodeId, getBackground, attachClickHandler} = app.util;
+           folderImage, documentImage, removeNewNodeId, getBackground, attachClickHandler,
+           findNextOpenSpot, diffRender} = app.util;
 
-    const desktop = app.desktop;
-
-    function findNextOpenSpot() {
-        for (let x = 0; x < 12; x++) {
-            for (let y = 0; y < 6; y++) {
-                if (!app.data.locations[`${x},${y}`]) {
-                    return {x, y};
-                }
-            }
-        }
-        let y = 6;
-        while (y < 99999) {
-            for (let x = 0; x < 12; x++) {
-                if (!app.data.locations[`${x},${y}`]) {
-                    return {x, y};
-                }
-            }
-            y++;
-        }
-    }
+    const measuringDiv = document.createElement('div');
+    measuringDiv.className = 'measuringDiv';
+    document.body.appendChild(measuringDiv);
 
     async function makeIconElement(bookmark) {
         const isDocument = app.isValidDocument(bookmark.url);
@@ -70,7 +54,7 @@
     }
     app.makeIconElement = makeIconElement;
 
-    async function makeBookmarkIcon(bookmark, container = desktop) {
+    async function makeBookmarkIcon(bookmark, desktop = false) {
         const bookmarkIcon = await makeIconElement(bookmark);
         const isDocument = bookmarkIcon.dataset.document === 'true';
         if (!isDocument && bookmark.url && (bookmark.url.startsWith('data:') || bookmark.url.startsWith('file:'))) {
@@ -89,7 +73,7 @@
             positionData = app.data.icons[bookmark.id] || findNextOpenSpot();
         }
 
-        if (container === desktop) {
+        if (desktop) {
             bookmarkIcon.style.position = 'absolute';
             bookmarkIcon.style.left = positionData.x * (ICON_WIDTH + ICON_SPACING) + GUTTER + 'px';
             bookmarkIcon.style.top = positionData.y * (ICON_HEIGHT + ICON_SPACING) + GUTTER + 'px';
@@ -97,15 +81,18 @@
         } else {
             bookmarkIcon.style.zIndex = 'auto';
         }
-        container.appendChild(bookmarkIcon);
+
+        measuringDiv.appendChild(bookmarkIcon);
         clampText(nameDiv, bookmark.title);
+        measuringDiv.removeChild(bookmarkIcon);
+        return bookmarkIcon;
     }
     app.makeBookmarkIcon = makeBookmarkIcon;
 
     app.saveData = () => {
         app.data.icons = {};
         app.data.locations = {};
-        desktop.children.forEach((child) => {
+        app.desktop.children.forEach((child) => {
             if (child.classList.contains('bookmark')) {
                 const left = parseInt(child.style.left);
                 const top = parseInt(child.style.top);
@@ -128,7 +115,6 @@
 
     async function render() {
         const bookmarkTree = await app.getBookmarkTree();
-        desktop.innerHTML = '';
         const root = bookmarkTree[0];
         const rootChildren = root.children;
 
@@ -140,12 +126,15 @@
                 return; // don't render "bookmarks bar" bookmarks.
             }
             rNode.children.forEach((node) => {
-                promises.push(makeBookmarkIcon(node));
+                promises.push(makeBookmarkIcon(node, true));
             });
             rootChildrenIds.push(rNode.id);
         });
         app.rootChildrenIds = rootChildrenIds;
-        Promise.all(promises).then(app.saveData);
+        Promise.all(promises).then((bookmarks) => {
+            diffRender(bookmarks, app.desktop);
+            app.saveData();
+        });
         const windows = document.querySelectorAll('.window');
         windows.forEach((win) => {
             if (win.dataset.folder) {

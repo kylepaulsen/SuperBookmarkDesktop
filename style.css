@@ -756,6 +756,12 @@ input[type=checkbox]:focus {
     align-items: center;
 }
 
+.measuringDiv {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+}
+
 .hidden {
     display: none;
 }

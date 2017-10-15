@@ -1,6 +1,6 @@
 /* global idbKeyval, app */
 {
-    (['forEach', 'map', 'find', 'includes', 'filter']).forEach((func) => {
+    (['forEach', 'map', 'find', 'includes', 'filter', 'slice']).forEach((func) => {
         NodeList.prototype[func] = Array.prototype[func];
         HTMLCollection.prototype[func] = Array.prototype[func];
     });
@@ -397,6 +397,82 @@
             x: Math.max(Math.floor((x - util.GUTTER) / iconW), 0),
             y: Math.max(Math.floor((y - util.GUTTER) / iconH), 0)
         };
+    };
+
+    util.findNextOpenSpot = () => {
+        for (let x = 0; x < 12; x++) {
+            for (let y = 0; y < 6; y++) {
+                if (!app.data.locations[`${x},${y}`]) {
+                    return {x, y};
+                }
+            }
+        }
+        let y = 6;
+        while (y < 99999) {
+            for (let x = 0; x < 12; x++) {
+                if (!app.data.locations[`${x},${y}`]) {
+                    return {x, y};
+                }
+            }
+            y++;
+        }
+    };
+
+    const insertAfter = (container, refNode, newNode) => {
+        let realRef = refNode.nextSibling;
+        if (!realRef) {
+            container.appendChild(newNode);
+        } else {
+            container.insertBefore(newNode, realRef);
+        }
+    };
+
+    // This function will only work on containers that have children with unique ids.
+    util.diffRender = (topLevelChildren, container, select = false) => {
+        const topLevelChildrenIdMap = {};
+        topLevelChildren.forEach((child) => {
+            topLevelChildrenIdMap[child.dataset.id] = child;
+        });
+        const containerChildren = container.children.slice();
+        const containerChildrenIdMap = {};
+        const putInOrder = (child, idx) => {
+            let lastChild = topLevelChildren[idx - 1];
+            if (lastChild) {
+                lastChild = containerChildrenIdMap[lastChild.dataset.id];
+                insertAfter(container, lastChild, child);
+            } else {
+                container.insertBefore(child, container.firstElementChild);
+            }
+            containerChildrenIdMap[child.dataset.id] = child;
+        };
+
+        containerChildren.forEach((child) => {
+            const id = child.dataset.id;
+            containerChildrenIdMap[id] = child;
+            if (!topLevelChildrenIdMap[id]) {
+                // remove nodes that don't show up in the new list
+                container.removeChild(child);
+            }
+        });
+
+        // update nodes that are dirty or add new nodes
+        topLevelChildren.forEach((child, idx) => {
+            const id = child.dataset.id;
+            const existingChild = containerChildrenIdMap[id];
+            if (existingChild) {
+                if (child.outerHTML !== existingChild.outerHTML) {
+                    // update dirty
+                    putInOrder(child, idx);
+                    container.removeChild(existingChild);
+                }
+            } else {
+                // add new node
+                putInOrder(child, idx);
+                if (select) {
+                    child.classList.add('selected');
+                }
+            }
+        });
     };
 
     util.attachClickHandler = (element, fn) => {

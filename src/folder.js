@@ -1,6 +1,6 @@
 /* global app */
 {
-    const {getParentElementWithClass, getDataset, getUiElements, attachClickHandler} = app.util;
+    const {getParentElementWithClass, getDataset, getUiElements, attachClickHandler, diffRender} = app.util;
 
     const getAncestors = async (id) => {
         id = id.toString();
@@ -30,6 +30,7 @@
         }
         const targetNode = ancestors[ancestors.length - 1];
         const children = await app.getBookmarkChildren(targetNode.id);
+        let highlightNewNodes = true;
         let currentWindow;
         if (iconEl) {
             currentWindow = getParentElementWithClass(iconEl, 'window');
@@ -73,10 +74,14 @@
             }
             currentWindow = app.makeWindow(targetNode.title, x, y, width, height);
             currentWindow.dataset.folder = 'true';
+            highlightNewNodes = false;
         }
 
         const navBarMarkup = [];
         const winUi = getUiElements(currentWindow);
+        if (currentWindow.dataset.id && currentWindow.dataset.id !== targetNode.id) {
+            highlightNewNodes = false;
+        }
         currentWindow.dataset.id = targetNode.id;
         app.rememberOpenWindows();
 
@@ -93,11 +98,13 @@
 
         winUi.title.textContent = targetNode.title;
 
-        const iconArea = document.createElement('div');
-        iconArea.className = 'iconArea';
-        iconArea.dataset.id = 'iconArea';
-        winUi.content.innerHTML = '';
-        winUi.content.appendChild(iconArea);
+        let iconArea = winUi.content.querySelector('.iconArea');
+        if (!iconArea) {
+            iconArea = document.createElement('div');
+            iconArea.className = 'iconArea';
+            iconArea.dataset.id = 'iconArea';
+            winUi.content.appendChild(iconArea);
+        }
         winUi.iconArea = iconArea;
 
         const folders = [];
@@ -113,9 +120,8 @@
         folders.sort(sort);
         bookmarks.sort(sort);
         const allNodes = folders.concat(bookmarks);
-        allNodes.forEach((node) => {
-            app.makeBookmarkIcon(node, winUi.iconArea);
-        });
+        const icons = await Promise.all(allNodes.map((node) => app.makeBookmarkIcon(node)));
+        diffRender(icons, winUi.iconArea, highlightNewNodes);
     }
     app.openFolder = renderFolder;
 
