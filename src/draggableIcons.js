@@ -136,11 +136,15 @@
                 bookmark.classList.remove('selected');
             }
             const rect = bookmark.getBoundingClientRect();
-            const checkPoint = {
-                x: rect.left + rect.width / 2,
-                y: rect.top + rect.height / 2
+            // origin centered box.
+            const bookmarkBox = {
+                x: rect.width / 2 + rect.left,
+                y: rect.height / 2 + rect.top,
+                width: rect.width,
+                height: rect.height
             };
-            if (checkPoint.x > box.x1 && checkPoint.y > box.y1 && checkPoint.x < box.x2 && checkPoint.y < box.y2) {
+            if (Math.abs(box.x - bookmarkBox.x) * 2 < (box.width + bookmarkBox.width) &&
+                Math.abs(box.y - bookmarkBox.y) * 2 < (box.height + bookmarkBox.height)) {
                 bookmark.classList.add('selected');
             }
         });
@@ -230,11 +234,12 @@
                 }
             }
             const rect = selectBox.getBoundingClientRect();
+            // origin centered box.
             const box = {
-                x1: rect.left,
-                y1: rect.top,
-                x2: rect.left + rect.width,
-                y2: rect.top + rect.height
+                x: rect.width / 2 + rect.left,
+                y: rect.height / 2 + rect.top,
+                width: rect.width,
+                height: rect.height
             };
             highlightSelected(selectContainer, box);
         }
