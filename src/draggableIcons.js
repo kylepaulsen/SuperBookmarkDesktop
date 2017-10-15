@@ -170,21 +170,17 @@
         const bookmark = getParentElementWithClass(e.target, 'bookmark');
         const editorContent = getParentElementWithClass(e.target, 'text-editor');
         const folderContent = getParentElementWithClass(e.target, 'content');
-        if (e.target === app.desktop || e.target === app.desktopBackground) {
-            selectContainer = app.desktop;
-            selectBox.style.zIndex = 7;
-        } else if (!editorContent && folderContent && !bookmark) {
-            selectContainer = folderContent;
-            selectBox.style.zIndex = 300;
-        }
-        if (selectContainer) {
-            firstPoint.x = e.pageX;
-            firstPoint.y = e.pageY;
-            if (!changeSelection) {
-                deselectAll();
-            }
-        }
         if (bookmark) {
+            if (e.button === 2) {
+                if (!bookmark.classList.contains('selected')) {
+                    if (!changeSelection) {
+                        deselectAll();
+                    }
+                    bookmark.classList.add('selected');
+                }
+                return;
+            }
+
             if (!bookmark.classList.contains('selected')) {
                 if (!changeSelection) {
                     deselectAll();
@@ -198,6 +194,19 @@
                 if (changeSelection) {
                     bookmark.classList.remove('selected');
                 }
+            }
+        } else if (e.target === app.desktop || e.target === app.desktopBackground) {
+            selectContainer = app.desktop;
+            selectBox.style.zIndex = 7;
+        } else if (!editorContent && folderContent) {
+            selectContainer = folderContent;
+            selectBox.style.zIndex = 300;
+        }
+        if (selectContainer) {
+            firstPoint.x = e.pageX;
+            firstPoint.y = e.pageY;
+            if (!changeSelection) {
+                deselectAll();
             }
         }
     });

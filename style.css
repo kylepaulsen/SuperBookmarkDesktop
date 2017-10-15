@@ -91,6 +91,7 @@ input[type=checkbox]:focus {
 
 .bookmark.selected {
     background: rgba(100, 200, 255, 0.5);
+    animation: unset;
 }
 
 .bookmarkLink {

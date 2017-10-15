@@ -12,6 +12,8 @@
         <div class="contextMenuItem" data-id="incog">Open link in incognito window</div>
         <div class="contextMenuItem" data-id="allNewTab">Open all bookmarks</div>
         <div class="contextMenuItem" data-id="allNewWindow">Open all bookmarks in new window</div>
+        <div class="contextMenuItem" data-id="selectedNewTab">Open selected</div>
+        <div class="contextMenuItem" data-id="selectedNewWindow">Open selected in new window</div>
         <div class="contextMenuSeperator" data-id="sep1"></div>
         <div class="contextMenuItem" data-id="createBookmark">Create Bookmark</div>
         <div class="contextMenuItem" data-id="createDocument">Create Document</div>
@@ -44,20 +46,13 @@
         hide(contextMenu);
     });
 
-    ui.allNewTab.addEventListener('click', () => {
-        const bookmarks = context.querySelectorAll('.bookmark').filter((item) => {
-            return item.dataset.folder !== 'true' && item.dataset.document !== 'true';
-        });
+    const openBookmarksInNewTab = (bookmarks) => {
         bookmarks.forEach((bookmark) => {
             chrome.tabs.create({url: bookmark.dataset.url});
         });
-        hide(contextMenu);
-    });
+    };
 
-    ui.allNewWindow.addEventListener('click', () => {
-        const bookmarks = context.querySelectorAll('.bookmark').filter((item) => {
-            return item.dataset.folder !== 'true' && item.dataset.document !== 'true';
-        });
+    const openBookmarksInNewWindow = (bookmarks) => {
         const first = bookmarks.shift();
         if (first) {
             chrome.windows.create({url: first.dataset.url, state: 'maximized'}, (win) => {
@@ -66,6 +61,31 @@
                 });
             });
         }
+    };
+
+    ui.allNewTab.addEventListener('click', () => {
+        const bookmarks = context.querySelectorAll('.bookmark').filter((item) => {
+            return item.dataset.folder !== 'true' && item.dataset.document !== 'true';
+        });
+        openBookmarksInNewTab(bookmarks);
+        hide(contextMenu);
+    });
+
+    ui.allNewWindow.addEventListener('click', () => {
+        const bookmarks = context.querySelectorAll('.bookmark').filter((item) => {
+            return item.dataset.folder !== 'true' && item.dataset.document !== 'true';
+        });
+        openBookmarksInNewWindow(bookmarks);
+        hide(contextMenu);
+    });
+
+    ui.selectedNewTab.addEventListener('click', () => {
+        openBookmarksInNewTab(context);
+        hide(contextMenu);
+    });
+
+    ui.selectedNewWindow.addEventListener('click', () => {
+        openBookmarksInNewWindow(context);
         hide(contextMenu);
     });
 
@@ -108,28 +128,42 @@
         hide(contextMenu);
     });
 
+    const deleteBookmark = (element) => {
+        const icon = getDataset(element);
+        const iconId = icon.id + ''; // must be string
+        if (icon.folder) {
+            chrome.bookmarks.removeTree(iconId);
+        } else {
+            chrome.bookmarks.remove(iconId);
+        }
+        idbKeyval.delete(iconId);
+        element.parentElement.removeChild(element);
+    };
+
     ui.delete.addEventListener('click', async () => {
         hide(contextMenu);
-        if (context.classList.contains('userBg')) {
-            app.deleteBackground(context.dataset.bgid);
-            return;
-        }
         const confirmBtns = [
             'Do It!',
             {text: 'No Way!', value: false, default: true}
         ];
-        const icon = getDataset(context);
-        const iconId = icon.id + ''; // must be string
-        const thing = icon.folder ? 'folder and all its contents?' : 'bookmark?';
-        if (await app.confirm(`Really? Delete this ${thing}`, confirmBtns)) {
-            if (icon.folder) {
-                chrome.bookmarks.removeTree(iconId);
-            } else {
-                chrome.bookmarks.remove(iconId);
+        if (!context.length) {
+            if (context.classList.contains('userBg')) {
+                app.deleteBackground(context.dataset.bgid);
+                return;
             }
-            idbKeyval.delete(iconId);
-            context.parentElement.removeChild(context);
-            app.saveData();
+            const icon = getDataset(context);
+            const thing = icon.folder ? 'folder and all its contents?' : 'bookmark?';
+            if (await app.confirm(`Really? Delete this ${thing}`, confirmBtns)) {
+                deleteBookmark(context);
+                app.saveData();
+            }
+        } else {
+            if (await app.confirm('Really? Delete selected icons?', confirmBtns)) {
+                context.forEach((element) => {
+                    deleteBookmark(element);
+                });
+                app.saveData();
+            }
         }
     });
 
@@ -150,28 +184,42 @@
     const populateMenu = (targetEl) => {
         Object.keys(ui).forEach((key) => hide(ui[key]));
         if (targetEl.classList.contains('bookmark')) {
-            const icon = getDataset(targetEl);
-            context = targetEl;
-            ui.properties.textContent = 'Bookmark Properties';
-            if (icon.document) {
-                ui.properties.textContent = 'Document Properties';
-            } else if (icon.folder) {
-                ui.properties.textContent = 'Folder Properties';
-            }
-            if (!icon.folder) {
-                show(ui.newTab);
-                show(ui.newWindow);
-                show(ui.incog);
-                show(ui.sep1);
+            const selected = targetEl.parentElement.querySelectorAll('.bookmark.selected');
+            if (selected.length < 2) {
+                const icon = getDataset(targetEl);
+                context = targetEl;
+                ui.properties.textContent = 'Bookmark Properties';
+                if (icon.document) {
+                    ui.properties.textContent = 'Document Properties';
+                } else if (icon.folder) {
+                    ui.properties.textContent = 'Folder Properties';
+                }
+                if (!icon.folder) {
+                    show(ui.newTab);
+                    show(ui.newWindow);
+                    show(ui.incog);
+                    show(ui.sep1);
+                }
+                show(ui.properties);
+            } else {
+                context = selected.slice();
+                const selectedFoldersOrDocuments = selected.find((node) => {
+                    return node.dataset.folder === 'true' || node.dataset.document === 'true';
+                });
+                if (!selectedFoldersOrDocuments) {
+                    show(ui.selectedNewTab);
+                    show(ui.selectedNewWindow);
+                    show(ui.sep1);
+                }
             }
             show(ui.delete);
-            deselectAll();
-            targetEl.classList.add('selected');
         } else if (targetEl.classList.contains('userBg')) {
+            // this is a BG square in the desktop props.
             context = targetEl;
             show(ui.delete);
-            return;
         } else {
+            // on empty space.
+            deselectAll();
             context = getParentElementWithClass(targetEl, ['desktop', 'window']);
             show(ui.allNewTab);
             show(ui.allNewWindow);
@@ -181,9 +229,9 @@
             show(ui.sep1);
             show(ui.sep2);
             show(ui.options);
+            show(ui.properties);
             ui.properties.textContent = 'Desktop Properties';
         }
-        show(ui.properties);
     };
 
     window.addEventListener('contextmenu', (e) => {
