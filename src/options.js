@@ -174,7 +174,7 @@
         chrome.runtime.sendMessage({action: 'reloadOptions'});
     };
 
-    const load = () => {
+    const load = (rerender = false) => {
         ui.rememberWindows.checked = false;
         if (localStorage.rememberWindows === '1') {
             ui.rememberWindows.checked = true;
@@ -201,7 +201,9 @@
         const defaultCustomCss = '/*' + customCssPlaceholder.replace('/*', '').replace('*/', '') + '\n*/';
         ui.customCss.value = localStorage.userStyles || defaultCustomCss;
         applyStylesheet(localStorage.userStyles || '', 'userStyles');
-        app.debouncedRender();
+        if (rerender) {
+            app.debouncedRender();
+        }
     };
 
     ui.tabs.addEventListener('click', (e) => {
@@ -263,7 +265,7 @@
 
     ui.hideBookmarksBarBookmarks.addEventListener('change', () => {
         save();
-        load();
+        load(true);
     });
 
     ui.useDoubleClicks.addEventListener('change', () => {
@@ -291,7 +293,7 @@
 
     chrome.runtime.onMessage.addListener((msgObj) => {
         if (msgObj.action === 'reloadOptions') {
-            load();
+            load(true);
         }
     });
 
