@@ -140,19 +140,15 @@
         element.parentElement.removeChild(element);
     };
 
-    ui.delete.addEventListener('click', async () => {
-        hide(contextMenu);
+    async function del(context) {
         const confirmBtns = [
             'Do It!',
             {text: 'No Way!', value: false, default: true}
         ];
         if (!context.length) {
-            if (context.classList.contains('userBg')) {
-                app.deleteBackground(context.dataset.bgid);
-                return;
-            }
             const icon = getDataset(context);
-            const thing = icon.folder ? 'folder and all its contents?' : 'bookmark?';
+            let thing = icon.folder ? 'folder and all its contents?' : 'bookmark?';
+            thing = icon.document ? 'document?' : thing;
             if (await app.confirm(`Really? Delete this ${thing}`, confirmBtns)) {
                 deleteBookmark(context);
                 app.saveData();
@@ -165,6 +161,15 @@
                 app.saveData();
             }
         }
+    }
+
+    ui.delete.addEventListener('click', async () => {
+        hide(contextMenu);
+        if (context.classList && context.classList.contains('userBg')) {
+            app.deleteBackground(context.dataset.bgid);
+            return;
+        }
+        del(context);
     });
 
     ui.properties.addEventListener('click', () => {
@@ -261,6 +266,17 @@
     window.addEventListener('mousedown', (e) => {
         if (!getParentElementWithClass(e.target, 'contextMenu')) {
             hide(contextMenu);
+        }
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if (e.keyCode === 46) { // delete key
+            const selected = document.querySelectorAll('.bookmark.selected');
+            if (selected.length > 1) {
+                del(selected);
+            } else if (selected.length === 1) {
+                del(selected[0]);
+            }
         }
     });
 

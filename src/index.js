@@ -67,6 +67,7 @@
         const nameDiv = bookmarkIcon.querySelector('.name');
         let positionData;
         if (app.newIcon && app.newIcon.id === bookmark.id) {
+            // this is when a tab made a new bookmark and this tab is just getting the update
             positionData = app.newIcon.pos;
             app.newIcon = undefined;
         } else {

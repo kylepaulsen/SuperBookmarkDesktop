@@ -160,8 +160,13 @@
         ui.previewPageBG.style.backgroundColor = bg.color;
         ui.previewBG.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${imgUrl})`;
         setBackgroundStylesFromMode(ui.previewBG, bg.mode);
-        if (bg.mode === 'tile' || bg.mode === 'center') {
+        if (bg.mode === 'tile') {
             ui.previewBG.style.backgroundSize = previewWidth * 0.7 + 'px';
+        } else if (bg.mode === 'center') {
+            const tempImg = new Image();
+            tempImg.src = imgUrl;
+            const ratio = previewWidth / window.innerWidth;
+            ui.previewBG.style.backgroundSize = ratio * tempImg.width + 'px';
         }
         updateBackground(bg);
     };

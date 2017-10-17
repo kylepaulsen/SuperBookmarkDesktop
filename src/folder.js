@@ -88,15 +88,16 @@
         winUi.navBar.innerHTML = '';
         for (let x = 0; x < ancestors.length; x++) {
             const nextNav = ancestors[x];
+            const title = nextNav.id === '2' ? 'Desktop' : nextNav.title;
             navBarMarkup.push(`
                 <div class="navButton" data-folder="true" data-id="${nextNav.id}">
-                    ${nextNav.title}
+                    ${title}
                 </div>
             `);
         }
         winUi.navBar.innerHTML = navBarMarkup.join('<div class="navSep">/</div>');
 
-        winUi.title.textContent = targetNode.title;
+        winUi.title.textContent = targetNode.id === '2' ? 'Desktop' : targetNode.title;
 
         let iconArea = winUi.content.querySelector('.iconArea');
         if (!iconArea) {
