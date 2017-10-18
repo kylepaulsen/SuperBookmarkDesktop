@@ -1,6 +1,6 @@
 /* global app */
 {
-    const {hide, show, getUiElements, getDataset} = app.util;
+    const {hide, show, getUiElements, getDataset, getParentElementWithClass} = app.util;
 
     const modalOverlay = document.createElement('div');
     modalOverlay.className = 'modalOverlay';
@@ -59,6 +59,15 @@
                     const data = getDataset(defaultBtn);
                     currentResolve(data.value);
                     closeModal();
+                }
+            } else if (e.keyCode === 9) { // tab
+                e.preventDefault();
+                const active = document.activeElement;
+                const confirmButtonsContainer = getParentElementWithClass(active, 'confirmButtons');
+                if (confirmButtonsContainer) {
+                    const buttons = confirmButtonsContainer.querySelectorAll('button');
+                    const idx = buttons.findIndex((b) => b === active);
+                    buttons[(idx + 1) % buttons.length].focus();
                 }
             }
         }

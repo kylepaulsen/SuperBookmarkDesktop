@@ -166,7 +166,7 @@
             const tempImg = new Image();
             tempImg.src = imgUrl;
             const ratio = previewWidth / window.innerWidth;
-            ui.previewBG.style.backgroundSize = ratio * tempImg.width + 'px';
+            ui.previewBG.style.backgroundSize = `${ratio * tempImg.width}px ${ratio * tempImg.height}px`;
         }
         updateBackground(bg);
     };
@@ -216,7 +216,7 @@
     ui.applyBtn.addEventListener('click', apply);
     window.addEventListener('keydown', function(e) {
         if (modalOpen) {
-            if (e.keyCode === 13 || e.keyCode === 27) { // enter or esc
+            if (e.keyCode === 27) { // esc
                 const focusedEl = document.activeElement;
                 if (focusedEl.tagName === 'INPUT') {
                     focusedEl.blur();
@@ -429,13 +429,18 @@
             ui.defaultBackgroundsSection.classList.add('collapsed');
             ui.defaultBackgroundsSection.style.maxHeight = 0;
         }
-        if (localStorage.userBgsCollapsed === 'false') {
-            ui.userBackgroundsSection.style.maxHeight = 'none';
-        } else {
-            ui.collapseUserBgs.querySelector('.arrow').classList.add('right');
-            ui.userBackgroundsSection.classList.add('collapsed');
-            ui.userBackgroundsSection.style.maxHeight = 0;
-        }
+
+        // disabling this code for now... I dunno if it's useful.
+        // if (localStorage.userBgsCollapsed === 'false') {
+        //     ui.userBackgroundsSection.style.maxHeight = 'none';
+        // } else {
+        //     ui.collapseUserBgs.querySelector('.arrow').classList.add('right');
+        //     ui.userBackgroundsSection.classList.add('collapsed');
+        //     ui.userBackgroundsSection.style.maxHeight = 0;
+        // }
+        ui.collapseUserBgs.querySelector('.arrow').classList.remove('right');
+        ui.userBackgroundsSection.classList.remove('collapsed');
+        ui.userBackgroundsSection.style.maxHeight = 'none';
 
         currentBgId = app.data.background.id;
         updateInputs();

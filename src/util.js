@@ -1,6 +1,6 @@
 /* global idbKeyval, app */
 {
-    (['forEach', 'map', 'find', 'includes', 'filter', 'slice']).forEach((func) => {
+    (['forEach', 'map', 'find', 'findIndex', 'includes', 'filter', 'slice']).forEach((func) => {
         NodeList.prototype[func] = Array.prototype[func];
         HTMLCollection.prototype[func] = Array.prototype[func];
     });
@@ -49,8 +49,6 @@
                 random: false
             };
         }
-        const newNodeIds = JSON.parse(localStorage.newNodeIds || '{}');
-        localStorage.newNodeIds = JSON.stringify(newNodeIds);
 
         if (nextBgId === undefined) {
             // get max id
@@ -491,6 +489,11 @@
                 lastTime = 0;
             }
             lastTarget = target;
+        });
+        element.addEventListener('keydown', (e) => {
+            if (e.keyCode === 13) {
+                fn(e);
+            }
         });
     };
 
