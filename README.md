@@ -9,3 +9,5 @@ This is a chrome extension to turn your new tab page into a "desktop" with your 
 * Rich text document support
 * Background rotation after a time limit.
 * Create / edit / delete bookmarks, documents and folders.
+
+[Get the extension here](https://chrome.google.com/webstore/detail/super-bookmark-desktop/mfpgdeedjdffbfoomliadmehaoailnjn).
