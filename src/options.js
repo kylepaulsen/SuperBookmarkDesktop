@@ -303,4 +303,9 @@
         load();
         modalOpen = true;
     };
+
+    if (window.location.hash.includes('options')) {
+        app.openOptions();
+        window.location.hash = '';
+    }
 }

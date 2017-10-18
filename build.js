@@ -149,7 +149,9 @@ const copyList = [
     'icons',
     'LICENSE',
     'manifest.json',
-    'README.md'
+    'README.md',
+    'popup.html',
+    'popup.js'
 ];
 
 copyList.forEach(function(file) {
