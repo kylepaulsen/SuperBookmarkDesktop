@@ -125,7 +125,7 @@
         show(ui.changeIconBtn);
     });
 
-    app.openBookmarkProperties = (iconEl) => {
+    app.openBookmarkProperties = (iconEl, highlightFirst) => {
         context = iconEl;
         blobImgUrl = undefined;
         blobToSave = undefined;
@@ -146,6 +146,10 @@
             hide(ui.bookmarkUi);
             ui.icon.src = customImage ? iconElUi.image.src : folderImage;
             ui.folderName.value = icon.name;
+            openModal(content);
+            if (highlightFirst) {
+                ui.folderName.select();
+            }
         } else {
             hide(ui.folderUi);
             show(ui.bookmarkUi);
@@ -162,9 +166,12 @@
                 show(ui.bmUrl);
             }
             ui.bmName.value = icon.name;
+            openModal(content);
+            if (highlightFirst) {
+                ui.bmName.select();
+            }
         }
 
-        openModal(content);
         modalOpen = true;
     };
 }

@@ -30,7 +30,7 @@
 
     ui.newTab.addEventListener('click', () => {
         const url = context.dataset.url;
-        chrome.tabs.create({url});
+        chrome.tabs.create({url, active: false});
         hide(contextMenu);
     });
 
@@ -48,7 +48,7 @@
 
     const openBookmarksInNewTab = (bookmarks) => {
         bookmarks.forEach((bookmark) => {
-            chrome.tabs.create({url: bookmark.dataset.url});
+            chrome.tabs.create({url: bookmark.dataset.url, active: false});
         });
     };
 
@@ -96,7 +96,7 @@
             chrome.runtime.sendMessage({action: 'newIcon', data: app.newIcon});
         }
         addNewNodeId(newNode.id);
-        openBookmarkProperties(await app.makeIconElement(newNode));
+        openBookmarkProperties(await app.makeIconElement(newNode), true);
     };
     ui.createBookmark.addEventListener('click', () => {
         chrome.bookmarks.create({

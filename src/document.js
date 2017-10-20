@@ -17,7 +17,12 @@
         return {x, y, width, height};
     };
 
+    let dontSyncId;
     const syncEditorData = async (id, win) => {
+        if (id === dontSyncId) {
+            dontSyncId = undefined;
+            return;
+        }
         const bookmarks = await app.getBookmarks(id.toString());
         const doc = bookmarks[0];
         const docData = getDocumentData(doc.url);
@@ -88,7 +93,8 @@
                 window.onbeforeunload = null;
                 const newDocUrl = dataUriStartString +
                     btoa(unescape(encodeURIComponent(dataStartString + editor.content.innerHTML)));
-                app.ignoreNextRender = true;
+
+                dontSyncId = doc.id; // dont sync same window doc to not lose cursor position.
                 chrome.bookmarks.update(doc.id, {url: newDocUrl});
                 documentChanged = false;
                 winUi.title.textContent = winUi.title.textContent.replace(unsavedRegex, '');
@@ -103,6 +109,7 @@
             closeButtonContainerUi.saveClose.addEventListener('click', () => {
                 save();
                 win.parentElement.removeChild(win);
+                app.rememberOpenWindows();
             });
         }
     };
