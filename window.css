@@ -29,7 +29,6 @@
 }
 
 .window-top-nav {
-  flex: 0 0 25px;
   display: flex;
   background: #fff;
 }
@@ -41,6 +40,7 @@
 .nav-bar {
   flex: 1 1 1px;
   display: flex;
+  flex-wrap: wrap;
 }
 
 .window-bottom {
