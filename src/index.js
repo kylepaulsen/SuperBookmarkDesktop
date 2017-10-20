@@ -114,6 +114,7 @@
     app.getBookmarks = promisify(chrome.bookmarks.get);
     app.getBookmarkChildren = promisify(chrome.bookmarks.getChildren);
 
+    let firstRender = true;
     async function render() {
         const bookmarkTree = await app.getBookmarkTree();
         const root = bookmarkTree[0];
@@ -133,8 +134,9 @@
         });
         app.rootChildrenIds = rootChildrenIds;
         Promise.all(promises).then((bookmarks) => {
-            diffRender(bookmarks, app.desktop);
+            diffRender(bookmarks, app.desktop, !firstRender);
             app.saveData();
+            firstRender = false;
         });
         const windows = document.querySelectorAll('.window');
         windows.forEach((win) => {
