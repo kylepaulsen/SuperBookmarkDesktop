@@ -699,7 +699,7 @@ input[type=checkbox]:focus {
 }
 
 .tabPage * {
-    user-select: auto;
+    user-select: text;
 }
 
 .tabPage input[type=checkbox] {
