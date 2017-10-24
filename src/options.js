@@ -59,7 +59,7 @@
                     ${app.helpMarkup}
                 </div>
                 <div class="tabPage" data-id="aboutPage">
-                    <h3>Super Bookmark Desktop v1.0.0</h3>
+                    <h3>Super Bookmark Desktop v1.0.1</h3>
                     <div>&copy; Kyle Paulsen (2017)</div>
                     <div><a href="https://github.com/kylepaulsen/SuperBookmarkDesktop">Open Source on Github</a></div><br>
                     <div>
@@ -77,6 +77,26 @@
                     <div>
                         <h3>Changelog</h3>
                         <div class="changelogEntry">
+                            <b>v1.0.1</b>
+                            <ul>
+                                <li>
+                                    <div>Quality of Life</div>
+                                    <ul>
+                                        <li>Make text selectable in options tabs for Chrome 62.</li>
+                                        <li>Make opening in new tab be a non active tab.</li>
+                                        <li>Highlight name input when creating new anything.</li>
+                                        <li>Folder breadcrumbs now line break if window is too small.</li>
+                                        <li>Icons being moved to desktop start off selected.</li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <div>Bug Fixes</div>
+                                    <ul>
+                                        <li>Fix saving and closing doc not remembering the window close.</li>
+                                        <li>Fix saving doc not updating internal url.</li>
+                                    </ul>
+                                </li>
+                            </ul>
                             <b>v1.0.0</b>
                             <ul>
                                 <li>Initial release!</li>
