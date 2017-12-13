@@ -178,6 +178,16 @@
         }
     }, 200));
 
+    const openJSLink = (bookmark) => {
+        if (bookmark && bookmark.dataset && bookmark.dataset.url) {
+            const url = bookmark.dataset.url;
+            // If the user tries to open a js bookmarklet, this helps with that.
+            if (url.startsWith('javascript:')) {
+                chrome.tabs.create({url: url, active: false});
+            }
+        }
+    };
+
     { // double click option for all normal bookmarks.
         let lastTime = 0;
         let lastTarget;
@@ -190,10 +200,12 @@
                     e.preventDefault();
                     lastTime = now;
                 } else {
+                    openJSLink(target);
                     lastTime = 0;
                 }
             } else {
                 // double click!
+                openJSLink(target);
                 lastTime = 0;
             }
             lastTarget = target;
