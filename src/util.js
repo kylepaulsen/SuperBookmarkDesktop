@@ -520,6 +520,20 @@
         };
     };
 
+    util.htmlEscape = (str) => {
+        const entityMap = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+            '/': '&#x2F;',
+            '`': '&#x60;',
+            '=': '&#x3D;'
+        };
+        return String(str).replace(/[&<>"'`=\/]/g, (s) => entityMap[s]);
+    };
+
     const markupToElementDiv = document.createElement('div');
     util.markupToElement = (html) => {
         markupToElementDiv.innerHTML = html;

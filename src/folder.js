@@ -1,6 +1,6 @@
 /* global app */
 {
-    const {getParentElementWithClass, getDataset, getUiElements, attachClickHandler, diffRender} = app.util;
+    const {getParentElementWithClass, getDataset, getUiElements, attachClickHandler, diffRender, htmlEscape} = app.util;
 
     const getAncestors = async (id) => {
         id = id.toString();
@@ -90,8 +90,8 @@
             const nextNav = ancestors[x];
             const title = nextNav.id === '2' ? 'Desktop' : nextNav.title;
             navBarMarkup.push(`
-                <div class="navButton" data-folder="true" data-id="${nextNav.id}">
-                    ${title}
+                <div class="navButton" data-folder="true" data-id="${htmlEscape(nextNav.id)}">
+                    ${htmlEscape(title)}
                 </div>
             `);
         }

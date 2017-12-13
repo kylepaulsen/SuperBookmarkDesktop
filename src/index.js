@@ -3,7 +3,7 @@
     const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, DOUBLE_CLICK_SPEED, getFaviconImageUrl, loadData,
            getParentElementWithClass, clampText, promisify, updateBackground, getNextBgInCycle, debounce, throttle,
            folderImage, documentImage, removeNewNodeId, getBackground, attachClickHandler,
-           findNextOpenSpot, diffRender} = app.util;
+           findNextOpenSpot, diffRender, htmlEscape} = app.util;
 
     const measuringDiv = document.createElement('div');
     measuringDiv.className = 'measuringDiv';
@@ -43,11 +43,11 @@
         bookmarkIcon.setAttribute('draggable', 'true');
         const tag = folder || isDocument ? 'div' : 'a';
         bookmarkIcon.innerHTML = `
-            <${tag} class="bookmarkLink" data-id="link" draggable="false" href="${bookmark.url}">
+            <${tag} class="bookmarkLink" data-id="link" draggable="false" href="${htmlEscape(bookmark.url)}">
                 <div class="iconContainer">
-                    <img class="icon" data-id="image" draggable="false" src="${icon}" alt="">
+                    <img class="icon" data-id="image" draggable="false" src="${htmlEscape(icon)}" alt="">
                 </div>
-                <div class="name" data-id="name">${bookmark.title}</div>
+                <div class="name" data-id="name">${htmlEscape(bookmark.title)}</div>
             </${tag}>
         `;
         return bookmarkIcon;

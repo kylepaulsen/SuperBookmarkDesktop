@@ -3,7 +3,7 @@
     const {openModal, closeModal, saveData} = app;
     const {getUiElements, selectImageFromDisk, getParentElementWithClass, pad, updateBackground,
         setBackgroundStylesFromMode, debounce, createBG, markupToElement, getNextBgInCycle,
-        loadImage, getBackground, getBackgroundImage, getBgImageFromDB} = app.util;
+        loadImage, getBackground, getBackgroundImage, getBgImageFromDB, htmlEscape} = app.util;
 
     const makeBgTile = (bg) => {
         const imgUrl = getBackgroundImage(bg.id);
@@ -11,7 +11,7 @@
             <div class="bgTile${bg.selected ? ' selected' : ''}${bg.default ? '' : ' userBg'}" data-bgid="${bg.id}">
                 <div class="aspect16-9">
                     <div class="aspect-container">
-                        <img src="${imgUrl}" alt="" draggable="false">
+                        <img src="${htmlEscape(imgUrl)}" alt="" draggable="false">
                         <input type="checkbox" class="bgCheckbox" ${bg.selected ? 'checked="checked"' : ''}>
                     </div>
                 </div>
