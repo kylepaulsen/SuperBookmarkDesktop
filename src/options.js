@@ -59,7 +59,7 @@
                     ${app.helpMarkup}
                 </div>
                 <div class="tabPage" data-id="aboutPage">
-                    <h3>Super Bookmark Desktop v1.0.1</h3>
+                    <h3>Super Bookmark Desktop v1.0.2</h3>
                     <div>&copy; Kyle Paulsen (2017)</div>
                     <div><a href="https://github.com/kylepaulsen/SuperBookmarkDesktop">Open Source on Github</a></div><br>
                     <div>
@@ -77,6 +77,22 @@
                     <div>
                         <h3>Changelog</h3>
                         <div class="changelogEntry">
+                            <b>v1.0.2</b>
+                            <ul>
+                                <li>
+                                    <div>Quality of Life</div>
+                                    <ul>
+                                        <li>Opening js bookmarklet now opens in new tab (instead of doing nothing). Bookmarklets can't be run on new tab page.</li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <div>Bug Fixes</div>
+                                    <ul>
+                                        <li>Only allow deleting things with delete key when not in modal.</li>
+                                        <li>Sanitize user input &#x1F61E</li>
+                                    </ul>
+                                </li>
+                            </ul>
                             <b>v1.0.1</b>
                             <ul>
                                 <li>
