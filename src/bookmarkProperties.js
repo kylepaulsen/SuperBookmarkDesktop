@@ -59,14 +59,14 @@
         const icon = getDataset(context);
         const iconId = icon.id + ''; // must be a string.
 
-        if (icon.folder) {
+        if (icon.type === 'folder') {
             icon.name = ui.folderName.value;
             chrome.bookmarks.update(iconId, {title: icon.name});
         } else {
             icon.name = ui.bmName.value;
             let url = ui.bmUrl.value || 'about:blank';
             url = url.includes(':') ? url : 'http://' + url;
-            if (icon.document) {
+            if (icon.type === 'document') {
                 chrome.bookmarks.update(iconId, {title: icon.name});
             } else {
                 icon.url = url;
@@ -112,10 +112,10 @@
     ui.revertIconBtn.addEventListener('click', () => {
         const icon = getDataset(context);
         ui.icon.src = getFaviconImageUrl(icon.url);
-        if (icon.folder) {
+        if (icon.type === 'folder') {
             ui.icon.src = folderImage;
         }
-        if (icon.document) {
+        if (icon.type === 'document') {
             ui.icon.src = documentImage;
         }
         deleteImage = true;
@@ -141,7 +141,7 @@
             hide(ui.revertIconBtn);
             show(ui.changeIconBtn);
         }
-        if (icon.folder) {
+        if (icon.type === 'folder') {
             show(ui.folderUi);
             hide(ui.bookmarkUi);
             ui.icon.src = customImage ? iconElUi.image.src : folderImage;
@@ -153,7 +153,7 @@
         } else {
             hide(ui.folderUi);
             show(ui.bookmarkUi);
-            if (icon.document) {
+            if (icon.type === 'document') {
                 ui.icon.src = customImage ? iconElUi.image.src : documentImage;
                 ui.bmNameLabel.textContent = 'Document Name';
                 hide(ui.bmUrlLabel);

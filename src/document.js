@@ -56,7 +56,7 @@
                 }
             };
             const win = app.makeWindow(doc.title, x, y, width, height, {beforeClose});
-            win.dataset.document = 'true';
+            win.dataset.type = 'document';
             win.dataset.id = doc.id;
             app.rememberOpenWindows();
 
@@ -137,7 +137,7 @@
         if (iconEl) {
             const icon = getDataset(iconEl);
             const specialKeysDown = e.metaKey || e.ctrlKey || e.shiftKey;
-            if (icon.document && !specialKeysDown && (!localStorage.useDoubleClicks || isDoubleClick)) {
+            if (icon.type === 'document' && !specialKeysDown && (!localStorage.useDoubleClicks || isDoubleClick)) {
                 e.preventDefault();
                 const currentWindow = document.querySelector(`.window[data-id="${icon.id}"]`);
                 if (!currentWindow) {

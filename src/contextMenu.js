@@ -64,17 +64,13 @@
     };
 
     ui.allNewTab.addEventListener('click', () => {
-        const bookmarks = context.querySelectorAll('.bookmark').filter((item) => {
-            return item.dataset.folder !== 'true' && item.dataset.document !== 'true';
-        });
+        const bookmarks = context.querySelectorAll('.bookmark').filter((item) => item.dataset.type === 'bookmark');
         openBookmarksInNewTab(bookmarks);
         hide(contextMenu);
     });
 
     ui.allNewWindow.addEventListener('click', () => {
-        const bookmarks = context.querySelectorAll('.bookmark').filter((item) => {
-            return item.dataset.folder !== 'true' && item.dataset.document !== 'true';
-        });
+        const bookmarks = context.querySelectorAll('.bookmark').filter((item) => item.dataset.type === 'bookmark');
         openBookmarksInNewWindow(bookmarks);
         hide(contextMenu);
     });
@@ -131,7 +127,7 @@
     const deleteBookmark = (element) => {
         const icon = getDataset(element);
         const iconId = icon.id + ''; // must be string
-        if (icon.folder) {
+        if (icon.type === 'folder') {
             chrome.bookmarks.removeTree(iconId);
         } else {
             chrome.bookmarks.remove(iconId);
@@ -147,8 +143,8 @@
         ];
         if (!context.length) {
             const icon = getDataset(context);
-            let thing = icon.folder ? 'folder and all its contents?' : 'bookmark?';
-            thing = icon.document ? 'document?' : thing;
+            let thing = icon.type === 'folder' ? 'folder and all its contents?' : 'bookmark?';
+            thing = icon.type === 'document' ? 'document?' : thing;
             if (await app.confirm(`Really? Delete this ${thing}`, confirmBtns)) {
                 deleteBookmark(context);
                 app.saveData();
@@ -194,12 +190,12 @@
                 const icon = getDataset(targetEl);
                 context = targetEl;
                 ui.properties.textContent = 'Bookmark Properties';
-                if (icon.document) {
+                if (icon.type === 'document') {
                     ui.properties.textContent = 'Document Properties';
-                } else if (icon.folder) {
+                } else if (icon.type === 'folder') {
                     ui.properties.textContent = 'Folder Properties';
                 }
-                if (!icon.folder) {
+                if (icon.type !== 'folder') {
                     show(ui.newTab);
                     show(ui.newWindow);
                     show(ui.incog);
@@ -208,9 +204,7 @@
                 show(ui.properties);
             } else {
                 context = selected.slice();
-                const selectedFoldersOrDocuments = selected.find((node) => {
-                    return node.dataset.folder === 'true' || node.dataset.document === 'true';
-                });
+                const selectedFoldersOrDocuments = selected.find((node) => node.dataset.type !== 'bookmark');
                 if (!selectedFoldersOrDocuments) {
                     show(ui.selectedNewTab);
                     show(ui.selectedNewWindow);
@@ -242,7 +236,7 @@
     window.addEventListener('contextmenu', (e) => {
         const targetEl = getParentElementWithClass(e.target, ['bookmark', 'desktop', 'userBg', 'window']);
         // weird case is a document window. It should not get a special context menu.
-        if (targetEl && (!targetEl.dataset.document || targetEl.classList.contains('bookmark'))) {
+        if (targetEl && (targetEl.dataset.type !== 'document' || targetEl.classList.contains('bookmark'))) {
             e.preventDefault();
             mousePoint = {x: e.pageX, y: e.pageY};
             populateMenu(targetEl);

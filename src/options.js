@@ -272,7 +272,7 @@
                     width: win.offsetWidth,
                     height: win.offsetHeight,
                     id: win.dataset.id,
-                    type: win.dataset.document ? 'document' : 'folder'
+                    type: win.dataset.type
                 };
             });
             localStorage.openedWindows = JSON.stringify(windows);

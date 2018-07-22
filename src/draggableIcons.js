@@ -52,7 +52,7 @@
         }
         if (dropTarget && !selected.includes(dropTarget)) {
             const icon = getDataset(dropTarget);
-            if (icon.folder) {
+            if (icon.type === 'folder') {
                 lastHovered = dropTarget;
                 lastHovered.classList.add('dragHover');
             }

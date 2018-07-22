@@ -73,7 +73,7 @@
                 y = options.y;
             }
             currentWindow = app.makeWindow(targetNode.title, x, y, width, height);
-            currentWindow.dataset.folder = 'true';
+            currentWindow.dataset.type = 'folder';
             highlightNewNodes = false;
         }
 
@@ -90,7 +90,7 @@
             const nextNav = ancestors[x];
             const title = nextNav.id === '2' ? 'Desktop' : nextNav.title;
             navBarMarkup.push(`
-                <div class="navButton" data-folder="true" data-id="${htmlEscape(nextNav.id)}">
+                <div class="navButton" data-type="folder" data-id="${htmlEscape(nextNav.id)}">
                     ${htmlEscape(title)}
                 </div>
             `);
@@ -131,7 +131,7 @@
         if (iconEl) {
             const icon = getDataset(iconEl);
             const specialKeysDown = e.metaKey || e.ctrlKey || e.shiftKey;
-            if (icon.folder && !specialKeysDown && (!localStorage.useDoubleClicks || isDoubleClick)) {
+            if (icon.type === 'folder' && !specialKeysDown && (!localStorage.useDoubleClicks || isDoubleClick)) {
                 e.preventDefault();
                 renderFolder(icon.id, iconEl);
             }

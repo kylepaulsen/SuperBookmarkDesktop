@@ -13,11 +13,14 @@
         const isDocument = app.isValidDocument(bookmark.url);
         const folder = bookmark.url === undefined;
         let icon = getFaviconImageUrl(bookmark.url);
+        let type = 'bookmark';
         if (folder) {
             icon = folderImage;
+            type = 'folder';
         }
         if (isDocument) {
             icon = documentImage;
+            type = 'document';
         }
         try {
             const iconBlob = await idbKeyval.get(bookmark.id);
@@ -32,13 +35,10 @@
         bookmarkIcon.dataset.name = bookmark.title;
         bookmarkIcon.dataset.id = bookmark.id;
         bookmarkIcon.dataset.parentId = bookmark.parentId;
-        bookmarkIcon.dataset.folder = folder;
+        bookmarkIcon.dataset.type = type;
         bookmarkIcon.title = bookmark.title;
         if (newNodeIds[bookmark.id]) {
             bookmarkIcon.classList.add('strobeHighlight');
-        }
-        if (isDocument) {
-            bookmarkIcon.dataset.document = 'true';
         }
         bookmarkIcon.setAttribute('draggable', 'true');
         const tag = folder || isDocument ? 'div' : 'a';
@@ -56,7 +56,7 @@
 
     async function makeBookmarkIcon(bookmark, desktop = false) {
         const bookmarkIcon = await makeIconElement(bookmark);
-        const isDocument = bookmarkIcon.dataset.document === 'true';
+        const isDocument = bookmarkIcon.dataset.type === 'document';
         if (!isDocument && bookmark.url && (bookmark.url.startsWith('data:') || bookmark.url.startsWith('file:'))) {
             attachClickHandler(bookmarkIcon.children[0], (e, isDoubleClick) => {
                 if (!localStorage.useDoubleClicks || isDoubleClick) {
@@ -140,10 +140,10 @@
         });
         const windows = document.querySelectorAll('.window');
         windows.forEach((win) => {
-            if (win.dataset.folder) {
+            if (win.dataset.type === 'folder') {
                 app.openFolder(win.dataset.id, null, {window: win});
             }
-            if (win.dataset.document) {
+            if (win.dataset.type === 'document') {
                 app.syncEditorData(win.dataset.id, win);
             }
         });
