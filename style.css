@@ -770,3 +770,83 @@ input[type=checkbox]:focus {
 .center {
     text-align: center;
 }
+
+.loadingWidget {
+    height: 100%;
+    font-size: 24px;
+    font-weight: bold;
+    background: #fff;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.window.widget {
+    border: 0;
+    opacity: 1;
+}
+
+.window.widget:hover {
+    outline: 1px solid #000;
+}
+
+.window.widget:hover .close {
+    display: block;
+}
+
+.window.widget .content {
+    overflow: hidden;
+}
+
+.window.widget .window-middle {
+    background: transparent;
+}
+
+.window.widget .window-bottom {
+    background: transparent;
+}
+
+.window.widget .window-top {
+    background: transparent;
+}
+
+.window.widget .window-top-middle {
+    flex: 0 0 12px;
+    background: transparent;
+}
+
+.window.widget .close {
+    margin: 0;
+    display: none;
+}
+
+.window.widget .title-bar {
+    border-bottom: 0;
+}
+
+.window.widget .w-resize.top-resize {
+    border-bottom: 0;
+}
+
+.window.widget .e-resize.top-resize {
+    border-bottom: 0;
+}
+
+.prompt {
+    width: 330px;
+}
+
+.promptTitle {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.promptDesc {
+    margin-bottom: 10px;
+}
+
+.promptTextbox input {
+    width: 100%;
+}

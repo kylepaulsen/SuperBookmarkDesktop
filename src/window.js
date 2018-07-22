@@ -78,6 +78,7 @@
         listen(window, 'mouseup', () => {
             if (mouseDown) {
                 app.rememberOpenWindows();
+                app.rememberWidgets();
             }
             mouseDown = false;
         });
@@ -132,6 +133,7 @@
             const closeFunc = () => {
                 win.parentNode.removeChild(win);
                 app.rememberOpenWindows();
+                app.rememberWidgets();
             };
             if (options.beforeClose) {
                 options.beforeClose(closeFunc);

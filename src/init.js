@@ -76,6 +76,7 @@
         // load all other images
         await loadUserBackgrounds();
         userImagesDidLoad();
+        app.reopenWidgets();
     };
     // get that bg loadin'
     loadBG();

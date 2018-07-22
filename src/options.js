@@ -258,8 +258,8 @@
 
     app.rememberOpenWindows = () => {
         if (localStorage.rememberWindows) {
-            let windowEls = document.querySelectorAll('.window');
-            const activeWin = document.querySelector('.window.active');
+            let windowEls = document.querySelectorAll('.window:not(.widget)');
+            const activeWin = document.querySelector('.window.active:not(.widget)');
             if (activeWin) {
                 // make the active window last so it shows up in front.
                 windowEls = windowEls.filter((win) => !win.classList.contains('active'));

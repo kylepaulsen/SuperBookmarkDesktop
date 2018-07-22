@@ -18,6 +18,7 @@
         <div class="contextMenuItem" data-id="createBookmark">Create Bookmark</div>
         <div class="contextMenuItem" data-id="createDocument">Create Document</div>
         <div class="contextMenuItem" data-id="createFolder">Create Folder</div>
+        <div class="contextMenuItem" data-id="addWidget">Add Widget</div>
         <div class="contextMenuItem" data-id="delete">Delete</div>
         <div class="contextMenuSeperator" data-id="sep2"></div>
         <div class="contextMenuItem" data-id="options">Options</div>
@@ -124,6 +125,20 @@
         hide(contextMenu);
     });
 
+    ui.addWidget.addEventListener('click', async () => {
+        hide(contextMenu);
+        const widgetUrl = await app.prompt(
+            'Enter Widget URL',
+            'A widget is a webpage that shows up on the desktop.',
+            {
+                placeholder: 'Widget URL'
+            }
+        );
+        if (widgetUrl) {
+            app.createWidget(widgetUrl, mousePoint.x, mousePoint.y);
+        }
+    });
+
     const deleteBookmark = (element) => {
         const icon = getDataset(element);
         const iconId = icon.id + ''; // must be string
@@ -225,6 +240,9 @@
             show(ui.createBookmark);
             show(ui.createFolder);
             show(ui.createDocument);
+            if (context.id === 'desktop') {
+                show(ui.addWidget);
+            }
             show(ui.sep1);
             show(ui.sep2);
             show(ui.options);
