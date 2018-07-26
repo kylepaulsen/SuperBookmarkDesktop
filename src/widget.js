@@ -20,11 +20,10 @@
             };
         });
         localStorage.widgets = JSON.stringify(windows);
-        console.log(localStorage.widgets);
     };
 
-    const createWidget = (url, x, y, width = 500, height = 400, remember = true) => {
-        if (!url.startsWith('http')) {
+    const createWidget = (url, x, y, width = 400, height = 412, remember = true) => {
+        if (!url.match(/.+\:\/\//) && !url.startsWith('./')) {
             url = 'http://' + url;
         }
         const win = app.makeWindow('', x, y, width, height);
@@ -49,6 +48,7 @@
             iframe.style.opacity = 1;
             winUi.content.removeChild(loadingDiv);
             iframe.style.position = 'static';
+            iframe.onload = null;
         };
 
         winUi.content.appendChild(iframe);
@@ -66,7 +66,42 @@
         });
     };
 
+    let mouseDown = false;
+    let lockedIframes = false;
+    window.addEventListener('mousedown', () => {
+        mouseDown = true;
+    });
+
+    window.addEventListener('mousemove', () => {
+        if (mouseDown && !lockedIframes) {
+            document.querySelectorAll('iframe').forEach(iframe => {
+                iframe.style.pointerEvents = 'none';
+            });
+            lockedIframes = true;
+        }
+    });
+
+    window.addEventListener('mouseup', () => {
+        mouseDown = false;
+        if (lockedIframes) {
+            document.querySelectorAll('iframe').forEach(iframe => {
+                iframe.style.pointerEvents = 'all';
+            });
+            lockedIframes = false;
+        }
+    });
+
     app.createWidget = createWidget;
     app.rememberWidgets = rememberWidgets;
     app.reopenWidgets = reopenWidgets;
+    app.widgetPromptMarkup = `
+        <div>
+            <div>A widget is a webpage that shows up on the desktop.</div>
+            <p>Default Widgets:</p>
+            <div class="defaultWidgets">
+                <img src="widgets/clock/icon.png" data-url="./widgets/clock/index.html" title="Clock">
+                <img src="widgets/reddit/icon.png" data-url="./widgets/reddit/index.html" title="Reddit">
+            </div>
+        </div>
+    `;
 }

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Clock</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="clock">
+        <div class="clockInner">
+            <div class="hour h12">12</div>
+            <div class="hour h3">3</div>
+            <div class="hour h6">6</div>
+            <div class="hour h9">9</div>
+            <svg class="hourHand" viewBox="0 0 10 100">
+                <circle cx="5" cy="95" r="5" fill="black" />
+                <polyline points="-0.1 95 5 0 10.1 95" />
+            </svg>
+            <svg class="minHand" viewBox="0 0 10 100">
+                <circle cx="5" cy="96" r="3.4" fill="black" />
+                <polyline points="1.5 96 5 0 8.5 96" />
+            </svg>
+            <div class="secHand"></div>
+        </div>
+    </div>
+    <script src="index.js"></script>
+</body>
+</html>

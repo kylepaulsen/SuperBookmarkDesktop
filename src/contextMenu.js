@@ -2,7 +2,7 @@
 {
     const {openBookmarkProperties, openDesktopProperties} = app;
     const {getUiElements, show, hide, getParentElementWithClass, getDataset,
-        addNewNodeId, deselectAll, pointToGrid, findFreeSpotNear} = app.util;
+        addNewNodeId, deselectAll, pointToGrid, findFreeSpotNear, markupToElement} = app.util;
 
     const contextMenu = document.createElement('div');
     contextMenu.className = 'contextMenu';
@@ -127,11 +127,17 @@
 
     ui.addWidget.addEventListener('click', async () => {
         hide(contextMenu);
+        const descEl = markupToElement(app.widgetPromptMarkup);
+        descEl.addEventListener('click', (e) => {
+            if (e.target.dataset.url) {
+                app.closePrompt(e.target.dataset.url);
+            }
+        });
         const widgetUrl = await app.prompt(
-            'Enter Widget URL',
-            'A widget is a webpage that shows up on the desktop.',
+            'Add a Widget',
+            descEl,
             {
-                placeholder: 'Widget URL'
+                placeholder: 'Add Custom Widget with URL...'
             }
         );
         if (widgetUrl) {

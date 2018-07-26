@@ -1,0 +1,84 @@
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    font-family: sans-serif;
+    overflow: hidden;
+    user-select: none;
+    display: flex;
+}
+
+.hour {
+    font-size: 10vmin;
+    position: absolute;
+    transform: translate(-50%, -50%);
+}
+
+.h12 {
+    left: 50%;
+    top: 8%;
+}
+
+.h3 {
+    left: 92%;
+    top: 50%;
+}
+
+.h6 {
+    left: 50%;
+    bottom: -5%;
+}
+
+.h9 {
+    left: 8%;
+    top: 50%;
+}
+
+.clock {
+    background-image: -webkit-radial-gradient(25% 25%, ellipse cover, rgb(90, 90, 90), rgb(0, 0, 0) 80%);
+    width: 100vmin;
+    height: 100vmin;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    align-self: center;
+}
+
+.clockInner {
+    width: 90%;
+    height: 90%;
+    background: radial-gradient(ellipse at center, rgba(255, 255, 255, 1) 60%, rgba(0,0,0,1) 90%);
+    border-radius: 50%;
+    position: relative;
+}
+
+.hourHand {
+    height: 27%;
+    position: absolute;
+    left: 50%;
+    top: 24.5%;
+    transform-origin: center 95%;
+    transform: translate(-50%, 0) rotate(0deg);
+}
+
+.minHand {
+    height: 40%;
+    position: absolute;
+    left: 50%;
+    top: 11.4%;
+    transform-origin: center 97%;
+    transform: translate(-50%, 0) rotate(0deg);
+}
+
+.secHand {
+    height: 45%;
+    position: absolute;
+    left: 50%;
+    top: 5.5%;
+    border-left: 0.5vw solid #f00;
+    border-radius: 1vmin;
+    transform-origin: center 99%;
+    transform: translate(-50%, 0) rotate(0deg);
+}

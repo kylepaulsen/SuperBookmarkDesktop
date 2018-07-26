@@ -59,6 +59,7 @@
     width: 100%;
     height: 1px;
     border-top: 3px solid #000;
+    outline: 1px solid #fff;
     user-select: none;
     position: absolute;
     pointer-events: none;

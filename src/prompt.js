@@ -53,7 +53,12 @@
 
     app.prompt = (title, description, options = {}) => {
         ui.promptTitle.textContent = title;
-        ui.promptDesc.textContent = description;
+        if (typeof description === 'string') {
+            ui.promptDesc.innerHTML = description;
+        } else {
+            ui.promptDesc.innerHTML = '';
+            ui.promptDesc.appendChild(description);
+        }
         ui.promptTextbox.value = '';
         ui.promptTextbox.setAttribute('placeholder', options.placeholder || '');
         openModal();
@@ -61,5 +66,10 @@
             currentResolve = res;
             ui.promptTextbox.focus();
         });
+    };
+
+    app.closePrompt = (val = null) => {
+        currentResolve(val);
+        closeModal();
     };
 }

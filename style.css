@@ -812,8 +812,14 @@ input[type=checkbox]:focus {
 }
 
 .window.widget .window-top-middle {
-    flex: 0 0 12px;
+    flex: 0 0 13px;
     background: transparent;
+}
+
+.window.widget:hover .title-bar,
+.window.widget:hover .w-resize.top-resize,
+.window.widget:hover .e-resize.top-resize {
+    border-bottom: 1px solid #000;
 }
 
 .window.widget .close {
@@ -831,6 +837,18 @@ input[type=checkbox]:focus {
 
 .window.widget .e-resize.top-resize {
     border-bottom: 0;
+}
+
+.defaultWidgets {
+    display: flex;
+}
+
+.defaultWidgets img {
+    display: block;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    margin-right: 20px;
 }
 
 .prompt {
