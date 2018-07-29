@@ -325,7 +325,7 @@
             obj[key] = el.dataset[key];
             try {
                 obj[key] = JSON.parse(el.dataset[key]);
-            } catch(e) {}
+            } catch (e) {}
         });
         return obj;
     };
@@ -530,6 +530,14 @@
                 fn.apply(null, args);
             }
         };
+    };
+
+    util.semverIsBigger = (verA, verB) => {
+        verA = verA.split('.');
+        verB = verB.split('.');
+        const majorEqual = verA[0] === verB[0];
+        return verA[0] > verB[0] || (majorEqual && verA[1] > verB[1]) ||
+            (majorEqual && verA[1] === verB[1] && verA[2] > verB[2]);
     };
 
     util.htmlEscape = (str) => {

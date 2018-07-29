@@ -730,6 +730,14 @@ input[type=checkbox]:focus {
     height: 200px;
 }
 
+.updateMessage {
+    background: #ff8;
+    padding: 12px 0;
+    text-align: center;
+    font-weight: bold;
+    display: none;
+}
+
 .changelogEntry {
     margin-left: 20px;
 }

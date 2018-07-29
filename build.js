@@ -151,7 +151,8 @@ const copyList = [
     'manifest.json',
     'README.md',
     'popup.html',
-    'popup.js'
+    'popup.js',
+    'widgets'
 ];
 
 copyList.forEach(function(file) {

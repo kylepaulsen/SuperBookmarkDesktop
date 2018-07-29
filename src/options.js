@@ -1,7 +1,7 @@
 /* global chrome, app */
 {
     const {openModal, closeModal} = app;
-    const {getUiElements, applyStylesheet, getParentElementWithClass} = app.util;
+    const {getUiElements, applyStylesheet, getParentElementWithClass, semverIsBigger} = app.util;
 
     const customCssPlaceholder = [
         '/* no transparent windows */',
@@ -59,8 +59,9 @@
                     ${app.helpMarkup}
                 </div>
                 <div class="tabPage" data-id="aboutPage">
-                    <h3>Super Bookmark Desktop v1.0.2</h3>
-                    <div>&copy; Kyle Paulsen (2017)</div>
+                    <div class="updateMessage" data-id="updateMessage">Super Bookmark Desktop was updated! See what changed below.</div>
+                    <h3>Super Bookmark Desktop v<span data-id="version"></span></h3>
+                    <div>&copy; Kyle Paulsen (2017-2018)</div>
                     <div><a href="https://github.com/kylepaulsen/SuperBookmarkDesktop">Open Source on Github</a></div><br>
                     <div>
                         <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
@@ -76,6 +77,32 @@
                     </div>
                     <div>
                         <h3>Changelog</h3>
+                        <div class="changelogEntry">
+                            <b>v1.1.0</b>
+                            <ul>
+                                <li>
+                                    <div>Features</div>
+                                    <ul>
+                                        <li>Widgets! Right click somewhere on the desktop and click "Add Widget"!</li>
+                                        <li>Added a default widget: Analog clock</li>
+                                        <li>Added a default widget: Reddit Feed</li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <div>Quality of Life</div>
+                                    <ul>
+                                        <li>Make "Options" context menu item always open options tab.</li>
+                                        <li>Other minor performance improvements to reduce background flicker.</li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <div>Bug Fixes</div>
+                                    <ul>
+                                        <li>Fix losing unsaved changes in docs after certain actions.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
                         <div class="changelogEntry">
                             <b>v1.0.2</b>
                             <ul>
@@ -93,6 +120,8 @@
                                     </ul>
                                 </li>
                             </ul>
+                        </div>
+                        <div class="changelogEntry">
                             <b>v1.0.1</b>
                             <ul>
                                 <li>
@@ -113,6 +142,8 @@
                                     </ul>
                                 </li>
                             </ul>
+                        </div>
+                        <div class="changelogEntry">
                             <b>v1.0.0</b>
                             <ul>
                                 <li>Initial release!</li>
@@ -337,11 +368,28 @@
     app.openOptions = () => {
         openModal(content);
         load();
+        showTab(ui.optionsTab);
         modalOpen = true;
     };
 
     if (window.location.hash.includes('options')) {
         app.openOptions();
         window.location.hash = '';
+    }
+
+    const currentExtensionVersion = chrome.runtime.getManifest().version;
+    const currentStoredVersion = localStorage.version || '0.0.0';
+    ui.version.textContent = currentExtensionVersion;
+    if (!app.firstTimeUse && semverIsBigger(currentExtensionVersion, currentStoredVersion)) {
+        ui.updateMessage.style.display = 'block';
+        app.openOptions();
+        showTab(ui.aboutTab);
+        setTimeout(() => {
+            localStorage.version = currentExtensionVersion;
+        }, 1000);
+    } else if (app.firstTimeUse) {
+        app.openOptions();
+        showTab(ui.helpTab);
+        localStorage.version = currentExtensionVersion;
     }
 }

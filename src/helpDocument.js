@@ -78,7 +78,7 @@
             For bugs or features, you can open a github issue here:
             <a href="https://github.com/kylepaulsen/SuperBookmarkDesktop/issues">
                 https://github.com/kylepaulsen/SuperBookmarkDesktop/issues
-            </a> (&lt;-- Right click to open links)
+            </a>
         </div>
         <div>Otherwise feel free to say hi or thanks at: <b>kyle.a.paulsen@gmail.com</b></div>
         <br>
@@ -90,6 +90,7 @@
             return;
         }
         localStorage.madeHelp = '1';
+        app.firstTimeUse = true;
 
         const dataUriStartString = 'data:text/html;charset=UTF-8;base64,';
         const newDocUrl = dataUriStartString + btoa(unescape(encodeURIComponent(app.helpMarkup)));
