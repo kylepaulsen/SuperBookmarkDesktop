@@ -16,6 +16,15 @@
     const {setBackgroundStylesFromMode, getNextBgInCycle, getBgImageFromDB, loadImage,
         sleep, loadData, loadUserBackgrounds, getBackgroundImage} = app.util;
 
+    // for debugging
+    // {
+    //     const oldSend = chrome.runtime.sendMessage;
+    //     chrome.runtime.sendMessage = (...args) => {
+    //         console.log('sending message!', args);
+    //         oldSend(...args);
+    //     };
+    // }
+
     app.desktop = document.getElementById('desktop');
     app.desktopBackground = document.getElementById('desktopBackground');
 

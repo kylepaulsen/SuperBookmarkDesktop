@@ -143,9 +143,6 @@
             if (win.dataset.type === 'folder') {
                 app.openFolder(win.dataset.id, null, {window: win});
             }
-            if (win.dataset.type === 'document') {
-                app.syncEditorData(win.dataset.id, win);
-            }
         });
     }
     app.makeHelpDocument().then(render);
@@ -222,8 +219,8 @@
         chrome.bookmarks[eventName].addListener(app.debouncedRender);
     });
 
-    chrome.runtime.onMessage.addListener(async (msgObj) => {
-        if (msgObj.action === 'reload') {
+    const messageActions = {
+        async reload() {
             const lastBG = app.data.background;
             app.data = await loadData();
             app.debouncedRender();
@@ -233,10 +230,24 @@
             if (newBg) {
                 updateBackground(newBg);
             }
-        } else if (msgObj.action === 'newIcon') {
+        },
+        newIcon(msgObj) {
             // some tab added a new icon... when this tab renders it for the first time, place it in the right spot.
             app.newIcon = msgObj.data;
             app.debouncedRender();
+        },
+        syncDoc(msgObj) {
+            const win = document.querySelector(`.window[data-id="${msgObj.id}"]`);
+            if (win.dataset.type === 'document') {
+                app.syncEditorData(msgObj.id, win);
+            }
+        }
+    };
+
+    chrome.runtime.onMessage.addListener(async (msgObj) => {
+        const actionFunc = messageActions[msgObj.action];
+        if (actionFunc) {
+            actionFunc(msgObj);
         }
     });
 }
