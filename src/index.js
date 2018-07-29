@@ -224,8 +224,11 @@
 
     chrome.runtime.onMessage.addListener(async (msgObj) => {
         if (msgObj.action === 'reload') {
+            const lastBG = app.data.background;
             app.data = await loadData();
             app.debouncedRender();
+            // if there is a bg swap, pretend we didnt switch yet.
+            app.data.background = lastBG;
             const newBg = getBackground(localStorage.lastBgId);
             if (newBg) {
                 updateBackground(newBg);

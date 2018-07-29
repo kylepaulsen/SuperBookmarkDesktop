@@ -6,6 +6,7 @@
     modalOverlay.className = 'modalOverlay';
     modalOverlay.dataset.display = 'flex';
     modalOverlay.innerHTML = '<div class="modal"></div>';
+    modalOverlay.style.display = 'none';
     const modal = modalOverlay.children[0];
 
     app.openModal = (content) => {
@@ -13,11 +14,11 @@
         modal.style.background = '#ffffff';
         modal.innerHTML = '';
         modal.appendChild(content);
-        show(modalOverlay);
+        return show(modalOverlay);
     };
 
     app.closeModal = () => {
-        hide(modalOverlay);
+        return hide(modalOverlay);
     };
 
     app.modal = modal;

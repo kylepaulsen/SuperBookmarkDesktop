@@ -233,11 +233,20 @@
     };
 
     util.show = (el) => {
-        el.style.display = el.dataset.display || 'block';
+        const targetDisplay = el.dataset.display || 'block';
+        if (el.style.display !== targetDisplay) {
+            el.style.display = targetDisplay;
+            return true;
+        }
+        return false;
     };
 
     util.hide = (el) => {
-        el.style.display = 'none';
+        if (el.style.display !== 'none') {
+            el.style.display = 'none';
+            return true;
+        }
+        return false;
     };
 
     util.getUiElements = (parentElement) => {
@@ -289,17 +298,20 @@
 
             const temp = document.createElement('div');
             temp.className = 'tempBG';
+            await util.loadImage(imgUrl); // not sure this is helping...
             temp.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${imgUrl}), linear-gradient(${bg.color}, ${bg.color})`;
             util.setBackgroundStylesFromMode(temp, bg.mode);
 
-            await util.loadImage(imgUrl);
-            document.body.appendChild(temp);
-            await util.sleep(0);
+            document.body.insertBefore(temp, app.desktopBackground);
+            temp.offsetWidth; // wait till next bg is fully ready to fade in.
             temp.style.opacity = 1;
             await util.sleep(400);
-            app.desktopBackground.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${imgUrl}), linear-gradient(${bg.color}, ${bg.color})`;
-            util.setBackgroundStylesFromMode(app.desktopBackground, bg.mode);
-            temp.parentElement.removeChild(temp);
+
+            // Replace the old background element. This prevents some flickering.
+            app.desktopBackground.remove();
+            temp.id = 'desktopBackground';
+            temp.className = 'desktopBackground';
+            app.desktopBackground = temp;
         } else {
             app.data.background = util.getBackground(bg);
             app.desktopBackground.style.backgroundImage = `linear-gradient(${bg.filter}, ${bg.filter}), url(${imgUrl}), linear-gradient(${bg.color}, ${bg.color})`;

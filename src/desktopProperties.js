@@ -204,8 +204,9 @@
     };
 
     const close = () => {
-        closeModal();
-        removeColorPickers({target: document.body});
+        if (closeModal()) {
+            removeColorPickers({target: document.body});
+        }
         modalOpen = false;
     };
     const apply = () => {
