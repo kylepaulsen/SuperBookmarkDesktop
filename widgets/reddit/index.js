@@ -134,7 +134,7 @@ const render = async (loadMoreAfter) => {
             itemUI.sub.href = `https://reddit.com/${itemData.subreddit_name_prefixed}`;
 
             itemUI.comments.textContent = `${itemData.num_comments} comments`;
-            itemUI.comments.href = `https://reddit.com/${itemData.permalink}`;
+            itemUI.comments.href = `https://reddit.com${itemData.permalink}`;
 
             itemUI.postAge.textContent = formatAge(itemData.created_utc);
             ui.feed.appendChild(newItemEl);
