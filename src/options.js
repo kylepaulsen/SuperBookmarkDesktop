@@ -78,6 +78,17 @@
                     <div>
                         <h3>Changelog</h3>
                         <div class="changelogEntry">
+                            <b>v1.1.1</b>
+                            <ul>
+                                <li>
+                                    <div>Bug Fixes</div>
+                                    <ul>
+                                        <li>Reddit Widget: Fix comment links going to broken reddit pages.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="changelogEntry">
                             <b>v1.1.0</b>
                             <ul>
                                 <li>
