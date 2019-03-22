@@ -61,7 +61,7 @@
                 <div class="tabPage" data-id="aboutPage">
                     <div class="updateMessage" data-id="updateMessage">Super Bookmark Desktop was updated! See what changed below.</div>
                     <h3>Super Bookmark Desktop v<span data-id="version"></span></h3>
-                    <div>&copy; Kyle Paulsen (2017-2018)</div>
+                    <div>&copy; Kyle Paulsen (2017-${(new Date()).getFullYear()})</div>
                     <div><a href="https://github.com/kylepaulsen/SuperBookmarkDesktop">Open Source on Github</a></div><br>
                     <div>
                         <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
@@ -77,6 +77,17 @@
                     </div>
                     <div>
                         <h3>Changelog</h3>
+                        <div class="changelogEntry">
+                            <b>v1.1.2</b>
+                            <ul>
+                                <li>
+                                    <div>Bug Fixes</div>
+                                    <ul>
+                                        <li>Fixed folders not being able to scroll in Chrome 73. Thanks <a href="https://github.com/mstrater">mstrater</a>!</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
                         <div class="changelogEntry">
                             <b>v1.1.1</b>
                             <ul>
