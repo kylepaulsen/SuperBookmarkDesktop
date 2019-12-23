@@ -108,9 +108,20 @@ a:hover {
     margin-bottom: 10px;
 }
 
+.upvotesAndNSFW {
+    display: flex;
+    flex: 0 0 auto;
+}
+
 .upvotes {
     flex: 0 0 auto;
     color: #777;
+    font-weight: bold;
+}
+
+.nsfw {
+    margin-left: 12px;
+    color: red;
     font-weight: bold;
 }
 
@@ -172,6 +183,10 @@ a:hover {
     text-align: center;
     margin-top: 20px;
     font-size: 16px;
+}
+
+.hide {
+    display: none;
 }
 
 @media(max-width: 250px) {

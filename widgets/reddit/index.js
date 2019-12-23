@@ -81,7 +81,10 @@ const feedItemTemplate = `
                 <a href="" data-ui="titleLink" target="_blank"></a>
             </div>
             <div class="info1">
-                <div class="upvotes" data-ui="upvotes"></div>
+                <div class="upvotesAndNSFW">
+                    <div class="upvotes" data-ui="upvotes"></div>
+                    <div class="nsfw hide" data-ui="nsfw">NSFW</div>
+                </div>
                 <div class="sub">
                     <a href="" data-ui="sub" target="_blank"></a>
                 </div>
@@ -96,7 +99,7 @@ const feedItemTemplate = `
     </div>
 `;
 
-const subs = JSON.parse(localStorage.subs || '{"all": true}');
+const subs = JSON.parse(localStorage.subs || '{"popular": true}');
 let after;
 const render = async (loadMoreAfter) => {
     if (Object.keys(subs).filter(s => subs[s]).length === 0) {
@@ -122,6 +125,10 @@ const render = async (loadMoreAfter) => {
             const url = getUrl(itemData);
 
             itemUI.upvotes.textContent = formatUpvotes(itemData.ups);
+
+            if (itemData.over_18 || itemData.thumbnail === 'nsfw') {
+                itemUI.nsfw.classList.remove('hide');
+            }
 
             itemUI.img.src = (itemData.thumbnail || '').startsWith('http') ? itemData.thumbnail : 'defaultThumb.jpg';
             itemUI.imgLink.href = url;
