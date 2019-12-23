@@ -1,7 +1,7 @@
 /* global chrome, app */
 {
     const { DOUBLE_CLICK_SPEED, getParentElementWithClass, updateBackground, getNextBgInCycle,
-        throttle, removeNewNodeId, getBackground} = app.util;
+        throttle, removeNewNodeId, getBackground } = app.util;
 
     // Start checking if we need to switch backgrounds.
     setInterval(() => {

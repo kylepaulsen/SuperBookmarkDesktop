@@ -109,6 +109,7 @@
             });
         }
     };
+    app.openDocument = renderEditor;
 
     const getDocumentData = (dataUri = '') => {
         if (dataUri.startsWith(dataUriStartString)) {

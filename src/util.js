@@ -509,6 +509,9 @@
         });
     };
 
+    util.isUserInteractingWithForm = () => ['INPUT', 'TEXTAREA'].includes(document.activeElement.nodeName) ||
+        document.activeElement.contentEditable === 'true';
+
     util.debounce = (fn, time) => {
         let timeout;
         return (...args) => {
@@ -546,7 +549,7 @@
             '<': '&lt;',
             '>': '&gt;',
             '"': '&quot;',
-            "'": '&#39;',
+            '\'': '&#39;',
             '/': '&#x2F;',
             '`': '&#x60;',
             '=': '&#x3D;'

@@ -2,7 +2,7 @@
 {
     const {openBookmarkProperties, openDesktopProperties} = app;
     const {getUiElements, show, hide, getParentElementWithClass, getDataset,
-        addNewNodeId, deselectAll, pointToGrid, findFreeSpotNear, markupToElement} = app.util;
+        addNewNodeId, deselectAll, pointToGrid, findFreeSpotNear, markupToElement, isUserInteractingWithForm} = app.util;
 
     const contextMenu = document.createElement('div');
     contextMenu.className = 'contextMenu';
@@ -288,16 +288,12 @@
     });
 
     window.addEventListener('keydown', (e) => {
-        if (e.keyCode === 46) { // delete key
-            const modalOpen = document.querySelectorAll('.modalOverlay').find((a) =>
-                a.style.display && a.style.display !== 'none');
-            if (!modalOpen) {
-                const selected = document.querySelectorAll('.bookmark.selected');
-                if (selected.length > 1) {
-                    del(selected);
-                } else if (selected.length === 1) {
-                    del(selected[0]);
-                }
+        if (e.keyCode === 46 && !isUserInteractingWithForm()) { // delete key
+            const selected = document.querySelectorAll('.bookmark.selected');
+            if (selected.length > 1) {
+                del(selected);
+            } else if (selected.length === 1) {
+                del(selected[0]);
             }
         }
     });

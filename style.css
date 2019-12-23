@@ -104,6 +104,7 @@ input[type=checkbox]:focus {
     overflow: hidden;
     user-select: none;
     cursor: pointer;
+    outline: none;
 }
 
 .bookmarkLink .iconContainer {
