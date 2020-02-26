@@ -78,6 +78,18 @@
                     <div>
                         <h3>Changelog</h3>
                         <div class="changelogEntry">
+                            <b>v1.2.1</b>
+                            <ul>
+                                <li>
+                                    <div>Bug Fixes</div>
+                                    <ul>
+                                        <li>Fixed folder icons not being sorted alphabetically.</li>
+                                        <li>Fixed some cases of overflowing icon names.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="changelogEntry">
                             <b>v1.2.0</b>
                             <ul>
                                 <li>
