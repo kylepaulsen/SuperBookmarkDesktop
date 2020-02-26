@@ -12,7 +12,6 @@
     },
     "permissions": [
         "bookmarks",
-        "tabs",
         "chrome://favicon/"
     ],
     "chrome_url_overrides": {
