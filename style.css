@@ -137,6 +137,7 @@ input[type=checkbox]:focus {
     text-shadow: 0px 0px 8px rgba(0, 0, 0, 1);
     color: #ffffff;
     padding: 0 5px 5px 5px;
+    width: 100%;
 }
 
 .window .bookmarkLink .name {

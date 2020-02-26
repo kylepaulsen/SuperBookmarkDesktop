@@ -117,7 +117,7 @@
                 folders.push(node);
             }
         });
-        const sort = (a, b) => a.title > b.title;
+        const sort = (a, b) => (a.title || '').toLowerCase() > (b.title || '').toLowerCase() ? 1 : -1;
         folders.sort(sort);
         bookmarks.sort(sort);
         const allNodes = folders.concat(bookmarks);
