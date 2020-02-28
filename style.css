@@ -134,7 +134,7 @@ input[type=checkbox]:focus {
     -webkit-box-orient: vertical;*/
     margin-top: 5px;
     word-wrap: break-word;
-    text-shadow: 0px 0px 8px rgba(0, 0, 0, 1);
+    text-shadow: 0 0 6px #000, 0 0 6px #000, 0 0 3px #000;
     color: #ffffff;
     padding: 0 5px 5px 5px;
     width: 100%;
