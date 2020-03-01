@@ -78,6 +78,17 @@
                     <div>
                         <h3>Changelog</h3>
                         <div class="changelogEntry">
+                            <b>v1.3.0</b>
+                            <ul>
+                                <li>
+                                    <div>Features</div>
+                                    <ul>
+                                        <li><b>Random Subreddit Backgrounds!</b> Right click somewhere on the desktop and click "Desktop Properties" to add one!</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="changelogEntry">
                             <b>v1.2.1</b>
                             <ul>
                                 <li>
