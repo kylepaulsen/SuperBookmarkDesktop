@@ -73,6 +73,18 @@
             </ul>
             <div>Just play around with the settings and I'm sure you will get it.</div>
         </div>
+        <br>
+        <div>
+            <div><b>Subreddit Randomizers</b></div>
+            <br>
+            <div>
+                In "Desktop Properties", you might notice the "Add Subreddit Randomizer" button near the bottom.
+                This feature allows you to specify <a href="https://reddit.com">reddit.com</a> subreddits as an image
+                source for Super Bookmark Desktop to pick from randomly. You can enter multiple subreddits in the same
+                randomizer so that their results are mixed, but you may want to make a separate randomizer for each
+                subreddit so that all subreddits have an equal chance to be used when picking an image.
+            </div>
+        </div>
         <h2>Find a bug / Request a feature / Just want to say thanks?</h2>
         <div>
             For bugs or features, you can open a github issue here:

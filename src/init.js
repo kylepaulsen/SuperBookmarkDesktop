@@ -16,7 +16,7 @@
     app.util = window.util;
     const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, setBackgroundStylesFromMode, updateBackground,
         getBackground, getNextBgInCycle, getBgImageFromDB, loadImage, sleep, loadData, debounce,
-        loadUserBackgrounds, getBackgroundImage, promisify, diffRender} = app.util;
+        loadUserBackgrounds, getBackgroundImage, promisify, diffRender, rerollSubredditRandomizerBG} = app.util;
 
     app.getBookmarkTree = promisify(chrome.bookmarks.getTree);
     app.getBookmarks = promisify(chrome.bookmarks.get);
@@ -52,14 +52,17 @@
         localStorage.userBgsCollapsed = false;
     }
 
+    const rotateMs = data.rotateMinutes * 60 * 1000;
     const lastRotation = localStorage.lastRotation;
-    if ((now - lastRotation) > data.rotateMinutes * 60 * 1000) {
+    let didBgRotation = false;
+    if ((now - lastRotation) > rotateMs) {
+        localStorage.lastRotation = now;
         const nextBg = getNextBgInCycle(localStorage.lastBgId, data.backgrounds, data.random);
         if (nextBg) {
+            didBgRotation = true;
             data.background = nextBg;
             localStorage.lastBgId = nextBg.id;
         }
-        localStorage.lastRotation = now;
     }
 
     let userImagesDidLoad;
@@ -67,7 +70,6 @@
         userImagesDidLoad = res;
     });
 
-    const currentBG = data.background;
     app.loadingSpinner = document.getElementById('loading');
 
     app.saveData = () => {
@@ -165,8 +167,19 @@
         }
     });
 
+    let currentBG = data.background;
+    if (currentBG && currentBG.color) {
+        document.getElementById('loadFadeIn').style.background = currentBG.color;
+    }
+
     const loadBG = async () => {
-        if (!currentBG.default) {
+        currentBG = data.background;
+        if (currentBG.type === 'subredditRandomizer' && didBgRotation) {
+            await rerollSubredditRandomizerBG(currentBG);
+            localStorage.lastBgSrc = currentBG.image;
+            localStorage.data = JSON.stringify(app.data);
+        }
+        if (!currentBG.default && currentBG.type === 'image') {
             await getBgImageFromDB(currentBG.id);
         }
         const imgUrl = getBackgroundImage(currentBG.id);

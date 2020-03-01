@@ -70,6 +70,10 @@
         const userBgs = data.backgrounds.filter((bg) => !bg.default);
         data.backgrounds = defaultBgs.concat(defaultMissing).concat(userBgs);
 
+        data.backgrounds.forEach(bg => {
+            bg.type = bg.type || 'image';
+        });
+
         // Seems pointless but This makes sure data.background points at one of our backgrounds in the list.
         const lastId = localStorage.lastBgId || (data.backgrounds[util.randomInt(0, data.backgrounds.length - 1)].id).toString();
         data.background = data.backgrounds.find((bg) => lastId === bg.id);
@@ -96,6 +100,7 @@
         localStorage.nextBgId = nextBgId;
         return {
             id: id.toString(),
+            type: 'image',
             image: url,
             mode: 'fill',
             color: '#000000',
@@ -147,7 +152,7 @@
     util.loadImage = (src, mustLoad = true) => {
         return new Promise((res, rej) => {
             const img = new Image();
-            img.onload = res;
+            img.onload = () => res(img);
             img.onerror = mustLoad ? rej : res;
             img.src = src;
         });
@@ -165,13 +170,13 @@
         if (bg.default) {
             return bg.image;
         } else {
-            return backgroundId2ObjectUrl[bgId];
+            return bg.image || backgroundId2ObjectUrl[bgId];
         }
     };
 
     util.loadUserBackgrounds = (data = app.data) => {
         return Promise.all(data.backgrounds.map((bg) => {
-            if (bg.default || backgroundId2ObjectUrl[bg.id]) {
+            if (bg.default || bg.type === 'subredditRandomizer' || backgroundId2ObjectUrl[bg.id]) {
                 return Promise.resolve();
             } else {
                 return util.getBgImageFromDB(bg.id)
@@ -289,9 +294,29 @@
         return str;
     };
 
-    util.updateBackground = async (bg) => {
+    util.triggerBackgroundChange = async () => {
+        localStorage.lastRotation = Date.now();
+        const nextBg = util.getNextBgInCycle(localStorage.lastBgId, app.data.backgrounds, app.data.random);
+        if (nextBg) {
+            const isSubredditRandomizer = nextBg.type === 'subredditRandomizer';
+            if (isSubredditRandomizer) {
+                await util.rerollSubredditRandomizerBG(nextBg);
+            }
+            await util.updateBackground(nextBg, isSubredditRandomizer);
+            app.saveData();
+            if (isSubredditRandomizer && app.rerenderDesktopProperties) {
+                app.rerenderDesktopProperties();
+            }
+        }
+    };
+
+    util.updateBackground = async (bg, forceFadeIn = false) => {
         const imgUrl = util.getBackgroundImage(bg.id);
-        if (app.data.background.id !== bg.id) {
+        if (!imgUrl) {
+            return;
+        }
+        localStorage.lastBgSrc = imgUrl;
+        if (app.data.background.id !== bg.id || forceFadeIn) {
             app.data.background = util.getBackground(bg);
             localStorage.lastRotation = Date.now();
             localStorage.lastBgId = bg.id;
@@ -561,6 +586,93 @@
     util.markupToElement = (html) => {
         markupToElementDiv.innerHTML = html;
         return markupToElementDiv.children[0];
+    };
+
+    util.fetchRedditImages = async (subreddits, options = {}) => {
+        const section = options.section || 'hot'; // 'hot', 'new', 'rising', 'controversial', 'top', 'gilded'
+        const limit = options.limit || 100;
+        const time = options.time || 'day'; // 'hour', 'day', 'week', 'month', 'year', 'all'
+        const sort = options.sort || 'top';
+        const imageOrientation = options.imageOrientation || 'any';
+        const redditData = await fetch(`https://www.reddit.com/r/${subreddits.join('+')}/${section}.json?sort=${sort}&t=${time}&limit=${limit}`)
+            .then(r => r.json()).catch(() => null);
+        const identity = a => a;
+        const domainMapFunctions = {
+            'https://i.redd.it': identity,
+            'https://i.imgur.com': identity,
+            'https://imgur.com': url => url.replace('https://imgur.com/', 'https://i.imgur.com/') + '.jpg'
+        };
+        const allowedDomains = Object.keys(domainMapFunctions);
+
+        if (redditData && redditData.data) {
+            const allImages = (redditData.data.children || []).filter(c => {
+                const data = c.data || {};
+                const url = data.url || '';
+                const allowed = allowedDomains.some(d => {
+                    if (url.startsWith(d)) {
+                        data.url = domainMapFunctions[d](url);
+                        return true;
+                    }
+                    return false;
+                });
+                return allowed && (options.nsfw || (!data.over_18 && data.thumbnail !== 'nsfw'));
+            });
+            let filteredImages = allImages;
+            if (imageOrientation === 'landscape') {
+                filteredImages = allImages.filter(c => {
+                    const imageInfo = util.get(c, 'data.preview.images.0.source');
+                    return imageInfo && imageInfo.width >= imageInfo.height;
+                });
+            } else if (imageOrientation === 'portrait') {
+                filteredImages = allImages.filter(c => {
+                    const imageInfo = util.get(c, 'data.preview.images.0.source');
+                    return imageInfo && imageInfo.width <= imageInfo.height;
+                });
+            }
+            if (filteredImages.length === 0) {
+                filteredImages = allImages;
+            }
+            return filteredImages.map(c => {
+                const data = c.data || {};
+                return {
+                    url: data.url || '',
+                    title: data.title || '',
+                    link: `https://reddit.com${data.permalink}`
+                };
+            });
+        }
+        return [];
+    };
+
+    util.rerollSubredditRandomizerBG = async bgOrId => {
+        const bg = util.getBackground(bgOrId.id || bgOrId);
+        if (bg.type !== "subredditRandomizer" || !bg.subreddits) {
+            return;
+        }
+        const images = await util.fetchRedditImages(bg.subreddits, bg.redditOptions);
+
+        if (images.length) {
+            const randomImage = images[util.randomInt(0, images.length - 1)];
+            bg.image = randomImage.url;
+            bg.redditOptions.title = randomImage.title;
+            bg.redditOptions.link = randomImage.link;
+            localStorage.lastBgSrc = bg.image;
+            if (bg.smartFit) {
+                const img = await util.loadImage(bg.image);
+                const screenIsWide = window.innerWidth > window.innerHeight;
+                const imageIsWide = img.width > img.height;
+                bg.mode = screenIsWide !== imageIsWide ? 'fit' : 'fill';
+            }
+        }
+    };
+
+    util.get = (obj, path, def) => {
+        const pathParts = path.split('.');
+        let current = obj;
+        for (let x = 0; x < pathParts.length && current; x++) {
+            current = current[pathParts[x]];
+        }
+        return current !== undefined ? current : def;
     };
 
     window.util = util;

@@ -1,8 +1,8 @@
 /* global chrome, idbKeyval, app */
 {
     const {openBookmarkProperties, openDesktopProperties} = app;
-    const {getUiElements, show, hide, getParentElementWithClass, getDataset,
-        addNewNodeId, deselectAll, pointToGrid, findFreeSpotNear, markupToElement, isUserInteractingWithForm} = app.util;
+    const { getUiElements, show, hide, getParentElementWithClass, getDataset, addNewNodeId, deselectAll,
+        pointToGrid, findFreeSpotNear, markupToElement, isUserInteractingWithForm, triggerBackgroundChange } = app.util;
 
     const contextMenu = document.createElement('div');
     contextMenu.className = 'contextMenu';
@@ -21,6 +21,7 @@
         <div class="contextMenuItem" data-id="addWidget">Add Widget</div>
         <div class="contextMenuItem" data-id="delete">Delete</div>
         <div class="contextMenuSeperator" data-id="sep2"></div>
+        <div class="contextMenuItem" data-id="nextBackground">Next Background</div>
         <div class="contextMenuItem" data-id="options">Options</div>
         <div class="contextMenuItem" data-id="properties">Properties</div>
     `;
@@ -189,6 +190,11 @@
         del(context);
     });
 
+    ui.nextBackground.addEventListener('click', () => {
+        triggerBackgroundChange();
+        hide(contextMenu);
+    });
+
     ui.properties.addEventListener('click', () => {
         if (context.classList.contains('bookmark')) {
             openBookmarkProperties(context);
@@ -251,6 +257,7 @@
             }
             show(ui.sep1);
             show(ui.sep2);
+            show(ui.nextBackground);
             show(ui.options);
             show(ui.properties);
             ui.properties.textContent = 'Desktop Properties';

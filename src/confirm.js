@@ -79,6 +79,7 @@
             currentResolve = res;
             ui.confirmMessage.innerHTML = message;
             ui.confirmButtons.innerHTML = buttons.map(makeButton).join('');
+            ui.confirmButtons.style.justifyContent = buttons.length === 1 ? 'flex-end' : 'space-between';
             const defaultBtn = modal.querySelector('.defaultBtn');
             if (defaultBtn) {
                 defaultBtn.focus();

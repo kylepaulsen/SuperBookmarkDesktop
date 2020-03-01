@@ -1,9 +1,12 @@
 /* global app */
 {
-    const {getUiElements, markupToElement} = app.util;
+    const {getUiElements, show, hide} = app.util;
 
-    const promptModal = markupToElement(`
-        <div class="prompt">
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'modalOverlay';
+    modalOverlay.dataset.display = 'flex';
+    modalOverlay.innerHTML = `
+        <div class="prompt" data-id="modal">
             <div class="promptTitle" data-id="promptTitle"></div>
             <div class="promptDesc" data-id="promptDesc"></div>
             <div class="promptTextbox"><input data-id="promptTextbox" /></div>
@@ -12,34 +15,39 @@
                 <button class="btn defaultBtn" data-id="okBtn">OK</button>
             </div>
         </div>
-    `);
-    const ui = getUiElements(promptModal);
+    `;
+    document.body.appendChild(modalOverlay);
+
+    const ui = getUiElements(modalOverlay);
+    const modal = ui.modal;
 
     let modalOpen = false;
     const openModal = () => {
-        app.openModal(promptModal);
+        modalOverlay.style.background = 'rgba(0, 0, 0, 0.5)';
+        modal.style.background = '#ffffff';
+        show(modalOverlay);
         modalOpen = true;
     };
 
     const closeModal = () => {
-        app.closeModal();
+        hide(modalOverlay);
         modalOpen = false;
     };
 
     let currentResolve;
-    ui.okBtn.addEventListener('click', (e) => {
+    ui.okBtn.addEventListener('click', () => {
         if (ui.promptTextbox.value) {
             currentResolve(ui.promptTextbox.value);
             closeModal();
         }
     });
 
-    ui.cancelBtn.addEventListener('click', (e) => {
+    ui.cancelBtn.addEventListener('click', () => {
         currentResolve(null);
         closeModal();
     });
 
-    window.addEventListener('keydown', function(e) {
+    window.addEventListener('keydown', (e) => {
         if (modalOpen) {
             if (e.keyCode === 27) { // esc
                 currentResolve(null);
@@ -59,7 +67,7 @@
             ui.promptDesc.innerHTML = '';
             ui.promptDesc.appendChild(description);
         }
-        ui.promptTextbox.value = '';
+        ui.promptTextbox.value = options.value || '';
         ui.promptTextbox.setAttribute('placeholder', options.placeholder || '');
         openModal();
         return new Promise((res) => {
