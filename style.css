@@ -939,3 +939,82 @@ input[type=checkbox]:focus {
 .promptTextbox input {
     width: 100%;
 }
+
+.quickSearchButton {
+    width: 60px;
+    height: 40px;
+    padding-top: 5px;
+    position: fixed;
+    top: -38px;
+    left: calc(50% - 30px);
+    z-index: 10;
+    cursor: pointer;
+    border-radius: 0 0 10px 10px;
+    background: #eee;
+    border: 2px solid #ddd;
+    outline: 0;
+    box-shadow: 0px 4px 5px #000;
+    transition: background 0.4s, top 0.4s;
+}
+
+.quickSearchButton svg {
+    width: 25px;
+}
+
+.quickSearchButton.show {
+    top: -4px;
+}
+
+.quickSearchButton:hover {
+    background: #ddd;
+}
+
+.bookmarkSearchInput {
+    width: 600px;
+    height: 40px;
+    font-size: 24px;
+    border-radius: 5px;
+    padding: 0 8px;
+}
+
+.searchResults {
+    margin-top: 6px;
+    width: 600px;
+    height: 400px;
+    overflow-y: auto;
+}
+
+.searchResult {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    padding: 4px 6px;
+}
+
+.searchResult img {
+    width: 32px;
+    height: 32px;
+}
+
+.searchResult:hover {
+    background: #eee;
+}
+
+.searchResult.selected {
+    background: #ddd;
+}
+
+.searchResult .bookmarkTitle {
+    margin-left: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.notFound {
+    font-size: 24px;
+    height: 100%;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+}

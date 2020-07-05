@@ -47,6 +47,12 @@
                         </div>
                     </div>
                     <div class="option">
+                        <div class="optionText">Hide bookmark search button:</div>
+                        <div class="optionUi">
+                            <input type="checkbox" data-id="hideBookmarkSearchButton">
+                        </div>
+                    </div>
+                    <div class="option">
                         <div class="textareaContainer">
                             <div class="label">Custom Styles (CSS):</div>
                             <div>
@@ -294,6 +300,12 @@
             localStorage.useDoubleClicks = '';
         }
 
+        if (ui.hideBookmarkSearchButton.checked) {
+            localStorage.hideBookmarkSearchButton = '1';
+        } else {
+            localStorage.hideBookmarkSearchButton = '';
+        }
+
         localStorage.userStyles = ui.customCss.value;
         chrome.runtime.sendMessage({action: 'reloadOptions'});
     };
@@ -306,10 +318,10 @@
 
         if (localStorage.windowCloseRight) {
             ui.windowCloseRight.checked = true;
-            applyStylesheet('.title-bar{flex-direction: row-reverse;}', 'windowCloseRight');
+            applyStylesheet('.title-bar{flex-direction: row-reverse;}', 'windowCloseRightStyle');
         } else {
             ui.windowCloseRight.checked = false;
-            applyStylesheet('.title-bar{flex-direction: row;}', 'windowCloseRight');
+            applyStylesheet('.title-bar{flex-direction: row;}', 'windowCloseRightStyle');
         }
 
         ui.hideBookmarksBarBookmarks.checked = false;
@@ -320,6 +332,17 @@
         ui.useDoubleClicks.checked = false;
         if (localStorage.useDoubleClicks === '1') {
             ui.useDoubleClicks.checked = true;
+        }
+
+        if (localStorage.hideBookmarkSearchButton === '1') {
+            ui.hideBookmarkSearchButton.checked = true;
+            applyStylesheet('.quickSearchButton{display: none;}', 'bmSearchButtonStyle');
+        } else {
+            ui.hideBookmarkSearchButton.checked = false;
+            applyStylesheet('.quickSearchButton{display: block;}', 'bmSearchButtonStyle');
+            if (app.updateQuickSearchButton) {
+                app.updateQuickSearchButton();
+            }
         }
 
         const defaultCustomCss = '/*' + customCssPlaceholder.replace('/*', '').replace('*/', '') + '\n*/';
@@ -393,6 +416,11 @@
     });
 
     ui.useDoubleClicks.addEventListener('change', () => {
+        save();
+        load();
+    });
+
+    ui.hideBookmarkSearchButton.addEventListener('change', () => {
         save();
         load();
     });

@@ -1,6 +1,6 @@
 /* global chrome, app */
 {
-    const { deselectAll, pointToGrid, isUserInteractingWithForm } = app.util;
+    const { deselectAll, pointToGrid, isUserInteractingWithForm, addToBookmarkHistory } = app.util;
 
     const arrowKeysToDir = {
         ArrowUp: true,
@@ -127,11 +127,14 @@
             const urlBookmarks = bookmarks.filter(bookmark => !!bookmark.dataset.url &&
                 bookmark.dataset.url !== 'undefined' && !bookmark.dataset.url.startsWith('data'));
             urlBookmarks.forEach(bookmark => {
+                const url = bookmark.dataset.url;
                 if (first) {
-                    window.location.href = bookmark.dataset.url;
+                    window.location.href = url;
                     first = false;
+                    addToBookmarkHistory({ title: bookmark.dataset.name, url });
                 } else {
                     chrome.tabs.create({url: bookmark.dataset.url, active: false});
+                    addToBookmarkHistory({ title: bookmark.dataset.name, url });
                 }
             });
             if (!first) {

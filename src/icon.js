@@ -1,7 +1,7 @@
-/* global app, chrome, idbKeyval */
+/* global app, chrome */
 {
-    const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, getFaviconImageUrl, clampText,
-        folderImage, documentImage, attachClickHandler, findNextOpenSpot, htmlEscape} = app.util;
+    const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, clampText,
+        getBookmarkIcon, attachClickHandler, findNextOpenSpot, htmlEscape} = app.util;
 
     const measuringDiv = document.createElement('div');
     measuringDiv.className = 'measuringDiv';
@@ -10,22 +10,14 @@
     async function makeIconElement(bookmark) {
         const isDocument = app.isValidDocument(bookmark.url);
         const folder = bookmark.url === undefined;
-        let icon = getFaviconImageUrl(bookmark.url);
+        let icon = await getBookmarkIcon(bookmark);
         let type = 'bookmark';
         if (folder) {
-            icon = folderImage;
             type = 'folder';
         }
         if (isDocument) {
-            icon = documentImage;
             type = 'document';
         }
-        try {
-            const iconBlob = await idbKeyval.get(bookmark.id);
-            if (iconBlob) {
-                icon = URL.createObjectURL(iconBlob);
-            }
-        } catch (e) {}
         const newNodeIds = JSON.parse(localStorage.newNodeIds || '{}');
         const bookmarkIcon = document.createElement('div');
         bookmarkIcon.className = 'bookmark';

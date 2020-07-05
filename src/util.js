@@ -287,6 +287,54 @@
         return `chrome://favicon/size/${size}/${url}`;
     };
 
+    const iconObjectUrlCache = {};
+    util.getIconObjectUrl = async bookmark => {
+        if (iconObjectUrlCache[bookmark.id]) {
+            return iconObjectUrlCache[bookmark.id];
+        }
+        let icon;
+        try {
+            const iconBlob = await idbKeyval.get(bookmark.id);
+            if (iconBlob) {
+                icon = URL.createObjectURL(iconBlob);
+            }
+        } catch (e) {
+            return null;
+        }
+        iconObjectUrlCache[bookmark.id] = icon;
+        return icon;
+    };
+
+    util.clearIconObjectUrlCacheForId = id => {
+        delete iconObjectUrlCache[id];
+    };
+
+    util.getBookmarkIcon = async bookmark => {
+        const isDocument = app.isValidDocument(bookmark.url);
+        const folder = bookmark.url === undefined;
+        let icon = util.getFaviconImageUrl(bookmark.url);
+        if (folder) {
+            icon = util.folderImage;
+        }
+        if (isDocument) {
+            icon = util.documentImage;
+        }
+        icon = await util.getIconObjectUrl(bookmark) || icon;
+        return icon;
+    };
+
+    let bookmarkHistory = JSON.parse(localStorage.bookmarkHistory || '[]');
+    util.addToBookmarkHistory = bookmark => {
+        bookmarkHistory = bookmarkHistory.filter(bm => bm.url !== bookmark.url || bm.title !== bookmark.title);
+        bookmarkHistory.unshift({ title: bookmark.title, url: bookmark.url });
+        while (bookmarkHistory.length > 10) {
+            bookmarkHistory.pop();
+        }
+        localStorage.bookmarkHistory = JSON.stringify(bookmarkHistory);
+    };
+
+    util.getBookmarkHistory = () => bookmarkHistory;
+
     util.pad = (str, length, pad = '0') => {
         while (str.length < length) {
             str = pad + str;

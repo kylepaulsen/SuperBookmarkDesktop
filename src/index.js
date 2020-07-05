@@ -1,7 +1,7 @@
 /* global chrome, app */
 {
     const { DOUBLE_CLICK_SPEED, getParentElementWithClass, updateBackground, throttle, removeNewNodeId,
-        getBackground, triggerBackgroundChange } = app.util;
+        getBackground, triggerBackgroundChange, addToBookmarkHistory } = app.util;
 
     // Start checking if we need to switch backgrounds.
     setInterval(async () => {
@@ -66,6 +66,28 @@
                 lastTime = 0;
             }
             lastTarget = target;
+        });
+
+        // These mouse down and up handlers are the best way I could think of to keep track
+        // of bookmark clicks to maintain the "bookmark history". Triggering the context
+        // menu will add it no matter if the user navigates or not, but there's no way to know
+        // if they wanted to navigate or not.
+        let mouseDownLinkElement;
+        window.addEventListener('mousedown', e => {
+            const closestLink = e.target.closest('a');
+            if (closestLink) {
+                mouseDownLinkElement = closestLink;
+            } else {
+                mouseDownLinkElement = undefined;
+            }
+        });
+
+        window.addEventListener('mouseup', e => {
+            const closestLink = e.target.closest('a');
+            if (closestLink && mouseDownLinkElement === closestLink) {
+                const title = closestLink.dataset.name || closestLink.parentElement.dataset.name;
+                addToBookmarkHistory({ title, url: closestLink.href });
+            }
         });
     }
 

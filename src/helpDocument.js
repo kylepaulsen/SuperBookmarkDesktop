@@ -48,7 +48,18 @@
                 and click Options).
             </div>
         </div>
+        <h2>Quick Search:</h2>
+        <div>
+            When you open a new browser tab, you can press your keyboard tab key (1-2 times depending on your OS) to
+            activate the quick search feature. This feature lets you type to find the bookmark you are looking for
+            using a few characters. You can use the arrow keys to navigate up and down the list and the enter key
+            to select a bookmark.
+        </div>
         <br>
+        <div>
+            You can also use the spacebar key to open the quick search at any time when you've already clicked in
+            the new brwoser tab.
+        </div>
         <h2>Some Notes on Background Settings:</h2>
         <div>
             Reach background settings by <i>Right Clicking</i> anywhere on the desktop (not on an icon).

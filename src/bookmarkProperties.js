@@ -2,7 +2,7 @@
 {
     const {saveData, openModal, closeModal} = app;
     const {getUiElements, selectImageFromDisk, getFaviconImageUrl, hide, show,
-        folderImage, documentImage, getDataset} = app.util;
+        folderImage, documentImage, getDataset, clearIconObjectUrlCacheForId} = app.util;
 
     const content = document.createElement('div');
     content.innerHTML = `
@@ -74,12 +74,14 @@
             }
         }
         if (blobToSave) {
+            clearIconObjectUrlCacheForId(iconId);
             idbKeyval.set(iconId, blobToSave).then(() => {
                 blobToSave = undefined;
                 saveData();
             });
         } else {
             if (deleteImage) {
+                clearIconObjectUrlCacheForId(iconId);
                 idbKeyval.delete(iconId);
             }
         }
