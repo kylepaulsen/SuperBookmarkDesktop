@@ -66,7 +66,7 @@
                 </div>
                 <div class="tabPage" data-id="aboutPage">
                     <div class="updateMessage" data-id="updateMessage">Super Bookmark Desktop was updated! See what changed below.</div>
-                    <h3>Super Bookmark Desktop v<span data-id="version"></span></h3>
+                    <h3 class="extensionName">Super Bookmark Desktop v<span data-id="version"></span></h3>
                     <div>&copy; Kyle Paulsen (2017-${(new Date()).getFullYear()})</div>
                     <div><a href="https://github.com/kylepaulsen/SuperBookmarkDesktop">Open Source on Github</a></div><br>
                     <div>
@@ -82,7 +82,19 @@
                         </form>
                     </div>
                     <div>
-                        <h3>Changelog</h3>
+                        <h3 class="changelogTitle">Changelog</h3>
+                        <div class="changelogEntry featured">
+                            <b>v1.4.0</b>
+                            <ul>
+                                <li>
+                                    <div>Features</div>
+                                    <ul>
+                                        <li><b>Bookmark Quick Search!</b> Press the tab key from the browser's url box when the tab first opens or press the spacebar any other time to open a bookmark search.</li>
+                                        <li>Added an option to remove the search button from the top of the page.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
                         <div class="changelogEntry">
                             <b>v1.3.0</b>
                             <ul>

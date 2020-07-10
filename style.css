@@ -794,14 +794,31 @@ input[type=checkbox]:focus {
 
 .updateMessage {
     background: #ff8;
-    padding: 12px 0;
+    padding: 6px 0;
     text-align: center;
     font-weight: bold;
     display: none;
 }
 
+.extensionName {
+    margin: 4px 0 12px 0;
+}
+
+.changelogTitle {
+    margin: 0 0 12px 0;
+}
+
 .changelogEntry {
-    margin-left: 20px;
+    margin-left: 14px;
+    padding: 6px;
+}
+
+.changelogEntry.featured {
+    outline: 4px dashed #ff8;
+}
+
+.changelogEntry ul {
+    margin: 6px 0;
 }
 
 .backgroundImageAttributions {
