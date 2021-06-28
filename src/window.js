@@ -50,6 +50,8 @@
         const titleBar = win.querySelector('.title-bar');
         titleBar.querySelector('.title').textContent = title;
 
+        x = Math.max(x, 0);
+        y = Math.max(y, 0);
         win.style.width = width + 'px';
         win.style.height = height + 'px';
         win.style.left = x + 'px';
@@ -77,6 +79,8 @@
 
         listen(window, 'mouseup', () => {
             if (mouseDown) {
+                win.style.left = Math.max(win.offsetLeft, 0) + 'px';
+                win.style.top = Math.max(win.offsetTop, 0) + 'px';
                 app.rememberOpenWindows();
                 app.rememberWidgets();
             }

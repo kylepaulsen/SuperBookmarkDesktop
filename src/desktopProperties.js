@@ -189,7 +189,7 @@
             'Subreddit Randomizer',
             'This is a special background that randomly selects images from subreddits of your choice. Type a ' +
             'comma separated list of one or more subreddits.<br>' +
-            '<a href="https://www.reddit.com/r/sfwpornnetwork/wiki/network" target="_blank" rel="noopener noreferrer">Subreddit Suggestions</a>',
+            '<a href="https://old.reddit.com/r/sfwpornnetwork/wiki/network" target="_blank" rel="noopener noreferrer">Subreddit Suggestions</a>',
             {
                 placeholder: 'Wallpaper, EarthPorn'
             }
@@ -197,7 +197,7 @@
         if (subreddits) {
             const newBg = createBG();
             newBg.type = 'subredditRandomizer';
-            newBg.subreddits = subreddits.split(',').map(sub => sub.trim().replace(/^r\//i, ''));
+            newBg.subreddits = subreddits.split(',').map(sub => sub.trim().replace(/.*r\/|\/$/ig, ''));
             newBg.redditOptions = {
                 time: 'week',
                 section: 'top',
@@ -464,14 +464,14 @@
             'Edit Subreddits',
             'This is a special background that randomly selects images from subreddits of your choice. Type a ' +
             'comma separated list of one or more subreddits.<br>' +
-            '<a href="https://www.reddit.com/r/sfwpornnetwork/wiki/network" target="_blank" rel="noopener noreferrer">Subreddit Suggestions</a>',
+            '<a href="https://old.reddit.com/r/sfwpornnetwork/wiki/network" target="_blank" rel="noopener noreferrer">Subreddit Suggestions</a>',
             {
                 placeholder: 'Wallpaper, EarthPorn',
                 value: currentBg.subreddits.join(', ')
             }
         );
         if (subreddits) {
-            currentBg.subreddits = subreddits.split(',').map(sub => sub.trim().replace(/^r\//i, ''));
+            currentBg.subreddits = subreddits.split(',').map(sub => sub.trim().replace(/.*r\/|\/$/ig, ''));
             const imageUrls = await fetchRedditImages(currentBg.subreddits, currentBg.redditOptions);
             if (imageUrls.length === 0) {
                 app.confirm("No backgrounds found. Check spelling or change filtering options when editing background.", [{text: "OK", default: true}]);

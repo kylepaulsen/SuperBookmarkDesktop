@@ -265,7 +265,10 @@
     };
 
     window.addEventListener('contextmenu', (e) => {
-        const targetEl = getParentElementWithClass(e.target, ['bookmark', 'desktop', 'userBg', 'window']);
+        let targetEl = getParentElementWithClass(e.target, ['bookmark', 'desktop', 'userBg', 'window']);
+        if (e.target === app.desktopBackground) {
+            targetEl = app.desktop;
+        }
         // weird case is a document window. It should not get a special context menu.
         if (targetEl && (targetEl.dataset.type !== 'document' || targetEl.classList.contains('bookmark'))) {
             e.preventDefault();
