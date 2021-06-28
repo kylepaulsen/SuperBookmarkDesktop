@@ -84,6 +84,19 @@
                     <div>
                         <h3 class="changelogTitle">Changelog</h3>
                         <div class="changelogEntry featured">
+                            <b>v1.4.1</b>
+                            <ul>
+                                <li>
+                                    <div>Bug Fixes</div>
+                                    <ul>
+                                        <li>Don't allow windows to be placed in negative coordinates.</li>
+                                        <li>Fix context menu not working when scrolled down on desktop.</li>
+                                        <li>Make subreddit randomizer textbox parse subreddets better.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="changelogEntry">
                             <b>v1.4.0</b>
                             <ul>
                                 <li>
