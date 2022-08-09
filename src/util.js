@@ -284,7 +284,7 @@
     };
 
     util.getFaviconImageUrl = (url, size = 32) => {
-        return `chrome://favicon/size/${size}/${url}`;
+        return `/_favicon/?pageUrl=${encodeURIComponent(url)}&size=${size}`;
     };
 
     const iconObjectUrlCache = {};
