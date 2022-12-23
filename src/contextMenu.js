@@ -150,6 +150,8 @@
         const icon = getDataset(element);
         const iconId = icon.id + ''; // must be string
         if (icon.type === 'folder') {
+            // it's possible to orphan custom icons inside a folder that's being deleted.
+            // Should probably fix here, but at least there's cleanup code in init.js for this.
             chrome.bookmarks.removeTree(iconId);
         } else {
             chrome.bookmarks.remove(iconId);
@@ -158,7 +160,7 @@
         element.parentElement.removeChild(element);
     };
 
-    async function del(context) {
+    const deleteThing = async (context) => {
         const confirmBtns = [
             'Do It!',
             {text: 'No Way!', value: false, default: true}
@@ -179,7 +181,7 @@
                 app.saveData();
             }
         }
-    }
+    };
 
     ui.delete.addEventListener('click', async () => {
         hide(contextMenu);
@@ -187,7 +189,7 @@
             app.deleteBackground(context.dataset.bgid);
             return;
         }
-        del(context);
+        deleteThing(context);
     });
 
     ui.nextBackground.addEventListener('click', () => {
@@ -260,7 +262,7 @@
             show(ui.nextBackground);
             show(ui.options);
             show(ui.properties);
-            ui.properties.textContent = 'Desktop Properties';
+            ui.properties.textContent = 'Background Properties';
         }
     };
 
@@ -301,9 +303,9 @@
         if (e.keyCode === 46 && !isUserInteractingWithForm()) { // delete key
             const selected = document.querySelectorAll('.bookmark.selected');
             if (selected.length > 1) {
-                del(selected);
+                deleteThing(selected);
             } else if (selected.length === 1) {
-                del(selected[0]);
+                deleteThing(selected[0]);
             }
         }
     });
