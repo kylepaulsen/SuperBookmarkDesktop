@@ -159,6 +159,7 @@
             }
         }
     };
+    app.messageActions = messageActions;
 
     chrome.runtime.onMessage.addListener(async (msgObj) => {
         const actionFunc = messageActions[msgObj.action];

@@ -7,7 +7,7 @@
     measuringDiv.className = 'measuringDiv';
     document.body.appendChild(measuringDiv);
 
-    async function makeIconElement(bookmark) {
+    const makeIconElement = async (bookmark) => {
         const isDocument = app.isValidDocument(bookmark.url);
         const folder = bookmark.url === undefined;
         let icon = await getBookmarkIcon(bookmark);
@@ -41,10 +41,10 @@
             </${tag}>
         `;
         return bookmarkIcon;
-    }
+    };
     app.makeIconElement = makeIconElement;
 
-    async function makeBookmarkIcon(bookmark, desktop = false) {
+    const makeBookmarkIcon = async (bookmark, desktop = false) => {
         const bookmarkIcon = await makeIconElement(bookmark);
         const isDocument = bookmarkIcon.dataset.type === 'document';
         if (!isDocument && bookmark.url && (bookmark.url.startsWith('data:') || bookmark.url.startsWith('file:'))) {
@@ -77,6 +77,6 @@
         clampText(nameDiv, bookmark.title);
         measuringDiv.removeChild(bookmarkIcon);
         return bookmarkIcon;
-    }
+    };
     app.makeBookmarkIcon = makeBookmarkIcon;
 }

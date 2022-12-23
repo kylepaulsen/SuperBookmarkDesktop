@@ -1,10 +1,16 @@
 /* global chrome, app, idbKeyval, makeColorPicker */
 {
-    const {openModal, closeModal, saveData, prompt} = app;
+    const {openModal, closeModal, prompt} = app;
     const {getUiElements, selectImageFromDisk, getParentElementWithClass, pad, updateBackground,
         setBackgroundStylesFromMode, debounce, createBG, markupToElement, getNextBgInCycle,
         loadImage, getBackground, getBackgroundImage, getBgImageFromDB, htmlEscape,
-        fetchRedditImages, randomInt, rerollSubredditRandomizerBG} = app.util;
+        fetchRedditImages, randomInt, rerollSubredditRandomizerBG, createSubredditRandomizerBg} = app.util;
+    const {saveBrowserSyncData} = app.backup;
+
+    const saveData = () => {
+        app.saveData();
+        saveBrowserSyncData();
+    };
 
     const makeSubredditInfo = bg => `
         <div class="bgInfoTitle">Subreddit Randomizer</div>
@@ -195,16 +201,8 @@
             }
         );
         if (subreddits) {
-            const newBg = createBG();
-            newBg.type = 'subredditRandomizer';
-            newBg.subreddits = subreddits.split(',').map(sub => sub.trim().replace(/.*r\/|\/$/ig, ''));
-            newBg.redditOptions = {
-                time: 'week',
-                section: 'top',
-                nsfw: false,
-                imageOrientation: 'any'
-            };
-            newBg.smartFit = true;
+            const subArr = subreddits.split(',').map(sub => sub.trim().replace(/.*r\/|\/$/ig, ''));
+            const newBg = createSubredditRandomizerBg(subArr);
 
             let imageUrls = await fetchRedditImages(newBg.subreddits, newBg.redditOptions);
 

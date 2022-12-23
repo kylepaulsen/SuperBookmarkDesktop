@@ -8,7 +8,7 @@
     modalOverlay.innerHTML = '<div class="modal"></div>';
     modalOverlay.style.display = 'none';
     const modal = modalOverlay.children[0];
-    let currentOptions;
+    let currentOptions = {};
 
     app.openModal = (content, options = {}) => {
         currentOptions = options;

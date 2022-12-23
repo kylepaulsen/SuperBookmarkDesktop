@@ -1,6 +1,7 @@
 /* global app */
 {
     const {getUiElements} = app.util;
+    const {saveBrowserSyncData} = app.backup;
 
     const rememberWidgets = () => {
         let windowEls = document.querySelectorAll('.window.widget');
@@ -20,6 +21,7 @@
             };
         });
         localStorage.widgets = JSON.stringify(windows);
+        saveBrowserSyncData();
     };
 
     const createWidget = (url, x, y, width = 400, height = 412, remember = true) => {

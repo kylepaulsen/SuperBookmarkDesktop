@@ -2,6 +2,7 @@
 {
     const {openModal, closeModal} = app;
     const {getUiElements, applyStylesheet, getParentElementWithClass, semverIsBigger} = app.util;
+    const {saveBrowserSyncData, loadBrowserSyncData, exportBackupFile, importBackupFile} = app.backup;
 
     const customCssPlaceholder = [
         '/* no transparent windows */',
@@ -16,49 +17,60 @@
             <div class="optionsTabs" data-id="tabs">
                 <div class="optionsTabStartFiller"></div>
                 <div class="optionsTab currentTab" data-id="optionsTab" data-page="optionsPage">Options</div>
+                <div class="optionsTab" data-id="backupTab" data-page="backupPage">Backup</div>
                 <div class="optionsTab" data-id="helpTab" data-page="helpPage">Help</div>
                 <div class="optionsTab" data-id="aboutTab" data-page="aboutPage">About</div>
                 <div class="optionsTabsFiller"></div>
             </div>
             <div class="tabPages">
-                <div class="tabPage currentPage" data-id="optionsPage">
-                    <div class="option">
-                        <div class="optionText">Remember opened folder and document windows:</div>
-                        <div class="optionUi">
-                            <input type="checkbox" data-id="rememberWindows">
+                <div class="tabPage optionsPage currentPage" data-id="optionsPage">
+                    <label class="checkboxLabel">
+                        <div><input type="checkbox" data-id="rememberWindows"></div>
+                        <div>Remember opened folder and document windows</div>
+                    </label>
+                    <label class="checkboxLabel">
+                        <div><input type="checkbox" data-id="windowCloseRight"></div>
+                        <div>Window close button on right</div>
+                    </label>
+                    <label class="checkboxLabel">
+                        <div><input type="checkbox" data-id="hideBookmarksBarBookmarks"></div>
+                        <div>Hide "Bookmarks Bar" bookmarks on desktop</div>
+                    </label>
+                    <label class="checkboxLabel">
+                        <div><input type="checkbox" data-id="useDoubleClicks"></div>
+                        <div>Use double click to open</div>
+                    </label>
+                    <label class="checkboxLabel">
+                        <div><input type="checkbox" data-id="hideBookmarkSearchButton"></div>
+                        <div>Hide bookmark search button</div>
+                    </label>
+                    <div class="textareaContainer">
+                        <div class="label">Custom Styles (CSS):</div>
+                        <div>
+                            <textarea data-id="customCss" placeholder="${customCssPlaceholder}"></textarea>
                         </div>
                     </div>
-                    <div class="option">
-                        <div class="optionText">Window close button on right:</div>
-                        <div class="optionUi">
-                            <input type="checkbox" data-id="windowCloseRight">
-                        </div>
-                    </div>
-                    <div class="option">
-                        <div class="optionText">Hide "Bookmarks Bar" bookmarks on desktop:</div>
-                        <div class="optionUi">
-                            <input type="checkbox" data-id="hideBookmarksBarBookmarks">
-                        </div>
-                    </div>
-                    <div class="option">
-                        <div class="optionText">Use double click to open:</div>
-                        <div class="optionUi">
-                            <input type="checkbox" data-id="useDoubleClicks">
-                        </div>
-                    </div>
-                    <div class="option">
-                        <div class="optionText">Hide bookmark search button:</div>
-                        <div class="optionUi">
-                            <input type="checkbox" data-id="hideBookmarkSearchButton">
-                        </div>
-                    </div>
-                    <div class="option">
-                        <div class="textareaContainer">
-                            <div class="label">Custom Styles (CSS):</div>
-                            <div>
-                                <textarea data-id="customCss" placeholder="${customCssPlaceholder}"></textarea>
+                </div>
+                <div class="tabPage backupPage" data-id="backupPage">
+                    <div class="backupOption">
+                        <div>
+                            <div class="flex">
+                                <h3>Browser Sync</h3>
+                                <div class="browserSyncEnabledText" data-id="browserSyncEnabledText">Off</div>
                             </div>
+                            <div>Enabling browser sync will backup desktop icon positions, widgets, and option settings to all browsers signed into the same account with this enabled. Unfortunately, there isn't enough space to sync custom background images or icons. Please note that desktop items may render off-screen on screens that are smaller than the one you are currently using.</div>
                         </div>
+                        <div><button class="button" data-id="enableBrowserSyncAndLoadButton">Enable and load existing data</button> <button class="button" data-id="enableBrowserSyncAndOverwriteButton">Enable and overwrite existing data</button> <button class="button" data-id="disableBrowserSync">Disable Browser Sync</button></div>
+                    </div>
+                    <div class="backupOption">
+                        <h3>Export Backup File</h3>
+                        <div>Click the button below to backup everything to a file that you can load into this extension on a different computer. This file can get large if you are using many custom backgrounds or icons. Please note this only makes a backup of Super Bookmark Desktop related things. It won't make a backup of your actual bookmarks! Your browser can backup bookmarks for you.</div>
+                        <div><button class="button" data-id="backupToFileButton">Save Backup File</button></div>
+                    </div>
+                    <div class="backupOption">
+                        <h3>Import Backup File</h3>
+                        <div>Click the button below to load a backup file that was created from the "Save Backup File" button above. Please note that desktop items may render off-screen on screens that are smaller than the one you are currently using. <span class="warning">WARNING: This may overwrite icons and settings you already have.</span></div>
+                        <div><button class="button" data-id="importBackupFileButton">Import Backup File</button><input type="file" data-id="importFileInput" style="display: none;"></div>
                     </div>
                 </div>
                 <div class="tabPage" data-id="helpPage">
@@ -333,6 +345,7 @@
 
         localStorage.userStyles = ui.customCss.value;
         chrome.runtime.sendMessage({action: 'reloadOptions'});
+        saveBrowserSyncData();
     };
 
     const load = (rerender = false) => {
@@ -377,6 +390,7 @@
             app.debouncedRender();
         }
     };
+    app.rerenderOptions = load;
 
     ui.tabs.addEventListener('click', (e) => {
         const tab = getParentElementWithClass(e.target, 'optionsTab');
@@ -412,6 +426,7 @@
                 };
             });
             localStorage.openedWindows = JSON.stringify(windows);
+            saveBrowserSyncData();
         } else {
             localStorage.openedWindows = '';
         }
@@ -453,6 +468,66 @@
     ui.customCss.addEventListener('change', () => {
         save();
         load();
+    });
+
+    let overwriteBtnOldText = ui.enableBrowserSyncAndOverwriteButton.textContent;
+    chrome.storage.sync.get('sync#').then((data) => {
+        if (!data['sync#']) {
+            ui.enableBrowserSyncAndLoadButton.style.display = 'none';
+            ui.enableBrowserSyncAndOverwriteButton.textContent = 'Enable Browser Sync';
+        }
+    });
+
+    const enableBrowserSync = () => {
+        ui.enableBrowserSyncAndLoadButton.style.display = 'none';
+        ui.enableBrowserSyncAndOverwriteButton.style.display = 'none';
+        ui.disableBrowserSync.style.display = 'inline-block';
+        ui.browserSyncEnabledText.textContent = 'On';
+        ui.browserSyncEnabledText.style.color = '#090';
+        localStorage.browserSync = '1';
+    };
+
+    ui.enableBrowserSyncAndOverwriteButton.addEventListener('click', () => {
+        enableBrowserSync();
+        ui.enableBrowserSyncAndOverwriteButton.textContent = overwriteBtnOldText;
+        saveBrowserSyncData();
+    });
+
+    ui.enableBrowserSyncAndLoadButton.addEventListener('click', () => {
+        enableBrowserSync();
+        ui.enableBrowserSyncAndOverwriteButton.textContent = overwriteBtnOldText;
+        loadBrowserSyncData();
+    });
+
+    ui.disableBrowserSync.addEventListener('click', () => {
+        ui.enableBrowserSyncAndLoadButton.style.display = 'inline-block';
+        ui.enableBrowserSyncAndOverwriteButton.style.display = 'inline-block';
+        ui.disableBrowserSync.style.display = 'none';
+        ui.browserSyncEnabledText.textContent = 'Off';
+        ui.browserSyncEnabledText.style.color = '#b00';
+        localStorage.browserSync = '';
+    });
+
+    if (localStorage.browserSync) {
+        enableBrowserSync();
+    } else {
+        ui.disableBrowserSync.style.display = 'none';
+    }
+
+    ui.backupToFileButton.addEventListener('click', exportBackupFile);
+    ui.importBackupFileButton.addEventListener('click', () => {
+        ui.importFileInput.click();
+    });
+    ui.importFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const fr = new FileReader();
+            fr.onload = (e) => {
+                importBackupFile(new Uint8Array(e.target.result));
+            };
+            fr.readAsArrayBuffer(file);
+        }
+        ui.importFileInput.value = '';
     });
 
     window.addEventListener('keydown', function(e) {
