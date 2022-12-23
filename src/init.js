@@ -1,4 +1,4 @@
-/* global chrome */
+/* global chrome, idbKeyval */
 {
     window.app = {
         defaultBackgrounds: [
@@ -93,7 +93,7 @@
     };
 
     let firstRender = true;
-    async function render() {
+    const render = async () => {
         const bookmarkTree = await app.getBookmarkTree();
         const root = bookmarkTree[0];
         const rootChildren = root.children;
@@ -122,7 +122,7 @@
                 app.openFolder(win.dataset.id, null, {window: win});
             }
         });
-    }
+    };
     app.render = render;
 
     app.debouncedRender = debounce(() => {
@@ -203,4 +203,27 @@
     };
     // get that bg loadin'
     loadBG();
+
+    // it's possible for bookmarks to be deleted outside of SBD, so custom icons can be orphaned.
+    const cleanOrphanedCustomIcons = async () => {
+        const bookmarkTree = await app.getBookmarkTree();
+        const allBookmarkIds = { 0: true };
+        const traverseBookmarkTree = (node) => {
+            if (node.children) {
+                node.children.forEach((child) => {
+                    allBookmarkIds[child.id] = true;
+                    traverseBookmarkTree(child);
+                });
+            }
+        };
+        traverseBookmarkTree(bookmarkTree[0]);
+
+        const dbKeys = await idbKeyval.keys();
+        dbKeys.forEach((key) => {
+            if (!key.startsWith('b') && !allBookmarkIds[key]) {
+                idbKeyval.delete(key);
+            }
+        });
+    };
+    setTimeout(cleanOrphanedCustomIcons, 100);
 }
