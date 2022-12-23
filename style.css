@@ -703,8 +703,10 @@ input[type=checkbox]:focus {
 }
 
 .optionsModal {
-    width: 600px;
-    height: 400px;
+    max-width: 800px;
+    max-height: 500px;
+    width: 80vw;
+    height: calc(80vh - 48px);
     display: flex;
     flex-direction: column;
 }
@@ -770,21 +772,48 @@ input[type=checkbox]:focus {
     margin-top: 3px;
 }
 
-.tabPage .option {
+.tabPage .checkboxLabel {
     display: flex;
-    margin-bottom: 10px;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
 }
 
-.tabPage .optionUi {
-    margin-left: 8px;
+.tabPage .checkboxLabel > div:first-child {
+    margin-right: 10px;
+}
+
+.tabPage .checkboxLabel h3 {
+    margin: 0;
+}
+
+.optionsPage {
+    gap: 10px;
+}
+
+.backupPage {
+    gap: 20px;
+}
+
+.browserSyncEnabledText {
+    align-self: center;
+    margin: 0 0 2px 10px;
+    color: #b00;
+    font-size: 12px;
+}
+
+.tabPage .backupOption h3 {
+    margin: 0 0 5px 0;
+}
+
+.tabPage .backupOption button {
+    margin-top: 8px;
+    cursor: pointer;
 }
 
 .tabPage.currentPage {
-    display: block;
-}
-
-.textareaContainer {
-    flex: 1 1 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .textareaContainer textarea {
@@ -856,6 +885,11 @@ input[type=checkbox]:focus {
 
 .center {
     text-align: center;
+}
+
+.warning {
+    color: #a00;
+    font-weight: bold;
 }
 
 .loadingWidget {

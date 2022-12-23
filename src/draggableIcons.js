@@ -2,6 +2,7 @@
 {
     const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, pointToGrid, getParentElementWithClass,
         getDataset, deselectAll, findFreeSpotNear, debounce} = app.util;
+    const {saveBrowserSyncData} = app.backup;
 
     let lastHovered;
     let selected = [];
@@ -126,11 +127,12 @@
 
     const debouncedSync = debounce(() => {
         chrome.runtime.sendMessage({action: 'reload'});
+        saveBrowserSyncData();
     }, 100);
 
     let changeSelection = false;
     let lastSelected = [];
-    function highlightSelected(container, box) {
+    const highlightSelected = (container, box) => {
         container.querySelectorAll('.bookmark').forEach((bookmark) => {
             if (!changeSelection || (changeSelection && !lastSelected.includes(bookmark))) {
                 bookmark.classList.remove('selected');
@@ -148,7 +150,7 @@
                 bookmark.classList.add('selected');
             }
         });
-    }
+    };
 
     const selectBox = document.createElement('div');
     selectBox.className = 'selectBox';

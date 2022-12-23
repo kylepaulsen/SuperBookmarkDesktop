@@ -2,6 +2,7 @@
 {
     const { DOUBLE_CLICK_SPEED, getParentElementWithClass, updateBackground, throttle, removeNewNodeId,
         getBackground, triggerBackgroundChange, addToBookmarkHistory } = app.util;
+    const { loadBrowserSyncData } = app.backup;
 
     // Start checking if we need to switch backgrounds.
     setInterval(async () => {
@@ -91,6 +92,27 @@
         });
     }
 
-    // start rendering icons!
-    app.makeHelpDocument().then(app.render);
+    chrome.storage.onChanged.addListener(async (changes, area) => {
+        if (area === 'sync') {
+            if (window.ignoreNextSyncOnChanged) {
+                window.ignoreNextSyncOnChanged = false;
+                return;
+            }
+            await loadBrowserSyncData();
+            app.messageActions.reload();
+            app.rerenderOptions();
+        }
+    });
+
+    const setup = async () => {
+        await app.makeHelpDocument();
+        // start rendering icons!
+        await app.render();
+        if (localStorage.browserSync) {
+            await loadBrowserSyncData();
+            app.messageActions.reload();
+            app.rerenderOptions();
+        }
+    };
+    setup();
 }

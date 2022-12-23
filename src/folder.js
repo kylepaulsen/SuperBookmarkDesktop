@@ -19,7 +19,7 @@
         return nodes;
     };
 
-    async function renderFolder(id, iconEl, options) {
+    const renderFolder = async (id, iconEl, options) => {
         const ancestors = await getAncestors(id);
         if (!ancestors) {
             // invalid id. Bail.
@@ -123,7 +123,7 @@
         const allNodes = folders.concat(bookmarks);
         const icons = await Promise.all(allNodes.map((node) => app.makeBookmarkIcon(node)));
         diffRender(icons, winUi.iconArea, highlightNewNodes);
-    }
+    };
     app.openFolder = renderFolder;
 
     attachClickHandler(window, (e, isDoubleClick) => {

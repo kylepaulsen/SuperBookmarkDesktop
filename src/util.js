@@ -110,6 +110,21 @@
         };
     };
 
+    util.createSubredditRandomizerBg = (subreddits) => {
+        const newBg = util.createBG();
+        newBg.type = 'subredditRandomizer';
+        newBg.subreddits = subreddits;
+        newBg.redditOptions = {
+            time: 'week',
+            section: 'top',
+            nsfw: false,
+            imageOrientation: 'any'
+        };
+        newBg.smartFit = true;
+
+        return newBg;
+    };
+
     util.setBackgroundStylesFromMode = (el, mode) => {
         if (mode === 'fill') {
             el.style.backgroundSize = 'cover';
