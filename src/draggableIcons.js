@@ -85,6 +85,7 @@
                     };
                 }
             }
+            let sendSyncAfterSave = false;
             selected.forEach((item) => {
                 if (dropTarget === app.desktop) {
                     if (dragStartElement.parentElement === app.desktop) {
@@ -105,7 +106,7 @@
                         const newSpot = findFreeSpotNear(mouseGridPos.x, mouseGridPos.y);
                         app.data.locations[`${newSpot.x},${newSpot.y}`] = item.dataset.id;
                         app.data.icons[item.dataset.id] = newSpot;
-                        app.sendSyncEventAfterSave = true;
+                        sendSyncAfterSave = true;
                     }
                 }
                 // the root children are all treated as being children of id 2
@@ -116,6 +117,9 @@
             });
             if (shouldSave) {
                 app.saveData();
+                if (sendSyncAfterSave) {
+                    chrome.runtime.sendMessage({action: 'reload'});
+                }
             }
             selected = [];
         }

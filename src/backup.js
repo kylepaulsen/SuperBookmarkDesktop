@@ -46,33 +46,84 @@
         return chrome.storage.sync.remove(chunkKeys);
     };
 
-    let lastSaveTime = 0;
-    const saveCooldown = 3000;
-    let cooldownTimeout;
-    backup.saveBrowserSyncData = () => {
+    const makeBookmarkIdToBookmarkMap = async () => {
+        const bookmarkTree = await app.getBookmarkTree();
+        const idToBookmark = {};
+        const traverseBookmarkTree = (node) => {
+            idToBookmark[node.id] = node;
+            if (node.children) {
+                node.children.forEach((child) => {
+                    traverseBookmarkTree(child);
+                });
+            }
+        };
+        traverseBookmarkTree(bookmarkTree[0]);
+        return idToBookmark;
+    };
+
+    const getBookmarkHash = (bookmark) => {
+        let title = bookmark.title;
+        if (bookmark.parentId === '0') {
+            // I guess default root folder names can differ in case??? chrome pls.
+            title = title.toLowerCase();
+        }
+        // Cant use dateAdded cause even that can differ apparently (on folders for some reason)
+        return util.simpleHash(bookmark.url + '|' + title);
+    };
+
+    const makeBookmarkHashToBookmarkMap = async (bookmarkIds) => {
+        const idToBookmark = await makeBookmarkIdToBookmarkMap();
+        if (!bookmarkIds) {
+            bookmarkIds = Object.keys(idToBookmark);
+        }
+
+        const hashToBookmark = {};
+        bookmarkIds.forEach((id) => {
+            const bookmark = idToBookmark[id];
+            if (bookmark) {
+                const hash = getBookmarkHash(bookmark);
+                hashToBookmark[hash] = bookmark;
+            }
+        });
+        return hashToBookmark;
+    };
+
+    const makeBookmarkHashToLocationMap = async (idToLocationMap) => {
+        const hashToBookmark = await makeBookmarkHashToBookmarkMap(Object.keys(idToLocationMap));
+        const hashToLocation = {};
+        Object.keys(hashToBookmark).forEach((hash) => {
+            const bookmark = hashToBookmark[hash];
+            hashToLocation[hash] = idToLocationMap[bookmark.id];
+        });
+        return hashToLocation;
+    };
+
+    const saveBrowserSyncData = async () => {
         if (!localStorage.browserSync) {
             return;
         }
-        const now = Date.now();
-        const cooldownTimeLeft = saveCooldown - (now - lastSaveTime);
-        if (cooldownTimeLeft > 0) {
-            clearTimeout(cooldownTimeout);
-            cooldownTimeout = setTimeout(backup.saveBrowserSyncData, cooldownTimeLeft);
-            return util.sleep(cooldownTimeLeft);
-        }
-        lastSaveTime = now;
 
-        const appData = JSON.parse(localStorage.data);
+        const appData = JSON.parse(localStorage.data || '{}');
+        const icons = appData.icons || {};
+        // We cant use bookmark IDs, as they are only consistent per local chrome profile.
+        // So we have to make up our own IDs based on the bookmark data.
+        const bookmarkHashToLocation = await makeBookmarkHashToLocationMap(icons);
+        const bookmarkIdToBookmark = await makeBookmarkIdToBookmarkMap();
+        const openedWindows = JSON.parse(localStorage.openedWindows || '[]');
+        openedWindows.forEach((openedWindow) => {
+            openedWindow.hash = getBookmarkHash(bookmarkIdToBookmark[openedWindow.id]);
+        });
+
         const syncData = {
             version: 1,
             widgets: JSON.parse(localStorage.widgets || '[]'),
             rememberWindows: localStorage.rememberWindows,
             windowCloseRight: localStorage.windowCloseRight,
-            userStyles: (localStorage.userStyles || '').substring(0, 5000),
-            icons: JSON.parse(localStorage.data || '{}').icons || {},
+            userStyles: (localStorage.userStyles || '').substring(0, 30000),
+            bookmarkHashToLocation,
             hideBookmarksBarBookmarks: localStorage.hideBookmarksBarBookmarks,
             hideBookmarkSearchButton: localStorage.hideBookmarkSearchButton,
-            openedWindows: JSON.parse(localStorage.openedWindows || 'null') || undefined,
+            openedWindows: openedWindows.length ? openedWindows : undefined,
             useDoubleClicks: localStorage.useDoubleClicks,
             backgrounds: appData.backgrounds,
             random: appData.random,
@@ -82,10 +133,37 @@
         return backup.storageSyncChunkedWrite('sync', syncData);
     };
 
-    const syncBackgroundSettings = (incomingBackgrounds, existingBackgrounds) => {
+    let lastSaveTime = 0;
+    const saveCooldown = 3000;
+    let cooldownTimeout;
+    let dedupCallsTimeout;
+    backup.saveBrowserSyncData = async () => {
+        if (!localStorage.browserSync) {
+            return;
+        }
+        const now = Date.now();
+        const deltaTime = now - lastSaveTime;
+        const cooldownTimeLeft = saveCooldown - deltaTime;
+        if (cooldownTimeLeft > 0) {
+            clearTimeout(cooldownTimeout);
+            cooldownTimeout = setTimeout(backup.saveBrowserSyncData, cooldownTimeLeft);
+            return util.sleep(cooldownTimeLeft);
+        }
+
+        clearTimeout(dedupCallsTimeout);
+        dedupCallsTimeout = setTimeout(() => {
+            lastSaveTime = now;
+            saveBrowserSyncData().catch(e => console.error(e));
+        }, 10);
+    };
+
+    const syncBackgroundSettings = (incomingBackgrounds, existingData) => {
+        const existingBackgrounds = existingData.backgrounds;
+        const incomingSubredditRandIds = {};
         incomingBackgrounds.forEach(bgData => {
             if (bgData.type === 'subredditRandomizer') {
                 const newBgSubredditsString = (bgData.subreddits || []).join('|');
+                incomingSubredditRandIds[newBgSubredditsString] = true;
                 const existingSubredditBg = existingBackgrounds.find(bg => bg.type === 'subredditRandomizer' &&
                     (bg.subreddits || []).join('|') === newBgSubredditsString);
                 if (!existingSubredditBg) {
@@ -102,6 +180,8 @@
                     { ...bgData, id: existingSubredditBg.id, default: true, type: 'image' });
             }
         });
+        existingData.backgrounds = existingBackgrounds.filter(bg => bg.type !== 'subredditRandomizer' ||
+            incomingSubredditRandIds[(bg.subreddits || []).join('|')]);
     };
 
     backup.loadBrowserSyncData = async () => {
@@ -113,11 +193,25 @@
             localStorage.userStyles = data.userStyles || '';
             localStorage.hideBookmarksBarBookmarks = data.hideBookmarksBarBookmarks || '';
             localStorage.hideBookmarkSearchButton = data.hideBookmarkSearchButton || '';
-            localStorage.openedWindows = data.openedWindows ? JSON.stringify(data.openedWindows) : '';
             localStorage.useDoubleClicks = data.useDoubleClicks || '';
 
+            const bookmarkHashToBookmark = await makeBookmarkHashToBookmarkMap();
+            (data.openedWindows || []).forEach(openedWindow => {
+                openedWindow.id = (bookmarkHashToBookmark[openedWindow.hash] || openedWindow).id;
+            });
+            localStorage.openedWindows = data.openedWindows ? JSON.stringify(data.openedWindows) : '';
+
             const localData = JSON.parse(localStorage.data || '{}');
-            localData.icons = data.icons;
+
+            localData.icons = localData.icons || [];
+            const remoteHashToLocation = data.bookmarkHashToLocation || {};
+            Object.keys(remoteHashToLocation).forEach((remoteHash) => {
+                const localBookmark = bookmarkHashToBookmark[remoteHash];
+                if (localBookmark) {
+                    localData.icons[localBookmark.id] = remoteHashToLocation[remoteHash];
+                }
+            });
+
             localData.locations = {};
             localData.random = data.random || '';
             localData.rotateMinutes = data.rotateMinutes || 20;
@@ -129,7 +223,7 @@
 
             // import subreddit randomizer backgrounds and settings for default bgs
             localData.backgrounds = localData.backgrounds || [];
-            syncBackgroundSettings(data.backgrounds || [], localData.backgrounds);
+            syncBackgroundSettings(data.backgrounds || [], localData);
 
             localStorage.data = JSON.stringify(localData);
         }
@@ -362,7 +456,7 @@
         }
 
         // import subreddit randomizer backgrounds and settings for default bgs
-        syncBackgroundSettings(importedBackgroundData, data.backgrounds);
+        syncBackgroundSettings(importedBackgroundData, data);
 
         // fill in location data
         data.locations = {};

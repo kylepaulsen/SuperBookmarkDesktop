@@ -143,9 +143,9 @@
             let openFolderOrDocProm = Promise.resolve();
             bookmarks.forEach(bookmark => {
                 if (bookmark.dataset.type === 'folder') {
-                    openFolderOrDocProm = app.openFolder(bookmark.dataset.id, bookmark);
+                    openFolderOrDocProm = app.openFolder(bookmark.dataset.id, bookmark, {userOpened: true});
                 } else if (bookmark.dataset.type === 'document') {
-                    openFolderOrDocProm = app.openDocument(bookmark.dataset.id);
+                    openFolderOrDocProm = app.openDocument(bookmark.dataset.id, {userOpened: true});
                 }
             });
             openFolderOrDocProm.then(selectFirstWindowElement);
@@ -158,7 +158,7 @@
                     const navButtons = activeWindowNavBar.querySelectorAll('.navButton');
                     if (navButtons[navButtons.length - 2]) {
                         app.openFolder(navButtons[navButtons.length - 2].dataset.id, null,
-                            {window: activeWindow}).then(selectFirstWindowElement);
+                            {window: activeWindow, userOpened: true}).then(selectFirstWindowElement);
                     }
                 }
             }

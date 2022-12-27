@@ -86,14 +86,14 @@
             }
         });
         localStorage.data = JSON.stringify(app.data);
-        if (app.sendSyncEventAfterSave) {
-            app.sendSyncEventAfterSave = false;
-            chrome.runtime.sendMessage({action: 'reload'});
-        }
     };
 
     let firstRender = true;
     const render = async () => {
+        if (app.ignoreNextRender) {
+            app.ignoreNextRender = false;
+            return;
+        }
         const bookmarkTree = await app.getBookmarkTree();
         const root = bookmarkTree[0];
         const rootChildren = root.children;
@@ -125,12 +125,7 @@
     };
     app.render = render;
 
-    app.debouncedRender = debounce(() => {
-        if (!app.ignoreNextRender) {
-            app.render();
-        }
-        app.ignoreNextRender = false;
-    }, 100);
+    app.debouncedRender = debounce(app.render, 100);
     ['onCreated', 'onImportEnded', 'onMoved', 'onRemoved', 'onChanged'].forEach((eventName) => {
         chrome.bookmarks[eventName].addListener(app.debouncedRender);
     });
@@ -139,7 +134,7 @@
         async reload() {
             const lastBG = app.data.background;
             app.data = await loadData();
-            app.debouncedRender();
+            app.render();
             // if there is a bg swap, pretend we didnt switch yet.
             app.data.background = lastBG;
             const newBg = getBackground(localStorage.lastBgId);

@@ -738,5 +738,21 @@
         return current !== undefined ? current : def;
     };
 
+    const base64Chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-".split('');
+    util.simpleHash = (str) => {
+        let hash = '';
+        let hashNum = 0;
+        for (let i = 0, len = str.length; i < len; i++) {
+            const chr = str.charCodeAt(i);
+            hashNum = (hashNum << 5) - hashNum + chr;
+            hashNum |= 0; // Convert to 32bit integer
+        }
+        while (hashNum !== 0) {
+            hash = base64Chars[hashNum & 63] + hash;
+            hashNum >>>= 6;
+        }
+        return hash;
+    };
+
     window.util = util;
 }

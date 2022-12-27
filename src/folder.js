@@ -19,7 +19,7 @@
         return nodes;
     };
 
-    const renderFolder = async (id, iconEl, options) => {
+    const renderFolder = async (id, iconEl, options = {}) => {
         const ancestors = await getAncestors(id);
         if (!ancestors) {
             // invalid id. Bail.
@@ -66,7 +66,7 @@
                     currentPos = `${x},${y}`;
                 }
             }
-            if (options) {
+            if (options.width) {
                 width = options.width;
                 height = options.height;
                 x = options.x;
@@ -83,7 +83,9 @@
             highlightNewNodes = false;
         }
         currentWindow.dataset.id = targetNode.id;
-        app.rememberOpenWindows();
+        if (options.userOpened) {
+            app.rememberOpenWindows();
+        }
 
         winUi.navBar.innerHTML = '';
         for (let x = 0; x < ancestors.length; x++) {
@@ -133,13 +135,13 @@
             const specialKeysDown = e.metaKey || e.ctrlKey || e.shiftKey;
             if (icon.type === 'folder' && !specialKeysDown && (!localStorage.useDoubleClicks || isDoubleClick)) {
                 e.preventDefault();
-                renderFolder(icon.id, iconEl);
+                renderFolder(icon.id, iconEl, {userOpened: true});
             }
         }
         const navButton = getParentElementWithClass(e.target, 'navButton');
         if (navButton) {
             const currentWindow = getParentElementWithClass(navButton, 'window');
-            renderFolder(navButton.dataset.id, null, {window: currentWindow});
+            renderFolder(navButton.dataset.id, null, {window: currentWindow, userOpened: true});
         }
     });
 }

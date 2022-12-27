@@ -60,6 +60,7 @@
         const offset = {};
         const firstPoint = {};
         let mouseDown = false;
+        let updatedWindow = false;
         let target;
         listen(win, 'mousedown', (e) => {
             offset.x = e.pageX - win.offsetLeft;
@@ -81,10 +82,15 @@
             if (mouseDown) {
                 win.style.left = Math.max(win.offsetLeft, 0) + 'px';
                 win.style.top = Math.max(win.offsetTop, 0) + 'px';
-                app.rememberOpenWindows();
-                app.rememberWidgets();
+                if (updatedWindow) {
+                    app.rememberOpenWindows();
+                    if (win.dataset.type === 'widget') {
+                        app.rememberWidgets();
+                    }
+                }
             }
             mouseDown = false;
+            updatedWindow = false;
         });
 
         listen(window, 'mousemove', (e) => {
@@ -92,10 +98,12 @@
                 if (titleBar.contains(target)) {
                     win.style.left = e.pageX - offset.x + 'px';
                     win.style.top = e.pageY - offset.y + 'px';
+                    updatedWindow = true;
                 }
 
                 let newWidth = width;
                 let newHeight = height;
+                let updatedSize = true;
                 if (target.classList.contains('nw-resize')) {
                     newWidth = Math.max(firstPoint.x - e.pageX + width, minWidth);
                     newHeight = Math.max(firstPoint.y - e.pageY + height, minHeight);
@@ -128,7 +136,10 @@
                 } else if (target.classList.contains('se-resize')) {
                     newHeight = Math.max(e.pageY - firstPoint.y + height, minHeight);
                     newWidth = Math.max(e.pageX - firstPoint.x + width, minWidth);
+                } else {
+                    updatedSize = false;
                 }
+                updatedWindow = updatedWindow || updatedSize;
                 win.style.width = newWidth + 'px';
                 win.style.height = newHeight + 'px';
             }
@@ -137,7 +148,9 @@
             const closeFunc = () => {
                 win.parentNode.removeChild(win);
                 app.rememberOpenWindows();
-                app.rememberWidgets();
+                if (win.dataset.type === 'widget') {
+                    app.rememberWidgets();
+                }
             };
             if (options.beforeClose) {
                 options.beforeClose(closeFunc);
