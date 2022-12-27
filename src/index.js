@@ -93,7 +93,7 @@
     }
 
     chrome.storage.onChanged.addListener(async (changes, area) => {
-        if (area === 'sync') {
+        if (area === 'sync' && localStorage.browserSync) {
             if (window.ignoreNextSyncOnChanged) {
                 window.ignoreNextSyncOnChanged = false;
                 return;

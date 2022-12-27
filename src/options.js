@@ -437,7 +437,7 @@
         for (let x = 0; x < openedWindows.length; x++) {
             const win = openedWindows[x];
             if (win.type === 'document') {
-                await app.editDocument(win.id, win);
+                await app.openDocument(win.id, win);
             } else if (win.type === 'folder') {
                 await app.openFolder(win.id, null, win);
             }
@@ -471,13 +471,6 @@
     });
 
     let overwriteBtnOldText = ui.enableBrowserSyncAndOverwriteButton.textContent;
-    chrome.storage.sync.get('sync#').then((data) => {
-        if (!data['sync#']) {
-            ui.enableBrowserSyncAndLoadButton.style.display = 'none';
-            ui.enableBrowserSyncAndOverwriteButton.textContent = 'Enable Browser Sync';
-        }
-    });
-
     const enableBrowserSync = () => {
         ui.enableBrowserSyncAndLoadButton.style.display = 'none';
         ui.enableBrowserSyncAndOverwriteButton.style.display = 'none';
@@ -493,10 +486,12 @@
         saveBrowserSyncData();
     });
 
-    ui.enableBrowserSyncAndLoadButton.addEventListener('click', () => {
+    ui.enableBrowserSyncAndLoadButton.addEventListener('click', async () => {
         enableBrowserSync();
         ui.enableBrowserSyncAndOverwriteButton.textContent = overwriteBtnOldText;
-        loadBrowserSyncData();
+        await loadBrowserSyncData();
+        app.messageActions.reload();
+        app.rerenderOptions();
     });
 
     ui.disableBrowserSync.addEventListener('click', () => {
@@ -508,11 +503,24 @@
         localStorage.browserSync = '';
     });
 
-    if (localStorage.browserSync) {
-        enableBrowserSync();
-    } else {
-        ui.disableBrowserSync.style.display = 'none';
-    }
+    const checkForBrowserSyncStuff = () => {
+        if (localStorage.browserSync) {
+            enableBrowserSync();
+        } else {
+            ui.disableBrowserSync.style.display = 'none';
+        }
+        chrome.storage.sync.get('sync#').then((data) => {
+            if (!data['sync#']) {
+                ui.enableBrowserSyncAndLoadButton.style.display = 'none';
+                ui.enableBrowserSyncAndOverwriteButton.textContent = 'Enable Browser Sync';
+            } else {
+                if (!localStorage.browserSync) {
+                    ui.enableBrowserSyncAndLoadButton.style.display = 'inline-block';
+                }
+                ui.enableBrowserSyncAndOverwriteButton.textContent = overwriteBtnOldText;
+            }
+        });
+    };
 
     ui.backupToFileButton.addEventListener('click', exportBackupFile);
     ui.importBackupFileButton.addEventListener('click', () => {
@@ -551,6 +559,7 @@
 
     load();
     app.openOptions = () => {
+        checkForBrowserSyncStuff();
         openModal(content);
         load();
         showTab(ui.optionsTab);

@@ -26,14 +26,14 @@
         }
     };
 
-    const renderEditor = async (id, options) => {
+    const renderEditor = async (id, options = {}) => {
         const bookmarks = await app.getBookmarks(id.toString());
         const doc = bookmarks[0];
         const docData = getDocumentData(doc.url);
 
         if (docData !== null) {
             let {x, y, width, height} = positionWindow();
-            if (options) {
+            if (options.width) {
                 width = options.width;
                 height = options.height;
                 x = options.x;
@@ -53,7 +53,9 @@
             const win = app.makeWindow(doc.title, x, y, width, height, {beforeClose});
             win.dataset.type = 'document';
             win.dataset.id = doc.id;
-            app.rememberOpenWindows();
+            if (options.userOpened) {
+                app.rememberOpenWindows();
+            }
 
             const winUi = getUiElements(win);
             const editor = document.createElement('div');
@@ -109,7 +111,6 @@
             });
         }
     };
-    app.openDocument = renderEditor;
 
     const getDocumentData = (dataUri = '') => {
         if (dataUri.startsWith(dataUriStartString)) {
@@ -138,7 +139,7 @@
                 e.preventDefault();
                 const currentWindow = document.querySelector(`.window[data-id="${icon.id}"]`);
                 if (!currentWindow) {
-                    renderEditor(icon.id);
+                    renderEditor(icon.id, {userOpened: true});
                 } else {
                     positionWindow(currentWindow);
                 }
@@ -146,7 +147,7 @@
         }
     });
 
-    app.editDocument = renderEditor;
+    app.openDocument = renderEditor;
     app.isValidDocument = isValidDocument;
     app.syncEditorData = syncEditorData;
 }
