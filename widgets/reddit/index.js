@@ -67,6 +67,9 @@ const getUrl = (itemData) => {
     return itemData.url;
 };
 
+const redditEntities = {"&lt;": "<", "&gt;": ">", "&amp;": "&"};
+const cleanRedditUrl = (url) => url.replace(/(&lt;)|(&gt;)|(&amp;)/g, match => redditEntities[match] || "");
+
 const ui = getUiElements(document);
 
 const feedItemTemplate = `
@@ -130,7 +133,12 @@ const render = async (loadMoreAfter) => {
                 itemUI.nsfw.classList.remove('hide');
             }
 
-            itemUI.img.src = (itemData.thumbnail || '').startsWith('http') ? itemData.thumbnail : 'defaultThumb.jpg';
+            itemUI.img.src = cleanRedditUrl(
+                (itemData.thumbnail || '').startsWith('http') ? itemData.thumbnail : 'defaultThumb.jpg'
+            );
+            itemUI.img.addEventListener('error', () => {
+                itemUI.img.src = 'defaultThumb.jpg';
+            });
             itemUI.imgLink.href = url;
 
             itemUI.titleLink.innerHTML = itemData.title;
