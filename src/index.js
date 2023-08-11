@@ -105,7 +105,6 @@
     });
 
     const setup = async () => {
-        await app.makeHelpDocument();
         // start rendering icons!
         await app.render();
         if (localStorage.browserSync) {

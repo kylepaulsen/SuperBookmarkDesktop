@@ -571,19 +571,25 @@
         window.location.hash = '';
     }
 
+    const firstTimeUse = !localStorage.showedHelp && !localStorage.madeHelp;
+
     const currentExtensionVersion = chrome.runtime.getManifest().version;
     const currentStoredVersion = localStorage.version || '0.0.0';
     ui.version.textContent = currentExtensionVersion;
-    if (!app.firstTimeUse && semverIsBigger(currentExtensionVersion, currentStoredVersion)) {
+
+    if (!firstTimeUse && semverIsBigger(currentExtensionVersion, currentStoredVersion)) {
         ui.updateMessage.style.display = 'block';
         app.openOptions();
         showTab(ui.aboutTab);
         setTimeout(() => {
             localStorage.version = currentExtensionVersion;
         }, 1000);
-    } else if (app.firstTimeUse) {
+    } else if (firstTimeUse) {
         app.openOptions();
         showTab(ui.helpTab);
         localStorage.version = currentExtensionVersion;
+        setTimeout(() => {
+            localStorage.showedHelp = 1;
+        }, 1000);
     }
 }
