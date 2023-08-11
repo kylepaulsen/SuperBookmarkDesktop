@@ -1,6 +1,6 @@
 {
   "name": "super-bookmark-desktop",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "A bookmark manager that acts like your computer desktop",
   "main": "build.js",
   "dependencies": {},

@@ -52,6 +52,7 @@
                     </div>
                 </div>
                 <div class="tabPage backupPage" data-id="backupPage">
+                    <div>This tab has experimental features.</div>
                     <div class="backupOption">
                         <div>
                             <div class="flex">
@@ -96,6 +97,22 @@
                     <div>
                         <h3 class="changelogTitle">Changelog</h3>
                         <div class="changelogEntry featured">
+                            <b>v1.5.0</b>
+                            <ul>
+                                <li>
+                                    <div>Features</div>
+                                    <ul>
+                                        <li><b>Updated extension to MV3</b></li>
+                                        <li>Add browser sync and backup file support. See options pane. (Experimental)</li>
+                                    </ul>
+                                    <div>Bug Fixes</div>
+                                    <ul>
+                                        <li>Reddit widget fixes.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="changelogEntry">
                             <b>v1.4.1</b>
                             <ul>
                                 <li>
