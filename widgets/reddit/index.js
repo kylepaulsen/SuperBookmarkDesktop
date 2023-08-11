@@ -15,7 +15,7 @@ const getUiElements = (parentElement) => {
 
 const fetchFeed = (subs = {all: true}, after) => new Promise(res => {
     const enabledSubs = Object.keys(subs).filter(sub => subs[sub]);
-    let feedUrl = `https://www.reddit.com/r/${enabledSubs.join('+')}.json`;
+    let feedUrl = `https://www.reddit.com/r/${enabledSubs.join('+')}/hot.json`;
     if (after) {
         feedUrl += '?after=' + after;
     }
