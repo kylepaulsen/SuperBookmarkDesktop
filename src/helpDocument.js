@@ -10,6 +10,7 @@
     };
 
     app.helpMarkup = `<!--sbd-doc-->
+        <div>Right click the desktop background image and click "Options" to get back here.</div>
         <h1>Super Bookmark Desktop Help</h1>
         <hr>
         <div>
@@ -33,7 +34,7 @@
                 </li>
                 <li><i>Right Click</i> icons to edit or delete them (editing and deleting affects the actual chrome bookmark).</li>
                 <li>
-                    Create text files (like this one) that sync like a normal bookmark.
+                    Create text files that sync like a normal bookmark.
                     Good for making quick reminders!
                 </li>
             </ul>
