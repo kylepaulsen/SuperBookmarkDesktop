@@ -16,14 +16,14 @@
         const lastId = localStorage.lastBgId;
         const lastBgSrc = localStorage.lastBgSrc;
         const lastBg = getBackground(lastId);
-        const isSubredditRandomizer = (lastBg || {}).type === 'subredditRandomizer';
-        if (lastId !== app.data.background.id || (isSubredditRandomizer && lastBg.image !== lastBgSrc)) {
-            if (isSubredditRandomizer) {
+        const isRemoteApiBG = (lastBg || {}).type === 'remoteApi';
+        if (lastId !== app.data.background.id || (isRemoteApiBG && lastBg.image !== lastBgSrc)) {
+            if (isRemoteApiBG) {
                 lastBg.image = lastBgSrc;
             }
             // as tabs race to update their background, (hopefully) the losers end up here.
             if (lastBg) {
-                updateBackground(lastBg, isSubredditRandomizer);
+                updateBackground(lastBg, isRemoteApiBG);
             }
         }
     }, 3000);

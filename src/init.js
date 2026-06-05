@@ -14,9 +14,9 @@
     };
     const app = window.app;
     app.util = window.util;
-    const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, setBackgroundStylesFromMode, updateBackground,
-        getBackground, getNextBgInCycle, getBgImageFromDB, loadImage, sleep, loadData, debounce,
-        loadUserBackgrounds, getBackgroundImage, promisify, diffRender, rerollSubredditRandomizerBG} = app.util;
+    const {ICON_WIDTH, ICON_HEIGHT, ICON_SPACING, GUTTER, setBackgroundStylesFromMode, updateBackground, getBackground,
+        getNextBgInCycle, getBgImageFromDB, loadImage, sleep, loadData, debounce, loadUserBackgrounds,
+        getBackgroundImage, promisify, diffRender, remoteApiBGFunctions, markupToElement, getUiElements} = app.util;
 
     app.getBookmarkTree = promisify(chrome.bookmarks.getTree);
     app.getBookmarks = promisify(chrome.bookmarks.get);
@@ -168,10 +168,68 @@
         document.getElementById('loadFadeIn').style.background = currentBG.color;
     }
 
+    const checkOriginPermissions = async () => {
+        const wallhavenOrigin = 'https://wallhaven.cc/';
+        const hasEnabledWallhavenBG = data.backgrounds.some(bg => bg.subType === 'wallhavenRandomizer' && bg.selected);
+        if (hasEnabledWallhavenBG) {
+            const hasWallhavenApiAccess = await chrome.permissions.contains({
+                origins: [wallhavenOrigin]
+            });
+            if (!hasWallhavenApiAccess) {
+                const msgContainer = markupToElement(`<div>You are using a wallhaven randomizer background, but this ` +
+                    `browser doesn't have permission to access the wallhaven API.<br>` +
+                    `<span style="color: #4D90FE; font-weight: 500">Click here to grant permission.</span></div>`);
+                msgContainer.style.cursor = 'pointer';
+                let toast;
+                msgContainer.addEventListener('click', async () => {
+                    toast.remove();
+                    const granted = await chrome.permissions.request({
+                        origins: [wallhavenOrigin]
+                    });
+                    if (!granted) {
+                        app.confirm(`Failed to get permission. Your wallhaven backgrounds won't reroll properly.`);
+                    }
+                });
+                toast = app.toast(msgContainer, { duration: 15000 });
+            }
+        }
+    };
+
+    const checkForLegacyBackground = () => {
+        if (currentBG.subType === 'subredditRandomizer' && !localStorage.ignoreSubredditRandomizerWarning) {
+            const msgContainer = markupToElement(`<div>This background won't reroll properly anymore.<br><br><span style="color: #4D90FE; font-weight: 500">Click here to learn more.</span></div>`);
+            msgContainer.style.cursor = 'pointer';
+            let toast;
+            msgContainer.addEventListener('click', async () => {
+                toast.remove();
+                const modalContent = markupToElement(`<div><h2>Why are subreddit randomizer backgrounds not rerolling?</h2>Reddit recently removed open access to their JSON APIs. As a result, subreddit randomizer backgrounds won't reroll properly anymore causing you to see the same background indefinitely. If this doesn't bother you, then click "Permanently Dismiss" below. Otherwise it's recommended that you delete all subreddit randomizer backgrounds in <button class="linkBtn" data-id="openBackgroundPropertiesBtn">background properties</button>.<br>On the bright side, you can now make Wallhaven randomizers which behave similarly.</div>`);
+                const modalUi = getUiElements(modalContent);
+                modalUi.openBackgroundPropertiesBtn.addEventListener('click', () => {
+                    modalContent.closest('.modal').querySelector('[data-value="close"]').click();
+                    app.openDesktopProperties();
+                });
+                const result = await app.confirm(
+                    modalContent,
+                    [{ text: 'Permanently Dismiss', value: 'permaDismiss' }, { text: 'Close', default: true, value: 'close' }],
+                    { large: true }
+                );
+                if (result === 'permaDismiss') {
+                    localStorage.ignoreSubredditRandomizerWarning = true;
+                }
+            });
+            toast = app.toast(msgContainer, { duration: 10000 });
+        }
+    };
+
     const loadBG = async () => {
         currentBG = data.background;
-        if (currentBG.type === 'subredditRandomizer' && didBgRotation) {
-            await rerollSubredditRandomizerBG(currentBG);
+        if (currentBG.type === 'remoteApi' && didBgRotation) {
+            const rerollFunc = remoteApiBGFunctions[currentBG.subType]?.rerollBg;
+            if (rerollFunc) {
+                await rerollFunc(currentBG);
+            } else {
+                console.warn('No reroll function for', currentBG.subType);
+            }
             localStorage.lastBgSrc = currentBG.image;
             localStorage.data = JSON.stringify(app.data);
         }
@@ -196,6 +254,8 @@
         await loadUserBackgrounds();
         userImagesDidLoad();
         app.reopenWidgets();
+        checkOriginPermissions();
+        checkForLegacyBackground();
     };
     // get that bg loadin'
     loadBG();

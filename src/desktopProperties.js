@@ -2,9 +2,9 @@
 {
     const {openModal, closeModal, prompt} = app;
     const {getUiElements, selectImageFromDisk, getParentElementWithClass, pad, updateBackground,
-        setBackgroundStylesFromMode, debounce, createBG, markupToElement, getNextBgInCycle,
-        loadImage, getBackground, getBackgroundImage, getBgImageFromDB, htmlEscape,
-        fetchRedditImages, randomInt, rerollSubredditRandomizerBG, createSubredditRandomizerBg} = app.util;
+        setBackgroundStylesFromMode, debounce, createBG, markupToElement, getNextBgInCycle, loadImage,
+        getBackground, getBackgroundImage, getBgImageFromDB, htmlEscape, fetchWallhavenImages, randomInt,
+        createWallhavenRandomizerBg, remoteApiBGFunctions, requestOriginPermission} = app.util;
     const {saveBrowserSyncData} = app.backup;
 
     const saveData = () => {
@@ -12,27 +12,24 @@
         saveBrowserSyncData();
     };
 
-    const makeSubredditInfo = bg => `
-        <div class="bgInfoTitle">Subreddit Randomizer</div>
-        <div class="bgInfoDesc">${bg.subreddits.map(s => 'r/' + s).join(', ')}</div>
-    `;
-
     const makeBgTile = (bg) => {
         const imgUrl = getBackgroundImage(bg.id);
         let bgImageStyle = `url(${htmlEscape(imgUrl)})`;
-        if (bg.type === 'subredditRandomizer') {
+        if (bg.type === 'remoteApi') {
             bgImageStyle = 'linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0.5)), ' + bgImageStyle;
         }
+        const bgInfo = remoteApiBGFunctions[bg.subType]?.renderBgInfo?.(bg) ?? "";
         return `
             <div class="bgTile${bg.selected ? ' selected' : ''}${bg.default ? '' : ' userBg'}" data-bgid="${bg.id}">
                 <div class="aspect16-9">
                     <div class="aspect-container">
                         <div class="bgTileImage" style="background-image: ${bgImageStyle};" draggable="false">
-                            ${bg.type === 'subredditRandomizer' && makeSubredditInfo(bg)}
+                            ${bgInfo}
                         </div>
                         <input type="checkbox" class="bgCheckbox" ${bg.selected ? 'checked="checked"' : ''}>
                     </div>
                 </div>
+                ${bg.subType === 'subredditRandomizer' ? `<div class="unsupportedBg">⚠️ No longer supported</div>` : ''}
             </div>
         `;
     };
@@ -42,7 +39,7 @@
         <div class="desktopProperties">
             <div class="backgroundUi">
                 <div class="backgroundProperties">
-                    <div data-id="backgroundPreviewSizeRef">
+                    <div class="backgroundPropertiesScroll" data-id="backgroundPreviewSizeRef">
                         <div class="preview">
                             <div class="previewPageBG" data-id="previewPageBG">
                                 <div class="previewBG" data-id="previewBG">
@@ -69,6 +66,7 @@
                         <div class="fitModes">
                             <div class="label">Background Fit:</div>
                             <select data-id="bgMode">
+                                <option value="auto">Auto</option>
                                 <option value="fill">Fill</option>
                                 <option value="fit">Fit</option>
                                 <option value="stretch">Stretch</option>
@@ -76,54 +74,95 @@
                                 <option value="center">Center</option>
                             </select>
                         </div>
-                        <div class="subredditOptions spaceVert" data-id="subredditOptions">
-                            <div class="subredditOptionsTitle">Subreddit Randomizer Options:</div>
+                        <div class="remoteApiOptions spaceVert" data-id="subredditRandomizerOptions">
+                            <h2 style="color: #b00">This background is no longer supported</h2>
+                            <span style="font-size: 14px">
+                                Reddit recently removed open access to their JSON APIs. As a result, subreddit
+                                randomizer backgrounds won't reroll properly anymore causing you to see the same
+                                background indefinitely. If this doesn't bother you, then you can ignore this warning.
+                                Otherwise it's recommended that you delete this background using the button below.
+                                <br><br>
+                                On the bright side, you can make Wallhaven randomizers.
+                                Look for the "Add Wallhaven Randomizer" button below to do this.
+                            </span>
+                        </div>
+                        <div class="remoteApiOptions spaceVert" data-id="wallhavenRandomizerOptions">
+                            <div class="remoteApiOptionsTitle">Wallhaven Randomizer Options:</div>
+                            <div>
+                                <div class="label">Query: <button class="infoBtn" data-id="wallhavenQueryInfo">?</button></div>
+                                <input type="text" data-id="wallhavenQuery" placeholder="nature" style="width: 100%;">
+                            </div>
+                            <div>
+                                <div class="label">Categories:</div>
+                                <div class="flex spaceHori wrap">
+                                    <div class="flex spaceHori flexCenter"><div>General:</div><input type="checkbox" data-id="wallhavenCategoryGeneral" data-bitidx="0"></div>
+                                    <div class="flex spaceHori flexCenter"><div>Anime:</div><input type="checkbox" data-id="wallhavenCategoryAnime" data-bitidx="1"></div>
+                                    <div class="flex spaceHori flexCenter"><div>People:</div><input type="checkbox" data-id="wallhavenCategoryPeople" data-bitidx="2"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="label">Purity:</div>
+                                <div class="flex spaceHori wrap">
+                                    <div class="flex spaceHori flexCenter"><div>Safe (sfw):</div><input type="checkbox" data-id="wallhavenPuritySfw" data-bitIdx="0"></div>
+                                    <div class="flex spaceHori flexCenter"><div>Sketchy:</div><input type="checkbox" data-id="wallhavenPuritySketchy" data-bitIdx="1"></div>
+                                    <div class="flex spaceHori flexCenter"><div>Not Safe (nsfw):</div><input type="checkbox" data-id="wallhavenPurityNsfw" data-bitIdx="2"></div>
+                                </div>
+                            </div>
                             <div class="flex spaceHori">
-                                <button class="btn" data-id="editSubredditsBtn">Edit Subreddits</button>
-                                <div class="center">
-                                    <div class="label">Auto fit backgrounds?</div>
-                                    <input type="checkbox" data-id="redditSmartFit">
+                                <div style="flex: 1">
+                                    <div class="label">Sort:</div>
+                                    <select data-id="wallhavenSort">
+                                        <option value="date_added">Date Added</option>
+                                        <option value="relevance">Relevance</option>
+                                        <option value="random">Random</option>
+                                        <option value="views">Views</option>
+                                        <option value="favorites">Favorites</option>
+                                        <option value="toplist">Toplist</option>
+                                    </select>
                                 </div>
-                                <div class="center">
-                                    <div class="label">Allow NSFW?</div>
-                                    <input type="checkbox" data-id="redditNSFW">
+                                <div>
+                                    <div class="label">Order:</div>
+                                    <select data-id="wallhavenOrder">
+                                        <option value="desc">Desc</option>
+                                        <option value="asc">Asc</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="wallhavenGridOptions">
+                                <div data-id="wallhavenTopRangeContainer">
+                                    <div class="label">Top from last:</div>
+                                    <select data-id="wallhavenTopRange">
+                                        <option value="1d">1 Day</option>
+                                        <option value="3d">3 Days</option>
+                                        <option value="1w">1 Week</option>
+                                        <option value="1M">1 Month</option>
+                                        <option value="3M">3 Months</option>
+                                        <option value="6M">6 Months</option>
+                                        <option value="1y">1 Year</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <div class="label">Minimum Resolution:</div>
+                                    <input type="text" data-id="wallhavenMinResolution" placeholder="1920x1080">
+                                </div>
+                                <div>
+                                    <div class="label">Exact Resolution(s):</div>
+                                    <input type="text" data-id="wallhavenExactResolution" placeholder="1920x1080,1920x1200">
+                                </div>
+                                <div>
+                                    <div class="label">Ratios:</div>
+                                    <input type="text" data-id="wallhavenRatios" placeholder="16x9,16x10">
                                 </div>
                             </div>
                             <div>
-                                <div class="label">Section:</div>
-                                <select data-id="redditSection">
-                                    <option value="hot">Hot</option>
-                                    <option value="new">New</option>
-                                    <option value="rising">Rising</option>
-                                    <option value="controversial">Controversial</option>
-                                    <option value="top">Top</option>
-                                    <option value="gilded">Gilded</option>
-                                </select>
-                            </div>
-                            <div>
-                                <div class="label">Find images in last:</div>
-                                <select data-id="redditTime">
-                                    <option value="hour">Hour</option>
-                                    <option value="day">Day</option>
-                                    <option value="week">Week</option>
-                                    <option value="month">Month</option>
-                                    <option value="year">Year</option>
-                                    <option value="all">Forever</option>
-                                </select>
-                            </div>
-                            <div>
-                                <div class="label">Prefer Image Orientation:</div>
-                                <select data-id="imageOrientation">
-                                    <option value="any">Any</option>
-                                    <option value="landscape">Landscape</option>
-                                    <option value="portrait">Portrait</option>
-                                </select>
+                                <div class="label">Colors:</div>
+                                <div class="flex wrap" data-id="wallhavenColorsGrid" style="gap: 8px 12px"></div>
                             </div>
                         </div>
                     </div>
                     <div class="bottomButtons">
                         <button class="btn" data-id="deleteBackgroundBtn">Delete Background</button>
-                        <button class="btn" data-id="subredditRerollBtn">Reroll Background</button>
+                        <button class="btn" data-id="remoteApiBgRerollBtn">Reroll Background</button>
                     </div>
                 </div>
                 <div class="backgroundSelector" data-id="backgroundSelector">
@@ -164,7 +203,7 @@
             <div class="desktopUiRight">
                 <div class="flex spaceHori">
                     <button class="btn" data-id="addBackgroundBtn">Add Background</button>
-                    <button class="btn" data-id="addSubredditRandomizerBtn">Add Subreddit Randomizer</button>
+                    <button class="btn" data-id="addWallhavenRandomizerBtn">Add Wallhaven Randomizer</button>
                 </div>
                 <button class="applyBtn btn" data-id="applyBtn">Close</button>
             </div>
@@ -190,27 +229,47 @@
         ui.userBackgroundsSection.appendChild(newBgTile);
     };
 
-    const createSubredditRandomizer = async () => {
-        const subreddits = await prompt(
-            'Subreddit Randomizer',
-            'This is a special background that randomly selects images from subreddits of your choice. Type a ' +
-            'comma separated list of one or more subreddits.<br>' +
-            '<a href="https://old.reddit.com/r/sfwpornnetwork/wiki/network" target="_blank" rel="noopener noreferrer">Subreddit Suggestions</a>',
+    const createWallhavenColors = () => {
+        const colors = [
+            "660000", "990000", "cc0000", "cc3333", "ea4c88", "993399", "663399", "333399", "0066cc", "0099cc",
+            "66cccc", "77cc33", "669900", "336600", "666600", "999900", "cccc33", "ffff00", "ffcc33", "ff9900",
+            "ff6600", "cc6633", "996633", "663300", "000000", "999999", "cccccc", "ffffff", "424153"
+        ];
+        colors.forEach((color) => {
+            const colorButton = markupToElement(`
+                <label class="wallhavenColorBtn"><input type="checkbox" data-color="${color}"></label>
+            `);
+            colorButton.style.background = '#' + color;
+            ui.wallhavenColorsGrid.appendChild(colorButton);
+        });
+    };
+    createWallhavenColors();
+
+    const createWallhavenRandomizer = async () => {
+        const hasWallhavenApiAccess = await requestOriginPermission(
+            "https://wallhaven.cc/",
+            "Super Bookmark Desktop needs access to the Wallhaven API to use this feature. If you click 'Grant Permission' below, your browser will ask for your permission."
+        );
+        if (!hasWallhavenApiAccess) {
+            return;
+        }
+
+        const query = await prompt(
+            'Wallhaven Randomizer',
+            'This is a special background that randomly selects images from <a href="https://wallhaven.cc/" target="_blank">wallhaven.cc</a>. Type a ' +
+            'wallhaven search query below.<br>',
             {
-                placeholder: 'Wallpaper, EarthPorn'
+                placeholder: 'nature'
             }
         );
-        if (subreddits) {
-            const subArr = subreddits.split(',').map(sub => sub.trim().replace(/.*r\/|\/$/ig, ''));
-            const newBg = createSubredditRandomizerBg(subArr);
-
-            let imageUrls = await fetchRedditImages(newBg.subreddits, newBg.redditOptions);
+        if (query) {
+            const newBg = createWallhavenRandomizerBg(query);
+            let imageUrls = await fetchWallhavenImages(newBg);
 
             const pickRandomImage = async () => {
                 const imageObj = imageUrls[randomInt(0, imageUrls.length - 1)];
                 newBg.image = imageObj.url;
-                newBg.redditOptions.title = imageObj.title;
-                newBg.redditOptions.link = imageObj.link;
+                newBg.link = imageObj.link;
                 const img = await loadImage(newBg.image);
                 const screenIsWide = window.innerWidth > window.innerHeight;
                 const imageIsWide = img.width > img.height;
@@ -220,19 +279,8 @@
             if (imageUrls.length > 0) {
                 await pickRandomImage();
             } else {
-                const allowNSFW = await app.confirm(
-                    "No backgrounds were found. Do you want to allow NSFW (mature) content and try again? Otherwise, check spelling or your internet connection.",
-                    [{text: "Allow NSFW", value: true}, {text: "Cancel", value: false, default: true}]
-                );
-                if (allowNSFW) {
-                    newBg.redditOptions.nsfw = true;
-                    imageUrls = await fetchRedditImages(newBg.subreddits, newBg.redditOptions);
-                    if (imageUrls.length > 0) {
-                        await pickRandomImage();
-                    } else {
-                        app.confirm("No backgrounds were found. Check spelling or your internet connection.", [{text: "OK", default: true}]);
-                    }
-                }
+                app.confirm("No backgrounds were found. Check spelling or your internet connection.");
+                return;
             }
             app.data.backgrounds.push(newBg);
             saveData();
@@ -277,9 +325,10 @@
         ui.pageSizeRatio.style.width = previewWidth + 'px';
         ui.pageSizeRatio.style.height = previewHeight + 'px';
 
-        if (bg.redditOptions) {
-            ui.bgLink.href = bg.redditOptions.link;
-            ui.bgLink.textContent = bg.redditOptions.title;
+        const bgLinkData = remoteApiBGFunctions[bg.subType]?.getBgLink?.(bg) ?? {};
+        if (bgLinkData.link && bgLinkData.title) {
+            ui.bgLink.href = bgLinkData.link;
+            ui.bgLink.textContent = bgLinkData.title;
         } else {
             ui.bgLink.textContent = '';
         }
@@ -295,7 +344,7 @@
             const ratio = previewWidth / window.innerWidth;
             ui.previewBG.style.backgroundSize = `${ratio * tempImg.width}px ${ratio * tempImg.height}px`;
         }
-        updateBackground(bg, bg.type === 'subredditRandomizer');
+        updateBackground(bg, bg.type === 'remoteApi');
     };
 
     const updateInputs = (bgid = currentBgId) => {
@@ -303,22 +352,49 @@
         ui.bgColor.style.background = bg.color;
         ui.filterColor.style.background = bg.filter;
         ui.inRotation.checked = bg.selected;
-        ui.bgMode.value = bg.mode;
+        ui.bgMode.value = bg.smartFit ? 'auto' : bg.mode;
         ui.bgRotateTime.value = app.data.rotateMinutes;
         ui.bgShuffle.checked = app.data.random;
         ui.deleteBackgroundBtn.disabled = bg.default;
 
-        if (bg.type === 'subredditRandomizer') {
-            ui.subredditOptions.style.display = 'block';
-            ui.subredditRerollBtn.style.display = 'block';
-            ui.redditSmartFit.checked = bg.smartFit;
-            ui.redditNSFW.checked = bg.redditOptions.nsfw;
-            ui.redditSection.value = bg.redditOptions.section;
-            ui.redditTime.value = bg.redditOptions.time;
-            ui.imageOrientation.value = bg.redditOptions.imageOrientation;
-        } else {
-            ui.subredditOptions.style.display = 'none';
-            ui.subredditRerollBtn.style.display = 'none';
+        document.querySelectorAll('.remoteApiOptions').forEach((el) => {
+            el.style.display = 'none';
+        });
+        ui.remoteApiBgRerollBtn.style.display = 'none';
+
+        if (bg.type === 'remoteApi') {
+            const optionsId = `${bg.subType}Options`;
+            if (ui[optionsId]) {
+                ui[optionsId].style.display = 'block';
+            } else {
+                console.warn('No remote api options for', bg.subType);
+            }
+
+            const rerollFunc = remoteApiBGFunctions[bg.subType]?.rerollBg;
+            if (rerollFunc) {
+                ui.remoteApiBgRerollBtn.style.display = 'block';
+            }
+        }
+
+
+        if (bg.subType === 'wallhavenRandomizer') {
+            ui.wallhavenQuery.value = bg.queryParams.q;
+            ui.wallhavenCategoryGeneral.checked = bg.queryParams.categories[0] === '1';
+            ui.wallhavenCategoryAnime.checked = bg.queryParams.categories[1] === '1';
+            ui.wallhavenCategoryPeople.checked = bg.queryParams.categories[2] === '1';
+            ui.wallhavenPuritySfw.checked = bg.queryParams.purity[0] === '1';
+            ui.wallhavenPuritySketchy.checked = bg.queryParams.purity[1] === '1';
+            ui.wallhavenPurityNsfw.checked = bg.queryParams.purity[2] === '1';
+            ui.wallhavenSort.value = bg.queryParams.sorting;
+            ui.wallhavenOrder.value = bg.queryParams.order;
+            ui.wallhavenTopRangeContainer.style.display = bg.queryParams.sorting === 'toplist' ? 'block' : 'none';
+            ui.wallhavenTopRange.value = bg.queryParams.topRange;
+            ui.wallhavenMinResolution.value = bg.queryParams.atleast;
+            ui.wallhavenExactResolution.value = bg.queryParams.resolutions.join(', ');
+            ui.wallhavenRatios.value = bg.queryParams.ratios.join(', ');
+            ui.wallhavenColorsGrid.querySelectorAll('input').forEach((el) => {
+                el.checked = (bg.queryParams.colors || []).includes(el.dataset.color);
+            });
         }
     };
 
@@ -354,7 +430,7 @@
         close();
     };
     ui.addBackgroundBtn.addEventListener('click', loadDesktopFromDisk);
-    ui.addSubredditRandomizerBtn.addEventListener('click', createSubredditRandomizer);
+    ui.addWallhavenRandomizerBtn.addEventListener('click', createWallhavenRandomizer);
     ui.applyBtn.addEventListener('click', apply);
     window.addEventListener('keydown', function(e) {
         if (modalOpen) {
@@ -415,27 +491,27 @@
         colorPicker.setColor(parseInt(rgb[0]), parseInt(rgb[1]), parseInt(rgb[2]));
         const currentBg = getBackground(currentBgId);
 
-        colorPicker.onChange((color) => {
+        colorPicker.onChange(debounce((color) => {
             const hex = '#' + pad(color.r.toString(16), 2) + pad(color.g.toString(16), 2) +
                 pad(color.b.toString(16), 2);
             ui.bgColor.style.background = hex;
             currentBg.color = hex;
             changeBackgroundPreview();
-        });
+        }, 20));
     });
 
     ui.filterColor.addEventListener('click', (e) => {
         const colorPicker = setupColorPicker(e, ui.filterColor, true);
-        const rgb = ui.filterColor.style.background.match(/[0-9\.]+/g);
+        const rgb = ui.filterColor.style.background.match(/[0-9.]+/g);
         colorPicker.setColor(parseInt(rgb[0]), parseInt(rgb[1]), parseInt(rgb[2]), parseFloat(rgb[3]));
         const currentBg = getBackground(currentBgId);
 
-        colorPicker.onChange((color) => {
+        colorPicker.onChange(debounce((color) => {
             const colorStr = `rgba(${color.r},${color.g},${color.b},${color.a})`;
             ui.filterColor.style.background = colorStr;
             currentBg.filter = colorStr;
             changeBackgroundPreview();
-        });
+        }, 20));
     });
 
     ui.inRotation.addEventListener('change', () => {
@@ -450,77 +526,141 @@
 
     ui.bgMode.addEventListener('change', () => {
         const currentBg = getBackground(currentBgId);
-        currentBg.mode = ui.bgMode.value;
+        if (ui.bgMode.value === 'auto') {
+            currentBg.smartFit = true;
+            currentBg.mode = 'fill';
+        } else {
+            currentBg.smartFit = false;
+            currentBg.mode = ui.bgMode.value;
+        }
         changeBackgroundPreview();
         saveData();
         chrome.runtime.sendMessage({action: 'reload'});
     });
 
-    ui.editSubredditsBtn.addEventListener('click', async () => {
+    ui.wallhavenQuery.addEventListener('change', () => {
         const currentBg = getBackground(currentBgId);
-        const subreddits = await prompt(
-            'Edit Subreddits',
-            'This is a special background that randomly selects images from subreddits of your choice. Type a ' +
-            'comma separated list of one or more subreddits.<br>' +
-            '<a href="https://old.reddit.com/r/sfwpornnetwork/wiki/network" target="_blank" rel="noopener noreferrer">Subreddit Suggestions</a>',
-            {
-                placeholder: 'Wallpaper, EarthPorn',
-                value: currentBg.subreddits.join(', ')
-            }
+        currentBg.queryParams.q = ui.wallhavenQuery.value.trim();
+        saveData();
+        chrome.runtime.sendMessage({action: 'reload'});
+    });
+
+    ui.wallhavenQueryInfo.addEventListener('click', () => {
+        app.confirm(
+            'Typing one keyword works best. Use `+` just before keywords to require multiple. Use `-` just before keywords to exclude. ' +
+            'See <a href="https://wallhaven.cc/help/api#search" target="_blank">here</a> for the full query documentation.'
         );
-        if (subreddits) {
-            currentBg.subreddits = subreddits.split(',').map(sub => sub.trim().replace(/.*r\/|\/$/ig, ''));
-            const imageUrls = await fetchRedditImages(currentBg.subreddits, currentBg.redditOptions);
-            if (imageUrls.length === 0) {
-                app.confirm("No backgrounds found. Check spelling or change filtering options when editing background.", [{text: "OK", default: true}]);
+    });
+
+    const makeBitCheckboxOnChange = param => (e) => {
+        const checkbox = e.currentTarget;
+        const currentBg = getBackground(currentBgId);
+        const bits = currentBg.queryParams[param]?.split('');
+        bits[checkbox.dataset.bitidx] = checkbox.checked ? "1" : "0";
+        currentBg.queryParams[param] = bits.join('');
+        saveData();
+        chrome.runtime.sendMessage({action: 'reload'});
+    };
+    const wallhavenCategoryOnChange = makeBitCheckboxOnChange('categories');
+    const wallhavenPurityOnChange = makeBitCheckboxOnChange('purity');
+    ui.wallhavenCategoryGeneral.addEventListener('change', wallhavenCategoryOnChange);
+    ui.wallhavenCategoryAnime.addEventListener('change', wallhavenCategoryOnChange);
+    ui.wallhavenCategoryPeople.addEventListener('change', wallhavenCategoryOnChange);
+    ui.wallhavenPuritySfw.addEventListener('change', wallhavenPurityOnChange);
+    ui.wallhavenPuritySketchy.addEventListener('change', wallhavenPurityOnChange);
+    ui.wallhavenPurityNsfw.addEventListener('change', async (e) => {
+        const checkbox = e.currentTarget;
+        if (checkbox.checked && !localStorage.wallhavenApiKey) {
+            const key = await prompt(
+                'Wallhaven Api Key',
+                'To get Wallhaven NSFW wallpapers, you must have a Wallhaven account and API key. Go to ' +
+                    '<a href="https://wallhaven.cc/settings/account" target="_blank">your wallhaven account</a> ' +
+                    'to get one and enter it below.',
+                {
+                    placeholder: 'Wallhaven API Key'
+                }
+            );
+            if (!key) {
+                checkbox.checked = false;
+                return;
             }
+            localStorage.wallhavenApiKey = key;
+        }
+        wallhavenPurityOnChange({ ...e, currentTarget: checkbox });
+    });
+
+    ui.wallhavenSort.addEventListener('change', () => {
+        const currentBg = getBackground(currentBgId);
+        currentBg.queryParams.sorting = ui.wallhavenSort.value;
+        ui.wallhavenTopRangeContainer.style.display = ui.wallhavenSort.value === 'toplist' ? 'block' : 'none';
+        saveData();
+        chrome.runtime.sendMessage({action: 'reload'});
+    });
+
+    ui.wallhavenOrder.addEventListener('change', () => {
+        const currentBg = getBackground(currentBgId);
+        currentBg.queryParams.order = ui.wallhavenOrder.value;
+        saveData();
+        chrome.runtime.sendMessage({action: 'reload'});
+    });
+
+    ui.wallhavenTopRange.addEventListener('change', () => {
+        const currentBg = getBackground(currentBgId);
+        currentBg.queryParams.topRange = ui.wallhavenTopRange.value;
+        saveData();
+        chrome.runtime.sendMessage({action: 'reload'});
+    });
+
+    ui.wallhavenMinResolution.addEventListener('change', () => {
+        const currentBg = getBackground(currentBgId);
+        currentBg.queryParams.atleast = ui.wallhavenMinResolution.value.trim();
+        saveData();
+        chrome.runtime.sendMessage({action: 'reload'});
+    });
+
+    ui.wallhavenExactResolution.addEventListener('change', () => {
+        const currentBg = getBackground(currentBgId);
+        currentBg.queryParams.resolutions = ui.wallhavenExactResolution.value.trim().split(/\s*,\s*/);
+        saveData();
+        chrome.runtime.sendMessage({action: 'reload'});
+    });
+
+    ui.wallhavenRatios.addEventListener('change', () => {
+        const currentBg = getBackground(currentBgId);
+        currentBg.queryParams.ratios = ui.wallhavenRatios.value.trim().split(/\s*,\s*/);
+        saveData();
+        chrome.runtime.sendMessage({action: 'reload'});
+    });
+
+    ui.wallhavenColorsGrid.querySelectorAll('input').forEach((el) => {
+        el.addEventListener('change', (e) => {
+            const targetColor = e.target?.dataset?.color;
+            if (targetColor) {
+                const currentBg = getBackground(currentBgId);
+                const colorsArr = currentBg.queryParams.colors || [];
+                if (e.target.checked) {
+                    colorsArr.push(targetColor);
+                    currentBg.queryParams.colors = colorsArr;
+                } else {
+                    currentBg.queryParams.colors = colorsArr.filter(color => color !== targetColor);
+                }
+                saveData();
+                chrome.runtime.sendMessage({action: 'reload'});
+            }
+        });
+    });
+
+    ui.remoteApiBgRerollBtn.addEventListener('click', async () => {
+        const currentBg = getBackground(currentBgId);
+        const rerollFunc = remoteApiBGFunctions[currentBg.subType]?.rerollBg;
+        if (rerollFunc) {
+            await rerollFunc(currentBg, { manual: true });
             saveData();
             chrome.runtime.sendMessage({action: 'reload'});
             app.rerenderDesktopProperties();
+        } else {
+            console.warn('No reroll function for', currentBg.subType);
         }
-    });
-
-    ui.redditSmartFit.addEventListener('change', () => {
-        const currentBg = getBackground(currentBgId);
-        currentBg.smartFit = ui.redditSmartFit.checked;
-        saveData();
-        chrome.runtime.sendMessage({action: 'reload'});
-    });
-
-    ui.redditNSFW.addEventListener('change', () => {
-        const currentBg = getBackground(currentBgId);
-        currentBg.redditOptions.nsfw = ui.redditNSFW.checked;
-        saveData();
-        chrome.runtime.sendMessage({action: 'reload'});
-    });
-
-    ui.redditSection.addEventListener('change', () => {
-        const currentBg = getBackground(currentBgId);
-        currentBg.redditOptions.section = ui.redditSection.value;
-        saveData();
-        chrome.runtime.sendMessage({action: 'reload'});
-    });
-
-    ui.redditTime.addEventListener('change', () => {
-        const currentBg = getBackground(currentBgId);
-        currentBg.redditOptions.time = ui.redditTime.value;
-        saveData();
-        chrome.runtime.sendMessage({action: 'reload'});
-    });
-
-    ui.imageOrientation.addEventListener('change', () => {
-        const currentBg = getBackground(currentBgId);
-        currentBg.redditOptions.imageOrientation = ui.imageOrientation.value;
-        saveData();
-        chrome.runtime.sendMessage({action: 'reload'});
-    });
-
-    ui.subredditRerollBtn.addEventListener('click', async () => {
-        const currentBg = getBackground(currentBgId);
-        await rerollSubredditRandomizerBG(currentBg);
-        saveData();
-        chrome.runtime.sendMessage({action: 'reload'});
-        app.rerenderDesktopProperties();
     });
 
     const deleteBackground = async (idToDelete = currentBgId) => {

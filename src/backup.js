@@ -125,6 +125,7 @@
             hideBookmarkSearchButton: localStorage.hideBookmarkSearchButton,
             openedWindows: openedWindows.length ? openedWindows : undefined,
             useDoubleClicks: localStorage.useDoubleClicks,
+            wallhavenApiKey: localStorage.wallhavenApiKey,
             backgrounds: appData.backgrounds,
             random: appData.random,
             rotateMinutes: appData.rotateMinutes,
@@ -158,30 +159,54 @@
     };
 
     const syncBackgroundSettings = (incomingBackgrounds, existingData) => {
-        const existingBackgrounds = existingData.backgrounds;
-        const incomingSubredditRandIds = {};
-        incomingBackgrounds.forEach(bgData => {
-            if (bgData.type === 'subredditRandomizer') {
-                const newBgSubredditsString = (bgData.subreddits || []).join('|');
-                incomingSubredditRandIds[newBgSubredditsString] = true;
-                const existingSubredditBg = existingBackgrounds.find(bg => bg.type === 'subredditRandomizer' &&
-                    (bg.subreddits || []).join('|') === newBgSubredditsString);
-                if (!existingSubredditBg) {
-                    let newBg = util.createSubredditRandomizerBg(bgData.subreddits);
-                    newBg = { ...newBg, ...bgData, id: newBg.id, default: false, type: 'subredditRandomizer' };
-                    existingBackgrounds.push(newBg);
-                } else {
-                    Object.assign(existingSubredditBg,
-                        { ...bgData, id: existingSubredditBg.id, default: false, type: 'subredditRandomizer' });
-                }
-            } else if (bgData.default) {
-                const existingSubredditBg = existingBackgrounds.find(bg => bg.image === bgData.image) || {};
-                Object.assign(existingSubredditBg,
-                    { ...bgData, id: existingSubredditBg.id, default: true, type: 'image' });
+        const { backgrounds: updatedIncomingBackgrounds } = util.updateLegacySubredditRandomizerBgs({ backgrounds: incomingBackgrounds });
+        const existingBackgrounds = existingData.backgrounds ?? [];
+        const existingBgHashMap = new Map();
+        existingBackgrounds.forEach(bg => {
+            const hashFunc = util.remoteApiBGFunctions[bg.subType]?.computeHash;
+            if (hashFunc) {
+                const hashResult = hashFunc(bg);
+                existingBgHashMap.set(hashResult, bg);
+                existingBgHashMap.set(bg, hashResult);
             }
         });
-        existingData.backgrounds = existingBackgrounds.filter(bg => bg.type !== 'subredditRandomizer' ||
-            incomingSubredditRandIds[(bg.subreddits || []).join('|')]);
+        const incomingBgHashSet = new Set();
+        updatedIncomingBackgrounds.forEach(bgData => {
+            const hashFunc = util.remoteApiBGFunctions[bgData.subType]?.computeHash;
+            let incomingBgHash = null;
+            if (hashFunc) {
+                incomingBgHash = hashFunc(bgData);
+                incomingBgHashSet.add(incomingBgHash);
+            }
+
+            if (incomingBgHash) {
+                // we may need to merge with an existing bg
+                const existingBg = existingBgHashMap.get(incomingBgHash);
+                if (existingBg) {
+                    Object.assign(existingBg, { ...bgData, id: existingBg.id, default: false });
+                } else {
+                    let newBg = util.createBG();
+                    newBg = { ...newBg, ...bgData, id: newBg.id, default: false };
+                    existingBackgrounds.push(newBg);
+                    existingBgHashMap.set(incomingBgHash, newBg);
+                    existingBgHashMap.set(newBg, incomingBgHash);
+                }
+            } else if (bgData.default) {
+                const existingBg = existingBackgrounds.find(bg => bg.image === bgData.image) || {};
+                if (existingBg) {
+                    Object.assign(existingBg,
+                        { ...bgData, id: existingBg.id, default: true, type: 'image' });
+                }
+            }
+        });
+        // We use this to filter out existing bgs that don't exist in the incoming data
+        existingData.backgrounds = existingBackgrounds.filter(bg => {
+            if (bg.type === 'remoteApi') {
+                const existingHash = existingBgHashMap.get(bg);
+                return existingHash ? !!incomingBgHashSet.has(existingHash) : false;
+            }
+            return true;
+        });
     };
 
     backup.loadBrowserSyncData = async () => {
@@ -194,6 +219,7 @@
             localStorage.hideBookmarksBarBookmarks = data.hideBookmarksBarBookmarks || '';
             localStorage.hideBookmarkSearchButton = data.hideBookmarkSearchButton || '';
             localStorage.useDoubleClicks = data.useDoubleClicks || '';
+            localStorage.wallhavenApiKey = data.wallhavenApiKey || '';
 
             const bookmarkHashToBookmark = await makeBookmarkHashToBookmarkMap();
             (data.openedWindows || []).forEach(openedWindow => {
@@ -221,7 +247,7 @@
                 localData.locations[`${pos.x},${pos.y}`] = key;
             });
 
-            // import subreddit randomizer backgrounds and settings for default bgs
+            // import randomizer backgrounds and settings for default bgs
             localData.backgrounds = localData.backgrounds || [];
             syncBackgroundSettings(data.backgrounds || [], localData);
 
@@ -361,7 +387,7 @@
 
         const backupLine = getNextLineString();
         if (!backupLine.startsWith('sbdbackup:')) {
-            await app.confirm('Invalid backup file!', [{ text: 'OK', default: true }]);
+            await app.confirm('Invalid backup file!');
             return;
         }
         // const backupVersion = backupLine.split(':')[1];
@@ -455,7 +481,7 @@
             cursor++;
         }
 
-        // import subreddit randomizer backgrounds and settings for default bgs
+        // import randomizer backgrounds and settings for default bgs
         syncBackgroundSettings(importedBackgroundData, data);
 
         // fill in location data
@@ -474,10 +500,9 @@
             backup.saveBrowserSyncData();
             app.confirm('Import complete!', [{ text: 'Awesome', default: true }]);
         } else if (numSectionsVisited === 0) {
-            app.confirm('Import failed! Bad backup file?', [{ text: 'OK', default: true }]);
+            app.confirm('Import failed! Bad backup file?');
         } else {
-            app.confirm('Import incomplete! Only some things were able to be imported.',
-                [{ text: 'OK', default: true }]);
+            app.confirm('Import incomplete! Only some things were able to be imported.');
         }
     };
 

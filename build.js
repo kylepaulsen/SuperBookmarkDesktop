@@ -1,16 +1,16 @@
 const fs = require('fs');
 const path = require('path');
 
-const uglify = require('uglify-es');
-const rimraf = require('rimraf');
+const uglify = require('uglify-js');
+const { rimrafSync } = require('rimraf');
 const ncp = require('ncp').ncp;
 const CleanCSS = require('clean-css');
 
 const buildDir = 'dist';
 
 try {
-    rimraf.sync('./' + buildDir);
-} catch(e) {}
+    rimrafSync('./' + buildDir);
+} catch {}
 
 fs.mkdirSync('./' + buildDir);
 

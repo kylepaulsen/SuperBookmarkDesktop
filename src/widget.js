@@ -25,7 +25,7 @@
     };
 
     const createWidget = (url, x, y, width = 400, height = 412, remember = true) => {
-        if (!url.match(/.+\:\/\//) && !url.startsWith('./')) {
+        if (!url.match(/.+:\/\//) && !url.startsWith('./')) {
             url = 'http://' + url;
         }
         const win = app.makeWindow('', x, y, width, height);
@@ -102,7 +102,6 @@
             <p>Default Widgets:</p>
             <div class="defaultWidgets">
                 <img src="widgets/clock/icon.png" data-url="./widgets/clock/index.html" title="Clock">
-                <img src="widgets/reddit/icon.png" data-url="./widgets/reddit/index.html" title="Reddit">
             </div>
         </div>
     `;

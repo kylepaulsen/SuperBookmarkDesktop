@@ -118,7 +118,7 @@
             let actualData = '';
             try {
                 actualData = decodeURIComponent(escape(atob(base64Data)));
-            } catch (e) {}
+            } catch {}
             if (actualData.startsWith(dataStartString)) {
                 return actualData.replace(dataStartString, '');
             }

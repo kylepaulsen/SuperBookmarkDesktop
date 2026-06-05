@@ -44,6 +44,10 @@
                         <div><input type="checkbox" data-id="hideBookmarkSearchButton"></div>
                         <div>Hide bookmark search button</div>
                     </label>
+                    <div>
+                        <div class="label">Wallhaven API Key: <button class="infoBtn" data-id="wallhavenApiKeyInfo">?</button></div>
+                        <input type="text" data-id="wallhavenApiKeyInput" placeholder="Wallhaven API Key" style="width: 50%;">
+                    </div>
                     <div class="textareaContainer">
                         <div class="label">Custom Styles (CSS):</div>
                         <div>
@@ -377,6 +381,7 @@
             localStorage.hideBookmarkSearchButton = '';
         }
 
+        localStorage.wallhavenApiKey = ui.wallhavenApiKeyInput.value;
         localStorage.userStyles = ui.customCss.value;
         chrome.runtime.sendMessage({action: 'reloadOptions'});
         saveBrowserSyncData();
@@ -416,6 +421,8 @@
                 app.updateQuickSearchButton();
             }
         }
+
+        ui.wallhavenApiKeyInput.value = localStorage.wallhavenApiKey || '';
 
         const defaultCustomCss = '/*' + customCssPlaceholder.replace('/*', '').replace('*/', '') + '\n*/';
         ui.customCss.value = localStorage.userStyles || defaultCustomCss;
@@ -479,29 +486,27 @@
     };
     reopenWindows();
 
-    ui.windowCloseRight.addEventListener('change', () => {
+    const basicOptionsOnChange = () => {
         save();
         load();
-    });
+    };
 
+    ui.windowCloseRight.addEventListener('change', basicOptionsOnChange);
     ui.hideBookmarksBarBookmarks.addEventListener('change', () => {
         save();
         load(true);
     });
+    ui.useDoubleClicks.addEventListener('change', basicOptionsOnChange);
+    ui.hideBookmarkSearchButton.addEventListener('change', basicOptionsOnChange);
+    ui.wallhavenApiKeyInput.addEventListener('change', basicOptionsOnChange);
+    ui.customCss.addEventListener('change', basicOptionsOnChange);
 
-    ui.useDoubleClicks.addEventListener('change', () => {
-        save();
-        load();
-    });
-
-    ui.hideBookmarkSearchButton.addEventListener('change', () => {
-        save();
-        load();
-    });
-
-    ui.customCss.addEventListener('change', () => {
-        save();
-        load();
+    ui.wallhavenApiKeyInfo.addEventListener('click', () => {
+        app.confirm(
+            'A Wallhaven API key can be used to enforce wallpaper search preferences. It also allows searches for ' +
+            'NSFW wallpapers. To get one, go to <a href="https://wallhaven.cc/settings/account" target="_blank">' +
+            'your wallhaven account</a>.'
+        );
     });
 
     let overwriteBtnOldText = ui.enableBrowserSyncAndOverwriteButton.textContent;

@@ -25,7 +25,6 @@
     };
 
     let fullIconWidth;
-    // eslint-disable-next-line max-statements
     const arrowKeysHandler = e => {
         e.preventDefault();
         const activeWindowIconArea = document.querySelector('.window.active .iconArea');
@@ -169,8 +168,10 @@
                 deselectAll();
                 return;
             }
-            const activeWindowCloseBtn = document.querySelector('.window.active .close');
-            if (activeWindowCloseBtn) {
+            const activeWindow = document.querySelector('.window.active');
+            const activeWindowCloseBtn = activeWindow.querySelector('.close');
+            if (activeWindowCloseBtn && !activeWindow.classList.contains('widget')) {
+                // only close windows that are not widgets with esc.
                 activeWindowCloseBtn.click();
             }
         },

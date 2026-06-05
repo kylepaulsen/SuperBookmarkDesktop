@@ -9,7 +9,7 @@
         while (!currentNode || currentNode.id !== '0') {
             try {
                 currentNode = (await app.getBookmarks((currentNode && currentNode.parentId) || id))[0];
-            } catch (e) {
+            } catch {
                 return;
             }
             if (currentNode.id !== '0') {

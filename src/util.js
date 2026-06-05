@@ -1,4 +1,4 @@
-/* global idbKeyval, app */
+/* global idbKeyval, app, chrome */
 {
     (['forEach', 'map', 'find', 'findIndex', 'includes', 'filter', 'slice']).forEach((func) => {
         NodeList.prototype[func] = Array.prototype[func];
@@ -32,13 +32,33 @@
         return Math.floor(Math.random() * (max - min + 1) + min);
     };
 
+    util.updateLegacySubredditRandomizerBgs = (data, updateStorage = false) => {
+        let madeChanges = false;
+        (data.backgrounds || []).forEach(bg => {
+            if (bg.type === 'subredditRandomizer') {
+                bg.type = 'remoteApi';
+                bg.subType = 'subredditRandomizer';
+                madeChanges = true;
+            }
+        });
+        if (data.background?.type === 'subredditRandomizer') {
+            data.background.type = 'remoteApi';
+            data.background.subType = 'subredditRandomizer';
+            madeChanges = true;
+        }
+        if (madeChanges && updateStorage) {
+            localStorage.data = JSON.stringify(data);
+        }
+        return data;
+    };
+
     let nextBgId = localStorage.nextBgId ? parseInt(localStorage.nextBgId) : undefined;
     const backgroundId2ObjectUrl = {};
     util.loadData = (loadImages = true) => {
         let data;
         try {
             data = JSON.parse(localStorage.data);
-        } catch (e) {
+        } catch {
             const backgrounds = app.defaultBackgrounds.map((bg) => util.createBG(bg, true));
             data = {
                 icons: {},
@@ -49,6 +69,8 @@
                 random: false
             };
         }
+
+        data = util.updateLegacySubredditRandomizerBgs(data, true);
 
         if (nextBgId === undefined) {
             // get max id
@@ -110,18 +132,23 @@
         };
     };
 
-    util.createSubredditRandomizerBg = (subreddits) => {
+    util.createWallhavenRandomizerBg = (query) => {
         const newBg = util.createBG();
-        newBg.type = 'subredditRandomizer';
-        newBg.subreddits = subreddits;
-        newBg.redditOptions = {
-            time: 'week',
-            section: 'top',
-            nsfw: false,
-            imageOrientation: 'any'
-        };
+        newBg.type = 'remoteApi';
+        newBg.subType = 'wallhavenRandomizer';
         newBg.smartFit = true;
-
+        newBg.queryParams = {
+            q: query,
+            categories: '111',
+            purity: '100',
+            sorting: 'toplist',
+            order: 'desc',
+            topRange: '1M',
+            atleast: '',
+            resolutions: [],
+            ratios: [],
+            colors: []
+        };
         return newBg;
     };
 
@@ -191,7 +218,7 @@
 
     util.loadUserBackgrounds = (data = app.data) => {
         return Promise.all(data.backgrounds.map((bg) => {
-            if (bg.default || bg.type === 'subredditRandomizer' || backgroundId2ObjectUrl[bg.id]) {
+            if (bg.default || bg.type === 'remoteApi' || backgroundId2ObjectUrl[bg.id]) {
                 return Promise.resolve();
             } else {
                 return util.getBgImageFromDB(bg.id)
@@ -313,7 +340,7 @@
             if (iconBlob) {
                 icon = URL.createObjectURL(iconBlob);
             }
-        } catch (e) {
+        } catch {
             return null;
         }
         iconObjectUrlCache[bookmark.id] = icon;
@@ -361,13 +388,18 @@
         localStorage.lastRotation = Date.now();
         const nextBg = util.getNextBgInCycle(localStorage.lastBgId, app.data.backgrounds, app.data.random);
         if (nextBg) {
-            const isSubredditRandomizer = nextBg.type === 'subredditRandomizer';
-            if (isSubredditRandomizer) {
-                await util.rerollSubredditRandomizerBG(nextBg);
+            const isRemoteApiBg = nextBg.type === 'remoteApi';
+            if (isRemoteApiBg) {
+                const rerollFunc = util.remoteApiBGFunctions[nextBg.subType]?.rerollBg;
+                if (rerollFunc) {
+                    await rerollFunc(nextBg);
+                } else {
+                    console.warn('No reroll function for', nextBg.subType);
+                }
             }
-            await util.updateBackground(nextBg, isSubredditRandomizer);
+            await util.updateBackground(nextBg, isRemoteApiBg);
             app.saveData();
-            if (isSubredditRandomizer && app.rerenderDesktopProperties) {
+            if (isRemoteApiBg && app.rerenderDesktopProperties) {
                 app.rerenderDesktopProperties();
             }
         }
@@ -413,7 +445,7 @@
             obj[key] = el.dataset[key];
             try {
                 obj[key] = JSON.parse(el.dataset[key]);
-            } catch (e) {}
+            } catch {}
         });
         return obj;
     };
@@ -642,7 +674,7 @@
             '`': '&#x60;',
             '=': '&#x3D;'
         };
-        return String(str).replace(/[&<>"'`=\/]/g, (s) => entityMap[s]);
+        return String(str).replace(/[&<>"'`=/]/g, (s) => entityMap[s]);
     };
 
     const markupToElementDiv = document.createElement('div');
@@ -651,74 +683,51 @@
         return markupToElementDiv.children[0];
     };
 
-    util.fetchRedditImages = async (subreddits, options = {}) => {
-        const section = options.section || 'hot'; // 'hot', 'new', 'rising', 'controversial', 'top', 'gilded'
-        const limit = options.limit || 100;
-        const time = options.time || 'day'; // 'hour', 'day', 'week', 'month', 'year', 'all'
-        const sort = options.sort || 'top';
-        const imageOrientation = options.imageOrientation || 'any';
-        const redditData = await fetch(`https://www.reddit.com/r/${subreddits.join('+')}/${section}.json?sort=${sort}&t=${time}&limit=${limit}`, { cache: 'no-cache' })
+    util.fetchWallhavenImages = async (bg) => {
+        const { queryParams } = bg;
+        const searchParams = new URLSearchParams();
+        Object.entries(queryParams).forEach(([key, value]) => {
+            if (Array.isArray(value)) {
+                const commaSeparated = value.join(',');
+                if (commaSeparated.length > 0) {
+                    searchParams.append(key, commaSeparated);
+                }
+            } else if (value) {
+                searchParams.append(key, value);
+            }
+        });
+        if (queryParams.sorting !== 'toplist') {
+            searchParams.delete('topRange');
+        }
+        if (localStorage.wallhavenApiKey) {
+            searchParams.append('apikey', localStorage.wallhavenApiKey);
+        }
+        const requestData = await fetch(`https://wallhaven.cc/api/v1/search?${searchParams.toString()}`, { cache: 'no-cache' })
             .then(r => r.json()).catch(() => null);
-        const identity = a => a;
-        const domainMapFunctions = {
-            'https://i.redd.it': identity,
-            'https://i.imgur.com': identity,
-            'https://imgur.com': url => url.replace('https://imgur.com/', 'https://i.imgur.com/') + '.jpg'
-        };
-        const allowedDomains = Object.keys(domainMapFunctions);
 
-        if (redditData && redditData.data) {
-            const allImages = (redditData.data.children || []).filter(c => {
-                const data = c.data || {};
-                const url = data.url || '';
-                const allowed = allowedDomains.some(d => {
-                    if (url.startsWith(d)) {
-                        data.url = domainMapFunctions[d](url);
-                        return true;
-                    }
-                    return false;
-                });
-                return allowed && (options.nsfw || (!data.over_18 && data.thumbnail !== 'nsfw'));
-            });
-            let filteredImages = allImages;
-            if (imageOrientation === 'landscape') {
-                filteredImages = allImages.filter(c => {
-                    const imageInfo = util.get(c, 'data.preview.images.0.source');
-                    return imageInfo && imageInfo.width >= imageInfo.height;
-                });
-            } else if (imageOrientation === 'portrait') {
-                filteredImages = allImages.filter(c => {
-                    const imageInfo = util.get(c, 'data.preview.images.0.source');
-                    return imageInfo && imageInfo.width <= imageInfo.height;
-                });
-            }
-            if (filteredImages.length === 0) {
-                filteredImages = allImages;
-            }
-            return filteredImages.map(c => {
-                const data = c.data || {};
+        if (requestData && requestData.data) {
+            const allImages = (requestData.data || []);
+            return allImages.map(imgObj => {
                 return {
-                    url: data.url || '',
-                    title: data.title || '',
-                    link: `https://reddit.com${data.permalink}`
+                    url: imgObj.path,
+                    title: '',
+                    link: imgObj.url
                 };
             });
         }
         return [];
     };
 
-    util.rerollSubredditRandomizerBG = async bgOrId => {
+    util.rerollWallhavenRandomizerBG = async (bgOrId, options = {}) => {
         const bg = util.getBackground(bgOrId.id || bgOrId);
-        if (bg.type !== "subredditRandomizer" || !bg.subreddits) {
+        if (!bg.queryParams) {
             return;
         }
-        const images = await util.fetchRedditImages(bg.subreddits, bg.redditOptions);
-
+        const images = await util.fetchWallhavenImages(bg);
         if (images.length) {
             const randomImage = images[util.randomInt(0, images.length - 1)];
             bg.image = randomImage.url;
-            bg.redditOptions.title = randomImage.title;
-            bg.redditOptions.link = randomImage.link;
+            bg.link = randomImage.link;
             if (bg.smartFit) {
                 const img = await util.loadImage(bg.image);
                 const screenIsWide = window.innerWidth > window.innerHeight;
@@ -726,7 +735,29 @@
                 bg.mode = screenIsWide !== imageIsWide ? 'fit' : 'fill';
             }
             localStorage.lastBgSrc = bg.image;
+        } else if (options.manual) {
+            await app.confirm('No images were returned. Your filter options may be too strict. Try removing colors or resolution constraints.');
         }
+    };
+
+    util.requestOriginPermission = async (origin, message) => {
+        const hasOriginAccess = await chrome.permissions.contains({
+            origins: [origin]
+        });
+        if (!hasOriginAccess) {
+            const buttons = [{text: "Cancel", value: false}, {text: "Grant Permission", value: true, default: true}];
+            const requestAccess = await app.confirm(message, buttons);
+            if (!requestAccess) {
+                return false;
+            }
+            const granted = await chrome.permissions.request({
+                origins: [origin]
+            });
+            if (!granted) {
+                return false;
+            }
+        }
+        return true;
     };
 
     util.get = (obj, path, def) => {
@@ -752,6 +783,32 @@
             hashNum >>>= 6;
         }
         return hash;
+    };
+
+    util.remoteApiBGFunctions = {
+        wallhavenRandomizer: {
+            createBG: util.createWallhavenRandomizerBg,
+            rerollBg: util.rerollWallhavenRandomizerBG,
+            fetchImages: util.fetchWallhavenImages,
+            renderBgInfo: bg => `
+                <div class="bgInfoTitle">Wallhaven Randomizer</div>
+                <div class="bgInfoDesc">${bg.queryParams?.q ?? ''}</div>
+            `,
+            getBgLink: bg => ({ link: bg.link, title: bg.link }),
+            computeHash: bg => util.simpleHash(`${bg.subType}|${bg.queryParams.q}`),
+        },
+        subredditRandomizer: {
+            createBG: () => {}, // not supported anymore
+            rerollBg: undefined, // not supported anymore
+            fetchImages: () => {}, // not supported anymore
+            // for legacy support
+            renderBgInfo: bg => `
+                <div class="bgInfoTitle">Subreddit Randomizer</div>
+                <div class="bgInfoDesc">${bg.subreddits.map(s => 'r/' + s).join(', ')}</div>
+            `,
+            getBgLink: bg => ({ link: bg.redditOptions?.link, title: bg.redditOptions?.title }),
+            computeHash: bg => util.simpleHash(`${bg.subType}|${(bg.subreddits || []).join('|')}`),
+        }
     };
 
     window.util = util;

@@ -11,6 +11,10 @@ html, body {
     transition: background-color 0.3s;
 }
 
+input, select {
+    height: 22px;
+}
+
 input[type=checkbox] {
     width: 18px;
     height: 18px;
@@ -28,9 +32,17 @@ input[type=checkbox]:focus {
     display: flex;
 }
 
+.wrap {
+    flex-wrap: wrap;
+}
+
 .flexCenter {
     justify-content: center;
     align-items: center;
+}
+
+.spaceBetween {
+    justify-content: space-between;
 }
 
 .spaceHori > *:not(:first-child) {
@@ -250,21 +262,27 @@ input[type=checkbox]:focus {
 
 .label {
     font-size: 12px;
+    font-weight: 500;
 }
 
 .backgroundUi {
     display: flex;
-    min-width: 600px;
     min-height: 150px;
-    width: 70vw;
-    height: 60vh;
+    max-width: 2000px;
+    width: 80vw;
+    height: 70vh;
+}
+
+@media (max-width: 1000px) {
+    .backgroundUi {
+        width: 94vw;
+    }
 }
 
 .backgroundProperties {
     flex: 1 1 30%;
     padding-right: 12px;
     border-bottom: 1px solid #000000;
-    overflow-y: auto;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -272,6 +290,11 @@ input[type=checkbox]:focus {
 
 .backgroundProperties select {
     width: 100%;
+}
+
+.backgroundPropertiesScroll {
+    overflow-y: auto;
+    flex: 1 1 0;
 }
 
 .preview {
@@ -332,15 +355,11 @@ input[type=checkbox]:focus {
     height: 18px;
 }
 
-.fitModes {
-    /* margin: 40px 0 10px 0; */
-}
-
-.subredditOptions {
+.remoteApiOptions {
     margin-top: 10px;
 }
 
-.subredditOptionsTitle {
+.remoteApiOptionsTitle {
     font-size: 16px;
     font-weight: bold;
     margin-bottom: 6px;
@@ -349,7 +368,7 @@ input[type=checkbox]:focus {
 .bottomButtons {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 10px;
+    margin: 10px 0;
 }
 
 .backgroundSelector {
@@ -385,6 +404,18 @@ input[type=checkbox]:focus {
     box-sizing: border-box;
     position: relative;
     cursor: pointer;
+}
+
+@media (max-width: 1400px) {
+    .bgTile {
+        flex: 0 0 33.33%;
+    }
+}
+
+@media (max-width: 800px) {
+    .bgTile {
+        flex: 0 0 50%;
+    }
 }
 
 .bgTile:hover .bgCheckbox {
@@ -501,6 +532,12 @@ input[type=checkbox]:focus {
     width: 330px;
 }
 
+.confirmModal.large {
+    width: auto;
+    max-width: 700px;
+    min-width: 400px;
+}
+
 .confirmMessage {
     font-size: 16px;
 }
@@ -535,6 +572,19 @@ input[type=checkbox]:focus {
 
 .defaultBtn:hover {
     background: #6AB0FF;
+}
+
+.linkBtn {
+    display: inline;
+    text-decoration: underline;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    outline: 0;
+    font-size: 16px;
+    color: #4D90FE;
 }
 
 .colorBtn {
@@ -818,7 +868,7 @@ input[type=checkbox]:focus {
 
 .textareaContainer textarea {
     width: 100%;
-    height: 200px;
+    height: 150px;
 }
 
 .updateMessage {
@@ -1083,4 +1133,97 @@ input[type=checkbox]:focus {
     justify-content: center;
     display: flex;
     align-items: center;
+}
+
+.unsupportedBg {
+    position: relative;
+    left: 6px;
+    bottom: 20%;
+    font-size: 14px;
+    color: #fff;
+}
+
+.infoBtn {
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    border: 1px solid #000000;
+    border-radius: 50%;
+    width: 13px;
+    height: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #000000;
+}
+
+.wallhavenGridOptions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+}
+
+.wallhavenGridOptions input, .wallhavenGridOptions select {
+    width: 100%;
+}
+
+@media (max-width: 1400px) {
+    .wallhavenGridOptions {
+        grid-template-columns: 1fr;
+    }
+}
+
+.wallhavenColorBtn {
+    width: 40px;
+    height: 20px;
+    cursor: pointer;
+    border: 1px solid #000;
+}
+
+.wallhavenColorBtn input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.wallhavenColorBtn:has(input:checked) {
+    border: 2px solid #4D90FE;
+    box-shadow: inset 0 0 0 2px #000, 2px 2px 4px 1px rgba(0, 0, 0, 0.7);
+}
+
+.toastContainer {
+    position: fixed;
+    top: 40px;
+    left: 50%;
+    min-width: 300px;
+    max-width: 450px;
+    width: 25vw;
+    transform: translateX(-50%);
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast {
+    position: relative;
+    pointer-events: auto;
+    background: rgba(255, 255, 255, 0.8);
+    color: #000;
+    padding: 18px 24px;
+    border: 1px solid #000;
+    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.5);
+    flex: 1 1 0;
+}
+
+.toastBar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #4D90FE;
 }

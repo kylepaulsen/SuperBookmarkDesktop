@@ -15,6 +15,9 @@
         "favicon",
         "storage"
     ],
+    "optional_host_permissions": [
+        "https://*.wallhaven.cc/"
+    ],
     "chrome_url_overrides": {
         "newtab": "index.html"
     },

@@ -7,7 +7,7 @@
     modalOverlay.dataset.display = 'flex';
     modalOverlay.innerHTML = `
         <div class="modal" data-id="modal">
-            <div class="confirmModal">
+            <div data-id="confirmModal" class="confirmModal">
                 <div class="confirmMessage" data-id="confirmMessage"></div>
                 <div class="confirmButtons" data-id="confirmButtons"></div>
             </div>
@@ -17,9 +17,14 @@
     const modal = ui.modal;
 
     let modalOpen = false;
-    const openModal = () => {
+    const openModal = ({ large }) => {
         modalOverlay.style.background = 'rgba(0, 0, 0, 0.5)';
         modal.style.background = '#ffffff';
+        if (large) {
+            ui.confirmModal.classList.add('large');
+        } else {
+            ui.confirmModal.classList.remove('large');
+        }
         show(modalOverlay);
         modalOpen = true;
     };
@@ -73,11 +78,18 @@
         }
     });
 
-    app.confirm = (message, buttons) => {
-        openModal();
+    const defaultButtons = [{ text: 'OK', default: true }];
+
+    app.confirm = (message, buttons = defaultButtons, options = {}) => {
+        openModal(options);
         return new Promise((res) => {
             currentResolve = res;
-            ui.confirmMessage.innerHTML = message;
+            if (typeof message === 'string') {
+                ui.confirmMessage.innerHTML = message;
+            } else {
+                ui.confirmMessage.innerHTML = '';
+                ui.confirmMessage.appendChild(message);
+            }
             ui.confirmButtons.innerHTML = buttons.map(makeButton).join('');
             ui.confirmButtons.style.justifyContent = buttons.length === 1 ? 'flex-end' : 'space-between';
             const defaultBtn = modal.querySelector('.defaultBtn');
