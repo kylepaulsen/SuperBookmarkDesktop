@@ -95,6 +95,23 @@
                     <div>
                         <h3 class="changelogTitle">Changelog</h3>
                         <div class="changelogEntry featured">
+                            <b>v1.6.0</b>
+                            <ul>
+                                <li>
+                                    <div>Features</div>
+                                    <ul>
+                                        <li><b>Added Wallhaven randomizer background type.</b></li>
+                                    </ul>
+                                    <div>Bug Fixes</div>
+                                    <ul>
+                                        <li>Removed subreddit randomizers and reddit widget. Reddit is blocking us from using their API. 😠</li>
+                                        <li>Reduced chrome background filter glitchiness.</li>
+                                        <li>Removed ability to close widgets with the escape key.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="changelogEntry">
                             <b>v1.5.2</b>
                             <ul>
                                 <li>
